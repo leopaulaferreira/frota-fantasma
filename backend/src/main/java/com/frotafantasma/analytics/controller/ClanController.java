@@ -1,7 +1,8 @@
-package com.frotafantasma.analytics.api;
+package com.frotafantasma.analytics.controller;
 
-import com.frotafantasma.analytics.api.dto.ClanMemberResponse;
-import com.frotafantasma.analytics.api.dto.ClanResponse;
+import com.frotafantasma.analytics.service.ClanService;
+import com.frotafantasma.analytics.dto.ClanMemberResponse;
+import com.frotafantasma.analytics.dto.ClanResponse;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

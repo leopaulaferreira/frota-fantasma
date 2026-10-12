@@ -1,7 +1,8 @@
-package com.frotafantasma.analytics.clash;
+package com.frotafantasma.analytics.client;
 
-import com.frotafantasma.analytics.clash.dto.ClanApiDto;
-import com.frotafantasma.analytics.clash.dto.ClanMembersApiDto;
+import com.frotafantasma.analytics.config.ClashRoyaleProperties;
+import com.frotafantasma.analytics.dto.clash.ClanApiDto;
+import com.frotafantasma.analytics.dto.clash.ClanMembersApiDto;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URLEncoder;

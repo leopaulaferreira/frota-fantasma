@@ -1,9 +1,7 @@
-package com.frotafantasma.analytics.clash.dto;
+package com.frotafantasma.analytics.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public record ClanApiDto(
+public record ClanResponse(
         String tag,
         String name,
         String description,
@@ -15,4 +13,3 @@ public record ClanApiDto(
         Integer members
 ) {
 }
-

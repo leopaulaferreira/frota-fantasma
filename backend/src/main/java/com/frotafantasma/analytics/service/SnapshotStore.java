@@ -1,7 +1,10 @@
-package com.frotafantasma.analytics.snapshot;
+package com.frotafantasma.analytics.service;
 
-import com.frotafantasma.analytics.clash.dto.ClanApiDto;
-import com.frotafantasma.analytics.clash.dto.ClanMemberApiDto;
+import com.frotafantasma.analytics.repository.ClanRepository;
+import com.frotafantasma.analytics.repository.ClanMemberRepository;
+import com.frotafantasma.analytics.mapper.ClanMapper;
+import com.frotafantasma.analytics.dto.clash.ClanApiDto;
+import com.frotafantasma.analytics.dto.clash.ClanMemberApiDto;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -19,7 +22,7 @@ public class SnapshotStore {
 
     @Transactional
     public void saveClan(ClanApiDto clan) {
-        clans.save(new ClanEntity(clan, Instant.now()));
+        clans.save(ClanMapper.toEntity(clan, Instant.now()));
     }
 
     @Transactional
@@ -27,7 +30,7 @@ public class SnapshotStore {
         Instant observedAt = Instant.now();
         members.deleteByClanTag(clanTag);
         members.saveAll(currentMembers.stream()
-                .map(member -> new ClanMemberEntity(clanTag, member, observedAt))
+                .map(member -> ClanMapper.toEntity(clanTag, member, observedAt))
                 .toList());
     }
 }

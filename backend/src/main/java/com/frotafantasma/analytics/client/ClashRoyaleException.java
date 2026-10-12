@@ -1,4 +1,4 @@
-package com.frotafantasma.analytics.clash;
+package com.frotafantasma.analytics.client;
 
 import org.springframework.http.HttpStatus;
 

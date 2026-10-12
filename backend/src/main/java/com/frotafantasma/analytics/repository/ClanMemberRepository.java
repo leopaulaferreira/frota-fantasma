@@ -1,5 +1,6 @@
-package com.frotafantasma.analytics.snapshot;
+package com.frotafantasma.analytics.repository;
 
+import com.frotafantasma.analytics.entity.ClanMemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

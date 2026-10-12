@@ -1,4 +1,4 @@
-package com.frotafantasma.analytics.clash.dto;
+package com.frotafantasma.analytics.dto.clash;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;

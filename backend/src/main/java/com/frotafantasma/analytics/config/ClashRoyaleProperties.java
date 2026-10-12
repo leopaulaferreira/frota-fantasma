@@ -1,4 +1,4 @@
-package com.frotafantasma.analytics.clash;
+package com.frotafantasma.analytics.config;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

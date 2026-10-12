@@ -1,6 +1,6 @@
-package com.frotafantasma.analytics.api;
+package com.frotafantasma.analytics.controller;
 
-import com.frotafantasma.analytics.clash.ClashRoyaleException;
+import com.frotafantasma.analytics.client.ClashRoyaleException;
 import java.net.URI;
 import java.time.Instant;
 import org.springframework.http.ProblemDetail;

@@ -1,13 +1,13 @@
-package com.frotafantasma.analytics.api;
+package com.frotafantasma.analytics.service;
 
-import com.frotafantasma.analytics.api.dto.ClanMemberResponse;
-import com.frotafantasma.analytics.api.dto.ClanResponse;
-import com.frotafantasma.analytics.clash.ClashRoyaleClient;
-import com.frotafantasma.analytics.clash.ClashRoyaleException;
-import com.frotafantasma.analytics.clash.ClashRoyaleProperties;
-import com.frotafantasma.analytics.clash.dto.ClanApiDto;
-import com.frotafantasma.analytics.clash.dto.ClanMembersApiDto;
-import com.frotafantasma.analytics.snapshot.SnapshotStore;
+import com.frotafantasma.analytics.mapper.ClanMapper;
+import com.frotafantasma.analytics.dto.ClanMemberResponse;
+import com.frotafantasma.analytics.dto.ClanResponse;
+import com.frotafantasma.analytics.client.ClashRoyaleClient;
+import com.frotafantasma.analytics.client.ClashRoyaleException;
+import com.frotafantasma.analytics.config.ClashRoyaleProperties;
+import com.frotafantasma.analytics.dto.clash.ClanApiDto;
+import com.frotafantasma.analytics.dto.clash.ClanMembersApiDto;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,7 @@ public class ClanService {
             throw invalidResponse();
         }
         snapshots.saveClan(clan);
-        return ClanResponse.from(clan);
+        return ClanMapper.toResponse(clan);
     }
 
     public List<ClanMemberResponse> getMembers() {
@@ -40,7 +40,7 @@ public class ClanService {
             throw invalidResponse();
         }
         snapshots.replaceMembers(properties.clanTag(), response.items());
-        return response.items().stream().map(ClanMemberResponse::from).toList();
+        return response.items().stream().map(ClanMapper::toResponse).toList();
     }
 
     private ClashRoyaleException invalidResponse() {

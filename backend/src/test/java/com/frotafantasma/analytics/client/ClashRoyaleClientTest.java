@@ -1,5 +1,6 @@
-package com.frotafantasma.analytics.clash;
+package com.frotafantasma.analytics.client;
 
+import com.frotafantasma.analytics.config.ClashRoyaleProperties;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
