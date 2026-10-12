@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: frota-fantasma-analytics
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/frota_fantasma}
+    username: ${DB_USERNAME:frota_fantasma}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+clash-royale:
+  base-url: ${CLASH_ROYALE_API_BASE_URL:https://api.clashroyale.com/v1}
+  clan-tag: '${CLAN_TAG:#RQJGC9GV}'
+  api-token: ${CLASH_ROYALE_API_TOKEN}
+
