@@ -3,6 +3,15 @@ package com.frotafantasma.analytics.client;
 import com.frotafantasma.analytics.config.ClashRoyaleProperties;
 import com.frotafantasma.analytics.dto.clash.ClanApiDto;
 import com.frotafantasma.analytics.dto.clash.ClanMembersApiDto;
+import com.frotafantasma.analytics.dto.clash.ClanMemberApiDto;
+import com.frotafantasma.analytics.dto.clash.PagingDto;
+import com.frotafantasma.analytics.dto.clash.RiverRaceDto;
+import com.frotafantasma.analytics.dto.clash.RiverLogDto;
+import com.frotafantasma.analytics.dto.clash.RiverLogEntryDto;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -59,6 +68,55 @@ public class ClashRoyaleClient {
 
     public ClanMembersApiDto getMembers() {
         return get(URI.create(clanUri + "/members"), ClanMembersApiDto.class);
+    }
+
+    public List<ClanMemberApiDto> getAllMembers(int maxPages) {
+        List<ClanMemberApiDto> items = new ArrayList<>();
+        Set<String> cursors = new HashSet<>();
+        String after = null;
+        for (int page = 0; page < maxPages; page++) {
+            ClanMembersApiDto response = get(pageUri("members", after), ClanMembersApiDto.class);
+            if (response.items() == null) throw invalidResponse();
+            items.addAll(response.items());
+            after = nextCursor(response.paging());
+            if (after == null) return items;
+            if (!cursors.add(after)) throw invalidResponse();
+        }
+        throw incompleteResponse();
+    }
+
+    public RiverRaceDto getCurrentRiverRace() {
+        return get(URI.create(clanUri + "/currentriverrace"), RiverRaceDto.class);
+    }
+
+    public List<RiverLogEntryDto> getRiverRaceLog(int maxPages) {
+        List<RiverLogEntryDto> items = new ArrayList<>();
+        Set<String> cursors = new HashSet<>();
+        String after = null;
+        for (int page = 0; page < maxPages; page++) {
+            RiverLogDto response = get(pageUri("riverracelog", after), RiverLogDto.class);
+            if (response.items() == null) throw invalidResponse();
+            items.addAll(response.items());
+            after = nextCursor(response.paging());
+            if (after == null) return items;
+            if (!cursors.add(after)) throw invalidResponse();
+        }
+        throw incompleteResponse();
+    }
+
+    private URI pageUri(String resource, String after) {
+        return URI.create(clanUri + "/" + resource + "?limit=50"
+                + (after == null ? "" : "&after=" + URLEncoder.encode(after, StandardCharsets.UTF_8)));
+    }
+
+    private String nextCursor(PagingDto paging) {
+        String after = paging == null || paging.cursors() == null ? null : paging.cursors().after();
+        return after == null || after.isBlank() ? null : after;
+    }
+
+    private ClashRoyaleException incompleteResponse() {
+        return new ClashRoyaleException(HttpStatus.BAD_GATEWAY, "INCOMPLETE_UPSTREAM_RESPONSE",
+                "A coleta excedeu o limite de páginas. Os dados anteriores foram preservados.");
     }
 
     private <T> T get(URI uri, Class<T> responseType) {
