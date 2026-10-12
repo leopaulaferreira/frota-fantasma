@@ -6,6 +6,7 @@ import com.frotafantasma.analytics.dto.ClanResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,12 +38,16 @@ public class ClanController {
 
     @GetMapping
     @Operation(summary = "Consultar o clã", description = "Consulta a API oficial e atualiza o último retrato persistido.")
+    @ApiResponse(responseCode = "200", description = "Dados atuais do clã", content = @Content(
+            mediaType = "application/json", schema = @Schema(implementation = ClanResponse.class)))
     public ClanResponse getClan() {
         return service.getClan();
     }
 
     @GetMapping("/members")
     @Operation(summary = "Listar membros atuais", description = "Consulta a API oficial e substitui a lista persistida de membros atuais.")
+    @ApiResponse(responseCode = "200", description = "Lista dos membros atuais", content = @Content(
+            mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ClanMemberResponse.class))))
     public List<ClanMemberResponse> getMembers() {
         return service.getMembers();
     }
