@@ -11,6 +11,7 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 @Component
@@ -91,6 +92,12 @@ public class ClashRoyaleClient {
                     "UPSTREAM_CONNECTION_ERROR",
                     "Não foi possível conectar à API do Clash Royale."
             );
+        } catch (RestClientException exception) {
+            throw new ClashRoyaleException(
+                    org.springframework.http.HttpStatus.BAD_GATEWAY,
+                    "INVALID_UPSTREAM_RESPONSE",
+                    "A API do Clash Royale retornou uma resposta inválida."
+            );
         }
     }
 
@@ -103,4 +110,3 @@ public class ClashRoyaleClient {
         return false;
     }
 }
-

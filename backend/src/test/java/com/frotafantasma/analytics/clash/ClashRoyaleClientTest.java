@@ -18,6 +18,7 @@ class ClashRoyaleClientTest {
     private final List<String> paths = new ArrayList<>();
     private final List<String> authorizationHeaders = new ArrayList<>();
     private int responseStatus = 200;
+    private String responseBodyOverride;
 
     @BeforeEach
     void startServer() throws IOException {
@@ -25,7 +26,8 @@ class ClashRoyaleClientTest {
         server.createContext("/", exchange -> {
             paths.add(exchange.getRequestURI().getRawPath());
             authorizationHeaders.add(exchange.getRequestHeaders().getFirst("Authorization"));
-            String body = exchange.getRequestURI().getPath().endsWith("/members")
+            String body = responseBodyOverride != null ? responseBodyOverride
+                    : exchange.getRequestURI().getPath().endsWith("/members")
                     ? "{\"items\":[{\"tag\":\"#PLAYER\",\"name\":\"Player\",\"trophies\":9000}]}"
                     : "{\"tag\":\"#RQJGC9GV\",\"name\":\"Frota Fantasma\",\"members\":1}";
             byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
@@ -73,9 +75,18 @@ class ClashRoyaleClientTest {
         assertEquals("CLAN_NOT_FOUND", exception.code());
     }
 
+    @Test
+    void traduzJsonInvalido() {
+        responseBodyOverride = "{invalid";
+
+        ClashRoyaleException exception = assertThrows(ClashRoyaleException.class, () -> client().getClan());
+
+        assertEquals(502, exception.status().value());
+        assertEquals("INVALID_UPSTREAM_RESPONSE", exception.code());
+    }
+
     private ClashRoyaleClient client() {
         return new ClashRoyaleClient(new ClashRoyaleProperties(
                 "http://127.0.0.1:" + server.getAddress().getPort() + "/v1", "#RQJGC9GV", "test-token"));
     }
 }
-
