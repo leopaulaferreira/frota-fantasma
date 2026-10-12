@@ -77,7 +77,7 @@ class ClanIntegrationIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].donations").value(198));
 
-        assertThat(database.queryForObject("select count(*) from flyway_schema_history where success", Integer.class)).isEqualTo(1);
+        assertThat(database.queryForObject("select count(*) from flyway_schema_history where success", Integer.class)).isEqualTo(2);
         assertThat(database.queryForObject("select name from clan_snapshot", String.class)).isEqualTo("Frota Fantasma");
         assertThat(database.queryForObject("select donations from clan_member_snapshot", Integer.class)).isEqualTo(198);
         assertThat(database.queryForObject("select count(*) from clan_member_snapshot where observed_at is not null", Integer.class)).isEqualTo(1);
