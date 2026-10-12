@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 import com.frotafantasma.analytics.dto.ClanMemberResponse;
 import com.frotafantasma.analytics.dto.ClanResponse;
@@ -53,5 +54,15 @@ class ClanControllerTest {
                 .andExpect(jsonPath("$.code").value("UPSTREAM_ERROR"))
                 .andExpect(jsonPath("$.detail").value("Falha ao consultar a API do Clash Royale."));
     }
-}
 
+    @Test
+    void informaQuandoPodeTentarNovamente() throws Exception {
+        when(service.getMembers()).thenThrow(new ClashRoyaleException(
+                HttpStatus.SERVICE_UNAVAILABLE, "UPSTREAM_RATE_LIMITED", "Tente mais tarde.", 30L));
+
+        mvc.perform(get("/api/clan/members"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(header().string("Retry-After", "30"))
+                .andExpect(jsonPath("$.code").value("UPSTREAM_RATE_LIMITED"));
+    }
+}

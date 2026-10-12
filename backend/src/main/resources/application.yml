@@ -14,4 +14,8 @@ clash-royale:
   base-url: ${CLASH_ROYALE_API_BASE_URL:https://api.clashroyale.com/v1}
   clan-tag: '${CLAN_TAG:#RQJGC9GV}'
   api-token: ${CLASH_ROYALE_API_TOKEN}
-
+  connect-timeout: ${CLASH_CONNECT_TIMEOUT:5s}
+  read-timeout: ${CLASH_READ_TIMEOUT:10s}
+  max-attempts: ${CLASH_MAX_ATTEMPTS:2}
+  retry-delay: ${CLASH_RETRY_DELAY:500ms}
+  rate-limit-cooldown: ${CLASH_RATE_LIMIT_COOLDOWN:30s}
