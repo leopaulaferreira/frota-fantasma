@@ -1,0 +1,5 @@
+# Install Caddy on the same host as Compose; set FROTA_DOMAIN to your chosen domain.
+{$FROTA_DOMAIN} {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:5173
+}

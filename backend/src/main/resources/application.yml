@@ -19,3 +19,54 @@ clash-royale:
   max-attempts: ${CLASH_MAX_ATTEMPTS:2}
   retry-delay: ${CLASH_RETRY_DELAY:500ms}
   rate-limit-cooldown: ${CLASH_RATE_LIMIT_COOLDOWN:30s}
+
+collection:
+  enabled: ${COLLECTION_ENABLED:true}
+  members-interval: ${COLLECTION_MEMBERS_INTERVAL:PT30M}
+  war-interval: ${COLLECTION_WAR_INTERVAL:PT15M}
+  log-interval: ${COLLECTION_LOG_INTERVAL:PT6H}
+  initial-delay: ${COLLECTION_INITIAL_DELAY:PT10S}
+  timezone: ${COLLECTION_TIMEZONE:UTC}
+  war-days: ${COLLECTION_WAR_DAYS:THURSDAY,FRIDAY,SATURDAY,SUNDAY}
+  daily-cron: ${COLLECTION_DAILY_CRON:0 5 0 * * *}
+  weekly-cron: ${COLLECTION_WEEKLY_CRON:0 0 12 * * MON}
+  max-pages: ${COLLECTION_MAX_PAGES:20}
+
+analytics:
+  points-target: ${ANALYTICS_POINTS_TARGET:1600}
+  offline-days: ${ANALYTICS_OFFLINE_DAYS:5}
+  minimum-wars: ${ANALYTICS_MINIMUM_WARS:4}
+  immortal-minimum-wars: ${ANALYTICS_IMMORTAL_MINIMUM_WARS:4}
+  review-low-wars: ${ANALYTICS_REVIEW_LOW_WARS:3}
+  adequate-standard-deck-percent: ${ANALYTICS_ADEQUATE_STANDARD_DECK_PERCENT:80}
+  promotion-tenure-days: ${ANALYTICS_PROMOTION_TENURE_DAYS:28}
+  promotion-donations: ${ANALYTICS_PROMOTION_DONATIONS:100}
+  freshness: ${ANALYTICS_FRESHNESS:PT2H}
+  timezone: ${ANALYTICS_TIMEZONE:UTC}
+
+app:
+  auth:
+    admin-username: ${AUTH_ADMIN_USERNAME:lider}
+    admin-password: ${AUTH_ADMIN_PASSWORD:}
+    viewer-username: ${AUTH_VIEWER_USERNAME:}
+    viewer-password: ${AUTH_VIEWER_PASSWORD:}
+
+server:
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        same-site: strict
+        secure: ${SESSION_COOKIE_SECURE:false}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true

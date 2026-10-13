@@ -69,9 +69,11 @@ public class HistoryStore {
                 events.save(new MembershipEvent(null, player.getId(), clan.getId(), runId,
                         "ROLE_CHANGE", previousRole, member.role(), capturedAt));
             }
-            memberships.save(new ClanMembershipSnapshot(null, player.getId(), clan.getId(), runId,
+            var snapshot = new ClanMembershipSnapshot(null, player.getId(), clan.getId(), runId,
                     member.name(), member.role(), member.trophies(), member.clanRank(), member.previousClanRank(),
-                    member.donations(), member.donationsReceived(), member.expLevel(), capturedAt));
+                    member.donations(), member.donationsReceived(), member.expLevel(), capturedAt);
+            snapshot.setApiLastSeen(member.lastSeen() == null ? null : publishedAt(member.lastSeen()));
+            memberships.save(snapshot);
         }
         for (Player old : previousMembers.values()) {
             if (!tags.contains(old.getPlayerTag())) {

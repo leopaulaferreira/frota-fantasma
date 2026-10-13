@@ -1,0 +1,199 @@
+{
+  "validatedAt": "2026-10-12T17:01:55.294439+00:00",
+  "baseUrl": "https://api.clashroyale.com/v1",
+  "clanTag": "#RQJGC9GV",
+  "endpoints": [
+    {
+      "resource": "clan",
+      "httpStatus": 200,
+      "schema": {
+        "tag": "str",
+        "name": "str",
+        "type": "str",
+        "description": "str",
+        "badgeId": "int",
+        "clanScore": "int",
+        "clanWarTrophies": "int",
+        "location": {
+          "id": "int",
+          "name": "str",
+          "isCountry": "bool",
+          "countryCode": "str"
+        },
+        "requiredTrophies": "int",
+        "donationsPerWeek": "int",
+        "clanChestStatus": "str",
+        "clanChestLevel": "int",
+        "clanChestMaxLevel": "int",
+        "members": "int",
+        "memberList": [
+          {
+            "tag": "str",
+            "name": "str",
+            "role": "str",
+            "lastSeen": "str",
+            "expLevel": "int",
+            "trophies": "int",
+            "arena": {
+              "id": "int",
+              "name": "str",
+              "rawName": "str"
+            },
+            "clanRank": "int",
+            "previousClanRank": "int",
+            "donations": "int",
+            "donationsReceived": "int",
+            "clanChestPoints": "int"
+          }
+        ]
+      },
+      "items": null
+    },
+    {
+      "resource": "members",
+      "httpStatus": 200,
+      "schema": {
+        "items": [
+          {
+            "tag": "str",
+            "name": "str",
+            "role": "str",
+            "lastSeen": "str",
+            "expLevel": "int",
+            "trophies": "int",
+            "arena": {
+              "id": "int",
+              "name": "str",
+              "rawName": "str"
+            },
+            "clanRank": "int",
+            "previousClanRank": "int",
+            "donations": "int",
+            "donationsReceived": "int",
+            "clanChestPoints": "int"
+          }
+        ],
+        "paging": {
+          "cursors": {}
+        }
+      },
+      "items": 38
+    },
+    {
+      "resource": "currentriverrace",
+      "httpStatus": 200,
+      "schema": {
+        "state": "str",
+        "clan": {
+          "tag": "str",
+          "name": "str",
+          "badgeId": "int",
+          "fame": "int",
+          "repairPoints": "int",
+          "participants": [
+            {
+              "tag": "str",
+              "name": "str",
+              "fame": "int",
+              "repairPoints": "int",
+              "boatAttacks": "int",
+              "decksUsed": "int",
+              "decksUsedToday": "int"
+            }
+          ],
+          "periodPoints": "int",
+          "clanScore": "int"
+        },
+        "clans": [
+          {
+            "tag": "str",
+            "name": "str",
+            "badgeId": "int",
+            "fame": "int",
+            "repairPoints": "int",
+            "participants": [
+              {
+                "tag": "str",
+                "name": "str",
+                "fame": "int",
+                "repairPoints": "int",
+                "boatAttacks": "int",
+                "decksUsed": "int",
+                "decksUsedToday": "int"
+              }
+            ],
+            "periodPoints": "int",
+            "clanScore": "int"
+          }
+        ],
+        "sectionIndex": "int",
+        "periodIndex": "int",
+        "periodType": "str",
+        "periodLogs": [
+          {
+            "periodIndex": "int",
+            "items": [
+              {
+                "clan": {
+                  "tag": "str"
+                },
+                "pointsEarned": "int",
+                "progressStartOfDay": "int",
+                "progressEndOfDay": "int",
+                "endOfDayRank": "int",
+                "progressEarned": "int",
+                "numOfDefensesRemaining": "int",
+                "progressEarnedFromDefenses": "int"
+              }
+            ]
+          }
+        ]
+      },
+      "items": null
+    },
+    {
+      "resource": "riverracelog",
+      "httpStatus": 200,
+      "schema": {
+        "items": [
+          {
+            "seasonId": "int",
+            "sectionIndex": "int",
+            "createdDate": "str",
+            "standings": [
+              {
+                "rank": "int",
+                "trophyChange": "int",
+                "clan": {
+                  "tag": "str",
+                  "name": "str",
+                  "badgeId": "int",
+                  "fame": "int",
+                  "repairPoints": "int",
+                  "finishTime": "str",
+                  "participants": [
+                    {
+                      "tag": "str",
+                      "name": "str",
+                      "fame": "int",
+                      "repairPoints": "int",
+                      "boatAttacks": "int",
+                      "decksUsed": "int",
+                      "decksUsedToday": "int"
+                    }
+                  ],
+                  "periodPoints": "int",
+                  "clanScore": "int"
+                }
+              }
+            ]
+          }
+        ],
+        "paging": {
+          "cursors": {}
+        }
+      },
+      "items": 10
+    }
+  ]
+}

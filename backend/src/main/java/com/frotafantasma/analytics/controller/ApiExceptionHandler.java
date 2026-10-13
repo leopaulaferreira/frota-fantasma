@@ -8,9 +8,24 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ProblemDetail> handleStatus(ResponseStatusException exception) {
+        return ResponseEntity.status(exception.getStatusCode())
+                .body(ProblemDetail.forStatusAndDetail(exception.getStatusCode(), exception.getReason()));
+    }
+
+    @ExceptionHandler({HandlerMethodValidationException.class, MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ProblemDetail> invalidParameter(Exception exception) {
+        return ResponseEntity.badRequest().body(ProblemDetail.forStatusAndDetail(
+                org.springframework.http.HttpStatus.BAD_REQUEST, "Parâmetros inválidos: confira tag, identificador e paginação."));
+    }
+
     @ExceptionHandler(ClashRoyaleException.class)
     public ResponseEntity<ProblemDetail> handleClashRoyaleException(ClashRoyaleException exception) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(exception.status(), exception.getMessage());

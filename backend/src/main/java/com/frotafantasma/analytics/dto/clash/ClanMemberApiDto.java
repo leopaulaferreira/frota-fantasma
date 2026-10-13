@@ -12,7 +12,12 @@ public record ClanMemberApiDto(
         Integer clanRank,
         Integer previousClanRank,
         Integer donations,
-        Integer donationsReceived
+        Integer donationsReceived,
+        String lastSeen
 ) {
+    public ClanMemberApiDto(String tag, String name, String role, Integer expLevel, Integer trophies,
+            Integer clanRank, Integer previousClanRank, Integer donations, Integer donationsReceived) {
+        this(tag, name, role, expLevel, trophies, clanRank, previousClanRank, donations, donationsReceived, null);
+    }
 }
 

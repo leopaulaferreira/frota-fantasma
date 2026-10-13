@@ -1,51 +1,47 @@
 package com.frotafantasma.analytics.service;
 
-import com.frotafantasma.analytics.mapper.ClanMapper;
 import com.frotafantasma.analytics.dto.ClanMemberResponse;
 import com.frotafantasma.analytics.dto.ClanResponse;
-import com.frotafantasma.analytics.client.ClashRoyaleClient;
-import com.frotafantasma.analytics.client.ClashRoyaleException;
-import com.frotafantasma.analytics.config.ClashRoyaleProperties;
-import com.frotafantasma.analytics.dto.clash.ClanApiDto;
-import com.frotafantasma.analytics.dto.clash.ClanMembersApiDto;
+import com.frotafantasma.analytics.entity.Player;
+import com.frotafantasma.analytics.mapper.HistoryMapper;
+import com.frotafantasma.analytics.repository.ClanHistoryRepository;
+import com.frotafantasma.analytics.repository.MembershipHistoryRepository;
+import com.frotafantasma.analytics.repository.PlayerRepository;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@Transactional(readOnly = true)
 public class ClanService {
-    private final ClashRoyaleClient client;
-    private final ClashRoyaleProperties properties;
-    private final SnapshotStore snapshots;
+    private final HistoryQueryService history;
+    private final ClanHistoryRepository clans;
+    private final MembershipHistoryRepository memberships;
+    private final PlayerRepository players;
 
-    public ClanService(ClashRoyaleClient client, ClashRoyaleProperties properties, SnapshotStore snapshots) {
-        this.client = client;
-        this.properties = properties;
-        this.snapshots = snapshots;
+    public ClanService(HistoryQueryService history, ClanHistoryRepository clans,
+                       MembershipHistoryRepository memberships, PlayerRepository players) {
+        this.history = history; this.clans = clans; this.memberships = memberships; this.players = players;
     }
-
     public ClanResponse getClan() {
-        ClanApiDto clan = client.getClan();
-        if (clan.tag() == null || clan.tag().isBlank()) {
-            throw invalidResponse();
-        }
-        snapshots.saveClan(clan);
-        return ClanMapper.toResponse(clan);
+        var clan = history.clan();
+        if (clan.getSnapshotDate() == null) throw notCollected();
+        return HistoryMapper.clan(clan);
     }
-
     public List<ClanMemberResponse> getMembers() {
-        ClanMembersApiDto response = client.getMembers();
-        if (response.items() == null || response.items().stream()
-                .anyMatch(member -> member == null || member.tag() == null || member.tag().isBlank())) {
-            throw invalidResponse();
-        }
-        snapshots.replaceMembers(properties.clanTag(), response.items());
-        return response.items().stream().map(ClanMapper::toResponse).toList();
+        var last = clans.findFirstByClanIdOrderByCapturedAtDescIdDesc(history.clan().getId()).orElseThrow(this::notCollected);
+        var data = memberships.findByRunId(last.getRunId());
+        var names = players.findAllById(data.stream().map(m -> m.getPlayerId()).toList()).stream()
+                .collect(Collectors.toMap(Player::getId, Player::getPlayerTag));
+        return data.stream().map(m -> HistoryMapper.member(m, names.get(m.getPlayerId())))
+                .sorted(Comparator.comparing(ClanMemberResponse::clanRank, Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
     }
-
-    private ClashRoyaleException invalidResponse() {
-        return new ClashRoyaleException(HttpStatus.BAD_GATEWAY, "INVALID_UPSTREAM_RESPONSE",
-                "A API do Clash Royale retornou dados inválidos.");
+    private ResponseStatusException notCollected() {
+        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Dados do clã ainda não coletados.");
     }
 }
-

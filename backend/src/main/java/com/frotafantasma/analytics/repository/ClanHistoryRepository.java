@@ -6,5 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ClanHistoryRepository extends JpaRepository<ClanHistory, Long> {
+    java.util.Optional<ClanHistory> findFirstByClanIdOrderByCapturedAtDescIdDesc(Long clanId);
     Page<ClanHistory> findByClanIdOrderByCapturedAtDescIdDesc(Long clanId, Pageable pageable);
 }

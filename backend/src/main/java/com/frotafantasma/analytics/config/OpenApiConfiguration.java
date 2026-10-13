@@ -11,8 +11,8 @@ public class OpenApiConfiguration {
     public OpenAPI frotaOpenApi() {
         return new OpenAPI().info(new Info()
                 .title("Frota Fantasma Analytics")
-                .version("0.1.0")
-                .description("Fase 1: consulta do clã configurado no backend. "
+                .version("0.4.0")
+                .description("Analytics, regras versionadas, avaliações auditáveis e premiações semanais persistidas. "
                         + "O token da Supercell é exclusivo do servidor. "
                         + "O sistema apoia decisões humanas e não promove ou expulsa membros."));
     }

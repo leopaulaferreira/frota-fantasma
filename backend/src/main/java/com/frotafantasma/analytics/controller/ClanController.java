@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/clan")
-@Tag(name = "Clã", description = "Dados atuais do clã definido por CLAN_TAG")
+@Tag(name = "Clã", description = "Últimos dados coletados do clã definido por CLAN_TAG")
 @ApiResponses({
         @ApiResponse(responseCode = "404", description = "Clã não encontrado", content = @Content(
                 mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
@@ -37,7 +37,7 @@ public class ClanController {
     }
 
     @GetMapping
-    @Operation(summary = "Consultar o clã", description = "Consulta a API oficial e atualiza o último retrato persistido.")
+    @Operation(summary = "Consultar o clã", description = "Retorna o último retrato persistido; a coleta é feita pelos jobs ou POST /api/collections/sync.")
     @ApiResponse(responseCode = "200", description = "Dados atuais do clã", content = @Content(
             mediaType = "application/json", schema = @Schema(implementation = ClanResponse.class)))
     public ClanResponse getClan() {
@@ -45,7 +45,7 @@ public class ClanController {
     }
 
     @GetMapping("/members")
-    @Operation(summary = "Listar membros atuais", description = "Consulta a API oficial e substitui a lista persistida de membros atuais.")
+    @Operation(summary = "Listar membros atuais", description = "Retorna os membros da última coleta completa persistida, sem chamar a Supercell.")
     @ApiResponse(responseCode = "200", description = "Lista dos membros atuais", content = @Content(
             mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ClanMemberResponse.class))))
     public List<ClanMemberResponse> getMembers() {

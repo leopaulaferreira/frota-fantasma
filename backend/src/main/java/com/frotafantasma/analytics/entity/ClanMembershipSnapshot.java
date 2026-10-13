@@ -22,6 +22,7 @@ public class ClanMembershipSnapshot {
     private Integer donationsReceived;
     private Integer expLevel;
     private Instant capturedAt;
+    private Instant apiLastSeen;
 
     protected ClanMembershipSnapshot() {}
 
@@ -40,6 +41,9 @@ public class ClanMembershipSnapshot {
         this.expLevel = expLevel;
         this.capturedAt = capturedAt;
     }
+
+    public Instant getApiLastSeen() { return apiLastSeen; }
+    public void setApiLastSeen(Instant value) { this.apiLastSeen = value; }
 
     public Long getId() { return id; }
     public Long getPlayerId() { return playerId; }

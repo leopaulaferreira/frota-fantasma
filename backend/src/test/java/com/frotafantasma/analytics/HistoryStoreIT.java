@@ -113,5 +113,6 @@ class HistoryStoreIT {
         assertThat(sql.queryForObject("select exp_level from migration_test.clan_membership_history", Integer.class)).isEqualTo(15);
         assertThat(sql.queryForObject("select type from migration_test.membership_event", String.class)).isEqualTo("BASELINE");
         assertThat(sql.queryForObject("select active from migration_test.player", Boolean.class)).isTrue();
+        assertThat(sql.queryForObject("select api_last_seen from migration_test.clan_membership_history", java.sql.Timestamp.class)).isNull();
     }
 }

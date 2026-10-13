@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:17-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-frota_fantasma}
       POSTGRES_USER: ${POSTGRES_USER:-frota_fantasma}
@@ -17,10 +18,16 @@ services:
 
   backend:
     build: ./backend
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     environment:
+      AUTH_ADMIN_USERNAME: ${AUTH_ADMIN_USERNAME:-lider}
+      AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD:?Set AUTH_ADMIN_PASSWORD in .env}
+      AUTH_VIEWER_USERNAME: ${AUTH_VIEWER_USERNAME:-}
+      AUTH_VIEWER_PASSWORD: ${AUTH_VIEWER_PASSWORD:-}
+      SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:-false}"
       CLAN_TAG: ${CLAN_TAG:-#RQJGC9GV}
       CLASH_ROYALE_API_TOKEN: ${CLASH_ROYALE_API_TOKEN:?Set CLASH_ROYALE_API_TOKEN in .env}
       CLASH_CONNECT_TIMEOUT: ${CLASH_CONNECT_TIMEOUT:-5s}
@@ -28,11 +35,58 @@ services:
       CLASH_MAX_ATTEMPTS: ${CLASH_MAX_ATTEMPTS:-2}
       CLASH_RETRY_DELAY: ${CLASH_RETRY_DELAY:-500ms}
       CLASH_RATE_LIMIT_COOLDOWN: ${CLASH_RATE_LIMIT_COOLDOWN:-30s}
+      COLLECTION_ENABLED: "${COLLECTION_ENABLED:-true}"
+      COLLECTION_MEMBERS_INTERVAL: "${COLLECTION_MEMBERS_INTERVAL:-PT30M}"
+      COLLECTION_WAR_INTERVAL: "${COLLECTION_WAR_INTERVAL:-PT15M}"
+      COLLECTION_LOG_INTERVAL: "${COLLECTION_LOG_INTERVAL:-PT6H}"
+      COLLECTION_INITIAL_DELAY: "${COLLECTION_INITIAL_DELAY:-PT10S}"
+      COLLECTION_TIMEZONE: "${COLLECTION_TIMEZONE:-UTC}"
+      COLLECTION_WAR_DAYS: "${COLLECTION_WAR_DAYS:-THURSDAY,FRIDAY,SATURDAY,SUNDAY}"
+      COLLECTION_DAILY_CRON: "${COLLECTION_DAILY_CRON:-0 5 0 * * *}"
+      COLLECTION_WEEKLY_CRON: "${COLLECTION_WEEKLY_CRON:-0 0 12 * * MON}"
+      COLLECTION_MAX_PAGES: "${COLLECTION_MAX_PAGES:-20}"
+      ANALYTICS_POINTS_TARGET: "${ANALYTICS_POINTS_TARGET:-1600}"
+      ANALYTICS_OFFLINE_DAYS: "${ANALYTICS_OFFLINE_DAYS:-5}"
+      ANALYTICS_MINIMUM_WARS: "${ANALYTICS_MINIMUM_WARS:-4}"
+      ANALYTICS_IMMORTAL_MINIMUM_WARS: "${ANALYTICS_IMMORTAL_MINIMUM_WARS:-4}"
+      ANALYTICS_REVIEW_LOW_WARS: "${ANALYTICS_REVIEW_LOW_WARS:-3}"
+      ANALYTICS_ADEQUATE_STANDARD_DECK_PERCENT: "${ANALYTICS_ADEQUATE_STANDARD_DECK_PERCENT:-80}"
+      ANALYTICS_PROMOTION_TENURE_DAYS: "${ANALYTICS_PROMOTION_TENURE_DAYS:-28}"
+      ANALYTICS_PROMOTION_DONATIONS: "${ANALYTICS_PROMOTION_DONATIONS:-100}"
+      ANALYTICS_FRESHNESS: "${ANALYTICS_FRESHNESS:-PT2H}"
+      ANALYTICS_TIMEZONE: "${ANALYTICS_TIMEZONE:-UTC}"
       DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-frota_fantasma}
       DB_USERNAME: ${POSTGRES_USER:-frota_fantasma}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-5173}:80"
+
+  backup:
+    user: "${BACKUP_UID:-1000}:${BACKUP_GID:-1000}"
+    image: postgres:17-alpine
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGDATABASE: ${POSTGRES_DB:-frota_fantasma}
+      PGUSER: ${POSTGRES_USER:-frota_fantasma}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      BACKUP_INTERVAL_SECONDS: "${BACKUP_INTERVAL_SECONDS:-86400}"
+      BACKUP_RETENTION_DAYS: "${BACKUP_RETENTION_DAYS:-14}"
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup-loop.sh:/backup-loop.sh:ro
+    entrypoint: ["/bin/sh", "/backup-loop.sh"]
 
 volumes:
   postgres_data:

@@ -5,3 +5,14 @@
 **/target/
 *.log
 
+
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+**/*.tsbuildinfo
+
+backups/
+
+# Capturas locais de validação com dados reais
+docs/screenshots/*-live.png

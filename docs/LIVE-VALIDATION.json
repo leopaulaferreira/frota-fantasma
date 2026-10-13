@@ -1,0 +1,77 @@
+{
+  "validatedAt": "2026-10-13T04:41:01.259164+00:00",
+  "clanTag": "#RQJGC9GV",
+  "players": 128,
+  "availableWars": 10,
+  "analyticsChecks": [
+    {
+      "check": "recentAverage",
+      "passed": true,
+      "details": {
+        "players": 128,
+        "mismatches": 0
+      }
+    },
+    {
+      "check": "historicalAverage",
+      "passed": true,
+      "details": {
+        "players": 128,
+        "mismatches": 0
+      }
+    },
+    {
+      "check": "unknown_individual_deck_capacity",
+      "passed": true,
+      "details": {
+        "fabricatedValues": 0
+      }
+    },
+    {
+      "check": "donation_lower_bounds",
+      "passed": true,
+      "details": {
+        "negativePeriods": 0,
+        "unflaggedPeriods": 0
+      }
+    },
+    {
+      "check": "exclusive_provisional_titles",
+      "passed": true,
+      "details": {
+        "eligibleTitles": 3
+      }
+    },
+    {
+      "check": "war_ranking",
+      "passed": true,
+      "details": {
+        "observations": 1280,
+        "mismatches": 0
+      }
+    }
+  ],
+  "officialChecks": [
+    {
+      "endpoint": "clan",
+      "httpStatus": 200,
+      "officialMembers": 42,
+      "capturedMembers": 42,
+      "note": "Capturas em instantes diferentes podem divergir."
+    },
+    {
+      "endpoint": "riverracelog",
+      "httpStatus": 200,
+      "matchingWars": 10,
+      "participantsCompared": 654,
+      "differences": 0
+    }
+  ],
+  "limitations": [
+    "Doações permanecem limites inferiores incompletos.",
+    "Resets futuros exigem novas capturas; cenários são cobertos pelos testes.",
+    "Validação oficial cobre apenas guerras coincidentes disponíveis nesta resposta.",
+    "Classificações não são decisões automáticas.",
+    "Sem inventar dados indisponíveis."
+  ]
+}
