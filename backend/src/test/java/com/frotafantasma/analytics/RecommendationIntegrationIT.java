@@ -44,6 +44,7 @@ class RecommendationIntegrationIT {
         p.add("spring.datasource.url",DB::getJdbcUrl); p.add("spring.datasource.username",DB::getUsername); p.add("spring.datasource.password",DB::getPassword);
     }
     @Autowired RecommendationService service;
+    @Autowired AutomaticAwardsService automatic;
     @Autowired RecommendationRulesService rules;
     @Autowired AnalyticsService analytics;
     @Autowired HistoryStore store;
@@ -191,4 +192,33 @@ class RecommendationIntegrationIT {
         assertThat(sql.queryForObject("select count(*) from recommendation_evaluation",Integer.class)).isEqualTo(1);
         assertThat(sql.queryForObject("select count(*) from weekly_award",Integer.class)).isEqualTo(3);
     }
+    @Test void automaticClosingWaitsForOfficialWarAndPublishesExactlyOnce() throws Exception {
+        assertThat(automatic.publish()).isEmpty(); // Only last week's log: never award the wrong war.
+        members(NOW.minusSeconds(60), 0); // Reset must not replace the completed donation week.
+        var entry=json.readValue("""
+            {"seasonId":137,"sectionIndex":4,"createdDate":"20261019T094000.000Z","standings":[{"rank":1,
+            "clan":{"tag":"#RQJGC9GV","participants":[{"tag":"#P01","name":"A","fame":3300,"decksUsed":16},
+            {"tag":"#P02","name":"B","fame":3100,"decksUsed":16},{"tag":"#P03","name":"C","fame":2900,"decksUsed":16}]}}]}
+            """,RiverLogEntryDto.class);
+        store.saveWarLog("#RQJGC9GV",List.of(entry),NOW);
+        try (var executor=Executors.newFixedThreadPool(2)) {
+            var a=executor.submit(()->automatic.publish().orElseThrow());
+            var b=executor.submit(()->automatic.publish().orElseThrow());
+            var batch=a.get(20,TimeUnit.SECONDS);
+            assertThat(b.get(20,TimeUnit.SECONDS)).isEqualTo(batch);
+            assertThat(batch.week()).isEqualTo(LocalDate.parse("2026-10-19"));
+            assertThat(batch.awards()).hasSize(3);
+            assertThat(batch.awards().stream().map(FinalAward::playerTag).distinct().count()).isEqualTo(3);
+            var captain=batch.awards().stream().filter(h->h.title().equals("CAPITAO_DA_GUERRA")).findFirst().orElseThrow();
+            assertThat(captain.evidence().path("result").path("value").asInt()).isEqualTo(3300);
+            var guardian=batch.awards().stream().filter(h->h.title().equals("GUARDIAO_DA_FROTA")).findFirst().orElseThrow();
+            assertThat(guardian.evidence().path("result").path("value").asInt()).isEqualTo(200);
+            assertThat(guardian.evidence().path("result").path("period").path("from").asText()).startsWith("2026-10-12");
+            assertThat(service.finalizeAwards(batch.evaluationId())).isEqualTo(batch);
+        }
+        assertThat(sql.queryForObject("select count(*) from weekly_award_batch",Integer.class)).isEqualTo(1);
+        assertThat(sql.queryForObject("select count(*) from recommendation_evaluation",Integer.class)).isEqualTo(1);
+        assertThat(sql.queryForList("select role_current from player",String.class)).containsOnly("member");
+    }
+
 }

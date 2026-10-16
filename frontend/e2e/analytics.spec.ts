@@ -57,6 +57,7 @@ test.beforeEach(async ({ page }) => {
     else if (path === "/api/analytics") result = report;
     else if (path.startsWith("/api/analytics/players/"))
       result = players.find((p) => path.endsWith(p.tag));
+    else if (path === "/api/recommendations/automation") result = { enabled: true, schedule: "Segunda-feira às 06h", timezone: "America/Sao_Paulo", closingWeek: report.week, pending: false };
     else if (path === "/api/recommendations/rules") result = rules;
     else if (path === "/api/recommendations/rules/history") result = paged([]);
     else if (path === "/api/recommendations/evaluations")
@@ -453,4 +454,71 @@ test("explicação abre em janela sem esticar a tabela e preserva os dados técn
   await page.keyboard.press("Escape");
   await expect(dialog).not.toBeVisible();
   await expect(trigger).toBeFocused();
+});
+
+test("evidências da guerra abrem sem esticar o ranking", async ({ page }) => {
+  await page.goto("/guerras/1");
+  const trigger = page.getByRole("button", { name: "Evidências", exact: true }).first();
+  const row = page.locator("tbody tr").first();
+  const before = await row.boundingBox();
+  await trigger.click();
+  const dialog = page.getByRole("dialog", { name: /Evidências de/ });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText("Pontuação na guerra", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("Não informado neste registro").first()).toBeVisible();
+  await expect(dialog.getByText("DIRECT_API", { exact: true })).not.toBeVisible();
+  expect((await row.boundingBox())?.height).toBe(before?.height);
+  const bounds = await dialog.boundingBox();
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  await dialog.getByText("Consultar registro técnico original").click();
+  await expect(dialog.getByText("DIRECT_API", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+});
+
+test("premiações permitem comparar candidatos sem corte no objetivo", async ({ page }) => {
+  await page.goto("/premiacoes");
+  const section = page.getByRole("region", { name: "Possíveis candidatos a Ancião" });
+  await expect(section).toBeVisible();
+  const rows = section.locator("tbody tr");
+  const expected = players.filter(p => p.currentMember && p.role === "member");
+  await expect(rows).toHaveCount(expected.length);
+  await page.getByLabel("Objetivo de referência (pontos)").fill("99999");
+  await expect(rows).toHaveCount(expected.length);
+  await expect(section.getByText(/pontos abaixo/).first()).toBeVisible();
+  await page.getByLabel("Objetivo de referência (pontos)").fill("");
+  await expect(section.getByRole("alert")).toBeVisible();
+  await expect(rows).toHaveCount(expected.length);
+});
+
+test("corrida atual ordena pontos do maior ao menor", async ({ page }) => {
+  await page.route("**/api/wars/current", route => route.fulfill({ json: {
+    snapshot: { capturedAt: report.generatedAt, state: "warDay", periodType: "warDay" },
+    race: { clan: { name: "Frota", participants: [
+      { tag: "#A", name: "Zero", fame: 0, decksUsed: 0, decksUsedToday: 0 },
+      { tag: "#B", name: "Líder", fame: 2400, decksUsed: 12, decksUsedToday: 4 },
+      { tag: "#C", name: "Desconhecido", fame: null, decksUsed: null, decksUsedToday: null },
+      { tag: "#D", name: "Empatado", fame: 2400, decksUsed: 12, decksUsedToday: 4 },
+      { tag: "#E", name: "Intermediário", fame: 1600, decksUsed: 8, decksUsedToday: 4 },
+    ] } },
+  } }));
+  await page.goto("/guerras");
+  const rows = page.locator("tbody tr");
+  await expect(rows).toHaveCount(5);
+  await expect(rows.locator("td:first-child")).toHaveText(["1º", "1º", "3º", "4º", "—"]);
+  await expect(rows.locator("td:nth-child(2) a")).toHaveText(["Líder", "Empatado", "Intermediário", "Zero", "Desconhecido"]);
+});
+
+
+test("mural mostra fechamento automático e títulos publicados", async ({ page }) => {
+  await page.goto("/premiacoes");
+  await expect(page.getByText(/Fechamento automático: Segunda-feira às 06h/)).toBeVisible();
+  await expect(page.getByText(/Premiações publicadas para o fechamento/)).toBeVisible();
+  const final = page.getByRole("heading", { name: "Títulos formalizados" });
+  const projection = page.getByRole("heading", { name: "Projeção da semana" });
+  await expect(final).toBeVisible();
+  expect((await final.boundingBox())!.y).toBeLessThan((await projection.boundingBox())!.y);
+  await expect(page.getByRole("link", { name: "Avaliação original →" })).toBeVisible();
 });
