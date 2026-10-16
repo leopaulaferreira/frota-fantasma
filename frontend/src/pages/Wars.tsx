@@ -1,5 +1,15 @@
+import { useId, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Link, useParams } from "react-router-dom";
-import { useApi, date, format, rankRows, type Report } from "../lib/api";
+import {
+  useApi,
+  date,
+  dateTime,
+  format,
+  rankRows,
+  type Report,
+  type Metric,
+} from "../lib/api";
 import {
   Heading,
   QueryState,
@@ -139,32 +149,16 @@ function WarDetail({ id }: { id: string }) {
                 <td>{format(p.contribution)}</td>
                 <td>{format(p.decksUsed)}</td>
                 <td>
-                  <details>
-                    <summary>Evidências</summary>
-                    <p>
-                      DIRECT_API · guerra #{id} · captura{" "}
-                      {date(q.data!.war.capturedAt)}
-                    </p>
-                    {Object.entries(p)
-                      .filter(
-                        ([k]) => !["playerTag", "name", "rank"].includes(k),
-                      )
-                      .map(([k, v]) => (
-                        <p key={k}>
-                          {k}: {format(v)}
-                        </p>
-                      ))}
-                    {analytics.data?.players
-                      .find((x) => x.tag === p.playerTag)
-                      ?.wars.filter((w) => String(w.warId) === id)
-                      .map((w) => (
-                        <MetricView
-                          key={w.warId}
-                          name="Participação"
-                          metric={w.participation}
-                        />
-                      ))}
-                  </details>
+                  <WarEvidence
+                    participant={p}
+                    war={q.data!.war}
+                    participation={
+                      analytics.data?.players
+                        .find((x) => x.tag === p.playerTag)
+                        ?.wars.find((w) => String(w.warId) === id)
+                        ?.participation
+                    }
+                  />
                 </td>
               </tr>
             ))}
@@ -173,6 +167,136 @@ function WarDetail({ id }: { id: string }) {
         </>
       )}
     </QueryState>
+  );
+}
+function WarEvidence({
+  participant: p,
+  war,
+  participation,
+}: {
+  participant: Participant;
+  war: War;
+  participation?: Metric;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const fields = [
+    ["contribution", "Pontuação na guerra"],
+    ["decksUsed", "Decks usados na guerra"],
+    ["decksUsedToday", "Decks usados no dia da captura"],
+    ["boatAttacks", "Ataques a barcos"],
+    ["repairPoints", "Pontos de reparo"],
+    ["battlesPlayed", "Batalhas disputadas"],
+    ["wins", "Vitórias"],
+    ["losses", "Derrotas"],
+  ] as const;
+  return (
+    <>
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        onClick={() => dialog.current?.showModal()}
+      >
+        Evidências
+      </button>
+      {createPortal(
+        <dialog
+          ref={dialog}
+          className="metric-dialog"
+          aria-labelledby={titleId}
+          onClick={(e) => {
+            if (e.target !== e.currentTarget) return;
+            const r = e.currentTarget.getBoundingClientRect();
+            if (
+              e.clientX < r.left ||
+              e.clientX > r.right ||
+              e.clientY < r.top ||
+              e.clientY > r.bottom
+            )
+              e.currentTarget.close();
+          }}
+        >
+          <header className="metric-dialog-header">
+            <div>
+              <div className="eyebrow">REGISTRO DA GUERRA</div>
+              <h2 id={titleId}>Evidências de {p.name}</h2>
+            </div>
+            <button
+              type="button"
+              className="dialog-close"
+              autoFocus
+              aria-label="Fechar evidências"
+              onClick={() => dialog.current?.close()}
+            >
+              ×
+            </button>
+          </header>
+          <div className="metric-dialog-body">
+            <p>
+              Dados da API oficial, preservados na captura desta guerra. Campos
+              não informados não significam zero nem falha do jogador.
+            </p>
+            <dl className="metric-context">
+              <div>
+                <dt>Guerra analisada</dt>
+                <dd>
+                  Temporada {war.seasonId} · seção {war.sectionIndex}
+                </dd>
+              </div>
+              <div>
+                <dt>Jogador</dt>
+                <dd>
+                  {p.name} · {p.playerTag}
+                </dd>
+              </div>
+              <div>
+                <dt>Publicação</dt>
+                <dd>{dateTime(war.publishedAt)}</dd>
+              </div>
+              <div>
+                <dt>Captura do registro</dt>
+                <dd>{dateTime(war.capturedAt)}</dd>
+              </div>
+              {fields.map(([key, title]) => (
+                <div key={key}>
+                  <dt>{title}</dt>
+                  <dd>
+                    {p[key] == null
+                      ? "Não informado neste registro"
+                      : format(p[key])}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            {participation && (
+              <MetricView
+                name="Participação nesta guerra"
+                metric={participation}
+              />
+            )}
+            <details className="metric-technical">
+              <summary>Consultar registro técnico original</summary>
+              <p>
+                Os nomes abaixo identificam os campos do registro armazenado.
+              </p>
+              <dl>
+                <dt>Origem dos valores de guerra</dt>
+                <dd>DIRECT_API</dd>
+                <dt>Identificador local da guerra</dt>
+                <dd>{war.id}</dd>
+                {Object.entries(p).map(([key, value]) => (
+                  <div key={key}>
+                    <dt>{key}</dt>
+                    <dd>{value == null ? "Não informado" : String(value)}</dd>
+                  </div>
+                ))}
+              </dl>
+            </details>
+          </div>
+        </dialog>,
+        document.body,
+      )}
+    </>
   );
 }
 function CurrentWar() {
@@ -213,14 +337,22 @@ function CurrentWar() {
           </div>
           <Table
             headers={[
+              "Posição",
               "Membro",
               "Pontos observados",
               "Decks usados",
               "Decks hoje",
             ]}
           >
-            {q.data.race.clan?.participants?.map((p) => (
+            {rankRows(
+              (q.data.race.clan?.participants ?? []).map((p) => ({
+                ...p,
+                contribution: p.fame,
+                playerTag: p.tag,
+              })),
+            ).map((p) => (
               <tr key={p.tag}>
+                <td className="rank">{p.rank === null ? "—" : p.rank + "º"}</td>
                 <td>
                   <Link to={"/membros/" + encodeURIComponent(p.tag)}>
                     {p.name}
