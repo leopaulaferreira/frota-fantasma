@@ -155,11 +155,15 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
   }
   return r.json();
 }
-export function useApi<T>(path: string) {
+export function useApi<T>(
+  path: string,
+  refetchInterval: number | false = false,
+) {
   return useQuery({
     queryKey: [path],
     queryFn: () => api<T>(path),
     staleTime: 30000,
+    refetchInterval,
     retry: (count, error) =>
       count < 1 && (!(error instanceof ApiError) || error.status >= 500),
   });

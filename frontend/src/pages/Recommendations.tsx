@@ -1,3 +1,4 @@
+import { ElderProspects } from "../components/ElderProspects";
 import { useAdmin } from "../lib/auth";
 import { AwardCard } from "../components/royale";
 import { useRef, useState } from "react";
@@ -54,7 +55,10 @@ function RecommendationList() {
         {q.data && (
           <>
             <h2>Acompanhamento operacional</h2>
-            <div className="recommendations">
+            <ul
+              className="recommendation-list"
+              aria-label="Acompanhamento operacional"
+            >
               {q.data.players
                 .filter(
                   (p) =>
@@ -64,19 +68,20 @@ function RecommendationList() {
                     ),
                 )
                 .map((p) => (
-                  <article className="panel" key={p.tag}>
+                  <li className="recommendation-row" key={p.tag}>
                     <Person player={p} />
-                    <p>
-                      <Badge value={p.operationalStatus.value} />
+                    <Badge value={p.operationalStatus.value} />
+                    <p className="recommendation-reason">
+                      {p.operationalStatus.reason}
                     </p>
-                    <p>{p.operationalStatus.reason}</p>
                     <MetricView
                       name="Evidências do status"
+                      compact
                       metric={p.operationalStatus}
                     />
-                  </article>
+                  </li>
                 ))}
-            </div>
+            </ul>
             <h2>Candidaturas a Ancião</h2>
             <p className="muted">
               Elegíveis e não elegíveis, com os motivos da avaliação.
@@ -256,7 +261,14 @@ function EvaluationDetail({ id }: { id: string }) {
   );
 }
 export function Awards() {
-  const q = useApi<Report>("/analytics");
+  const q = useApi<Report>("/analytics", 60000);
+  const automation = useApi<{
+    enabled: boolean;
+    schedule: string;
+    timezone: string;
+    closingWeek: string;
+    pending: boolean;
+  }>("/recommendations/automation", 60000);
   return (
     <>
       <Heading eyebrow="RECONHECIMENTO" title="Mural de premiações" />
@@ -264,6 +276,58 @@ export function Awards() {
         Um título por jogador em cada semana. Projeções e títulos formalizados
         ficam separados.
       </p>
+      {automation.data && (
+        <div className="callout">
+          <b>
+            {automation.data.enabled
+              ? `Fechamento automático: ${automation.data.schedule} · ${automation.data.timezone}`
+              : "Fechamento automático desativado"}
+          </b>
+          <p>
+            {automation.data.pending
+              ? "Aguardando resultado oficial ou dados suficientes para publicar o fechamento de "
+              : "Premiações publicadas para o fechamento de "}
+            {date(automation.data.closingWeek)}.
+          </p>
+          <p>
+            Com o sistema ligado, novas tentativas ocorrem a cada 15 minutos.
+            Categorias sem amostra suficiente ficam sem vencedor; as limitações
+            permanecem nas evidências. Doações usam a semana anterior à
+            publicação da guerra.
+          </p>
+        </div>
+      )}
+      <h2>Títulos formalizados</h2>
+      <Paged<Award>
+        path="/recommendations/awards"
+        refetchInterval={60000}
+        render={(items) => (
+          <div className="timeline">
+            {items.map((a) => (
+              <article key={a.week + a.title}>
+                <small>
+                  Semana de {date(a.week)} · formalizado em{" "}
+                  {date(a.finalizedAt)}
+                </small>
+                <h3>{title(a.title)}</h3>
+                <Link to={"/membros/" + encodeURIComponent(a.playerTag)}>
+                  {q.data?.players.find((p) => p.tag === a.playerTag)?.name ||
+                    a.playerTag}
+                </Link>
+                <p>{a.evidence.result.reason}</p>
+                <MetricView
+                  compact
+                  name="Evidências"
+                  metric={a.evidence.result}
+                />
+                <Link to={"/recomendacoes/" + a.evaluationId}>
+                  Avaliação original →
+                </Link>
+              </article>
+            ))}
+          </div>
+        )}
+      />
       <h2>Projeção da semana</h2>
       <QueryState query={q}>
         <div className="awards">
@@ -277,30 +341,7 @@ export function Awards() {
           ))}
         </div>
       </QueryState>
-      <h2>Títulos formalizados</h2>
-      <Paged<Award>
-        path="/recommendations/awards"
-        render={(items) => (
-          <div className="timeline">
-            {items.map((a) => (
-              <article key={a.week + a.title}>
-                <small>
-                  Semana de {date(a.week)} · formalizado em{" "}
-                  {date(a.finalizedAt)}
-                </small>
-                <h3>{title(a.title)}</h3>
-                <Link to={"/membros/" + encodeURIComponent(a.playerTag)}>
-                  {a.playerTag}
-                </Link>
-                <MetricView name="Evidências" metric={a.evidence.result} />
-                <Link to={"/recomendacoes/" + a.evaluationId}>
-                  Avaliação original →
-                </Link>
-              </article>
-            ))}
-          </div>
-        )}
-      />
+      {q.data && <ElderProspects report={q.data} />}
     </>
   );
 }

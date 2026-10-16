@@ -1216,3 +1216,98 @@ body:has(.metric-dialog[open]) {
     margin: 5px 0 14px;
   }
 }
+
+/* Operational follow-up: one member per row, with the full reason visible. */
+.recommendation-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.recommendation-row {
+  display: grid;
+  grid-template-columns: minmax(170px, 1fr) 95px minmax(240px, 3fr) 175px;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 20px;
+  background: var(--panel);
+}
+.recommendation-row + .recommendation-row {
+  border-top: 1px solid var(--border);
+}
+.recommendation-row > * {
+  min-width: 0;
+}
+.recommendation-row > .badge {
+  justify-self: start;
+}
+.recommendation-row .person {
+  overflow-wrap: anywhere;
+}
+.recommendation-row .avatar {
+  flex-shrink: 0;
+}
+.recommendation-reason {
+  margin: 0;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.recommendation-row .metric.compact {
+  margin: 0;
+  width: 100%;
+  background: transparent;
+  box-shadow: none;
+}
+.recommendation-row .metric-trigger {
+  min-height: 0;
+  padding: 10px 12px;
+}
+.recommendation-row .metric-trigger > strong {
+  display: none;
+}
+@media (max-width: 1100px) {
+  .recommendation-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+  .recommendation-reason {
+    grid-column: 1 / -1;
+  }
+  .recommendation-row .metric.compact {
+    grid-column: 1 / -1;
+    width: fit-content;
+  }
+}
+
+.elder-prospects {
+  margin: 32px 0;
+}
+.elder-prospects table {
+  min-width: 1000px;
+}
+.elder-prospects td {
+  vertical-align: top;
+}
+.elder-prospects .prospect-context {
+  min-width: 220px;
+  max-width: 340px;
+}
+.elder-prospects .prospect-context > .badge {
+  margin-top: 12px;
+}
+.elder-prospects .metric.compact {
+  margin: 0 0 14px;
+}
+.elder-prospects .metric.compact strong {
+  font-size: 17px;
+  letter-spacing: normal;
+}
+.elder-prospects td p {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.elder-prospects input {
+  max-width: 160px;
+}

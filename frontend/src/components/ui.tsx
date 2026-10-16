@@ -326,14 +326,21 @@ type PagedProps<T> = {
   path: string;
   render: (items: T[]) => ReactNode;
   empty?: string;
+  refetchInterval?: number;
 };
 export function Paged<T>(props: PagedProps<T>) {
   return <PagedContent key={props.path} {...props} />;
 }
-function PagedContent<T>({ path, render, empty }: PagedProps<T>) {
+function PagedContent<T>({
+  path,
+  render,
+  empty,
+  refetchInterval,
+}: PagedProps<T>) {
   const [page, setPage] = useState(0);
   const q = useApi<Page<T>>(
     path + (path.includes("?") ? "&" : "?") + "page=" + page + "&size=20",
+    refetchInterval,
   );
   return (
     <QueryState query={q}>
