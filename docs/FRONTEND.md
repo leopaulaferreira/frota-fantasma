@@ -114,3 +114,16 @@ backend validam os contratos internos com PostgreSQL descartável.
 
 O frontend pode executar sem histórico: apresenta estados vazios/insuficientes.
 Para investigação real, a coleta do backend precisa ter acumulado observações.
+
+### Lista de possíveis candidatos em Premiações
+
+A lista inclui todos os membros atuais de cargo `member`, ordenados por
+`recentAverage` decrescente. Empates compartilham posição; médias ausentes
+ficam no fim e não são substituídas por zero. A referência inicial de 2.400
+pontos pode ser ajustada durante a consulta e não altera regras persistidas.
+A diferença é `recentAverage - referência`, preservando período, amostra e
+limitações da média. Estar abaixo da referência não exclui ninguém. A tabela
+mostra participação, decks, doações semanais observadas, tempo observado,
+alertas e acesso à avaliação pelas regras atuais. A ordem é uma comparação de
+pontuação, não uma decisão de promoção. Médias com menos de quatro pontuações
+conhecidas são explicitamente sinalizadas.

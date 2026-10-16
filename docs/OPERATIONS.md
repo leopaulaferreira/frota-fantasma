@@ -149,3 +149,25 @@ npm run test:e2e --prefix frontend
 
 Os testes do backend usam PostgreSQL descartável e os de navegador usam fixtures
 para cenários reproduzíveis. A validação ao vivo é complementar e de leitura.
+
+### Premiações automáticas no fechamento
+
+Com `COLLECTION_ENABLED=true` e `AWARDS_AUTOMATIC_ENABLED=true` (padrões), o
+fechamento roda segunda-feira às 06:00 em `America/Sao_Paulo`. Também verifica
+pendências ao iniciar e a cada 15 minutos. Precisa de coleta bem-sucedida do
+warlog e membros, e de guerra publicada oficialmente a partir desse fechamento;
+o relógio sozinho não confirma o resultado. A recuperação cobre o fechamento
+mais recente, não publica retroativamente todas as semanas perdidas.
+
+Capitão usa a guerra recém-publicada; Alma Imortal inclui essa guerra nas quatro
+últimas; Guardião e desempates usam as doações observadas da semana calendário
+anterior, no fuso das regras de analytics (explicitado na evidência). Essa semana
+de doações não equivale ao intervalo segunda 06h–segunda 06h. Resets e lacunas
+continuam sinalizados; não se fabricam doações. Categorias sem elegíveis ficam
+sem vencedor e não são preenchidas retroativamente após congelar o lote.
+
+A semana do lote é a segunda-feira de publicação. Avaliação e títulos são
+persistidos atomicamente, sob trava do clã, uma única vez. Premiações já
+formalizadas manualmente são preservadas. A automação não grava decisões de
+promoção, expulsão ou mudança de cargo. O mural consulta atualizações a cada
+minuto enquanto aberto. A máquina precisa estar ligada para executar jobs.
