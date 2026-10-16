@@ -70,3 +70,8 @@ management:
       show-details: never
       probes:
         enabled: true
+
+awards:
+  automatic:
+    enabled: ${AWARDS_AUTOMATIC_ENABLED:true}
+    retry-interval: PT15M

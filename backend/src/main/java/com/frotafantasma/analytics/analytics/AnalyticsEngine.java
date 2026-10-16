@@ -62,6 +62,40 @@ public final class AnalyticsEngine {
         return new Report(now, week, AnalyticsProperties.VERSION, rules, players, clan, highlights(players, wars, week, calendar), evolution);
     }
 
+    /** Closing awards use the newly published war, but a completed donation calendar week. */
+    public Report closingAwards(Report report, List<War> wars) {
+        LocalDate donationWeek = report.week().minusWeeks(1);
+        var awardPlayers = report.players().stream().map(p -> {
+            var metrics = new LinkedHashMap<>(p.metrics());
+            var donations = p.donations().stream().filter(d -> d.week().equals(donationWeek))
+                    .map(DonationPeriod::observedDonations).findFirst()
+                    .orElseGet(() -> metric(null, Origin.SNAPSHOT_DERIVED, calendar(donationWeek), 0, true, true,
+                            List.of(), "Sem snapshots comparáveis na semana de doações encerrada."));
+            metrics.put("weeklyDonations", donations);
+            return new PlayerStats(p.tag(), p.name(), p.role(), p.currentMember(), metrics, p.wars(), p.donations(),
+                    p.participation(), p.historicalContext(), p.operationalStatus(), p.elderCandidate());
+        }).toList();
+        var orderedWars = wars.stream().filter(w -> w.getPublishedAt().isBefore(report.generatedAt()))
+                .sorted(Comparator.comparing(War::getPublishedAt).reversed().thenComparing(War::getId, Comparator.reverseOrder())).toList();
+        var highlights = highlights(awardPlayers, orderedWars, report.week(), calendar(report.week())).stream().map(h -> {
+            var winner = awardPlayers.stream().filter(p -> p.tag().equals(h.playerTag())).findFirst();
+            var result = h.result();
+            Period period = winner.map(p -> switch (h.title()) {
+                case "CAPITAO_DA_GUERRA" -> p.wars().getFirst().points().period();
+                case "GUARDIAO_DA_FROTA" -> p.metrics().get("weeklyDonations").period();
+                default -> p.metrics().get("recentAverage").period();
+            }).orElse(result.period());
+            String reason = result.reason().replace("Alocação provisória exclusiva", "Alocação exclusiva").replace("título provisório porque há lacunas de coleta",
+                    "resultado baseado nas doações observadas; lacunas de coleta permanecem sinalizadas")
+                    + " Fechamento automático da guerra publicada na semana de " + report.week()
+                    + "; doações e desempate usam a semana de " + donationWeek + " no fuso " + rules.timezone() + ".";
+            return new Highlight(h.title(), h.playerTag(), new Metric<>(result.value(), result.origin(), result.quality(), period,
+                    result.warsConsidered(), result.insufficientSample(), result.incompletePeriod(), result.dataUsed(), reason));
+        }).toList();
+        return new Report(report.generatedAt(), report.week(), report.ruleVersion(), report.rules(), report.players(),
+                report.clan(), highlights, report.evolution(), report.recommendationRules());
+    }
+
     private PlayerStats player(Player player, List<War> wars, List<WarParticipant> participants,
                                List<ClanMembershipSnapshot> snapshots, List<MembershipEvent> events,
                                Instant cutoff, LocalDate week, Map<Long, WarRanking> ranks) {

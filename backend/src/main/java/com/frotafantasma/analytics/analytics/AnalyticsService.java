@@ -46,6 +46,14 @@ public class AnalyticsService {
         return calculate(requestedWeek, version);
     }
 
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ, propagation = Propagation.REQUIRES_NEW)
+    public AnalyticsDtos.Report closingReport(LocalDate week, RuleVersion version) {
+        var report = calculate(week, version);
+        var clan = clans.findByTag(api.clanTag()).orElseThrow();
+        return new AnalyticsEngine(version.settings().analytics(), version.settings().immortalAllowPartial())
+                .closingAwards(report, wars.findByClanIdOrderByPublishedAtDescIdDesc(clan.getId()));
+    }
+
     private AnalyticsDtos.Report calculate(LocalDate requestedWeek, RuleVersion version) {
         var rules = version.settings().analytics();
         Instant now = clock.instant();
