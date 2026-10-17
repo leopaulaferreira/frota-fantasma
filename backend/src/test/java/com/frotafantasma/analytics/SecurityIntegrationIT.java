@@ -82,4 +82,15 @@ class SecurityIntegrationIT {
         mvc.perform(get("/api/operations").with(user("viewer").roles("VIEWER"))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.sources[0].failuresLast24Hours").value(1));
     }
+    @Test void notesArePrivateToLeadershipAndRequireCsrf() throws Exception {
+        mvc.perform(get("/api/leadership/notes/active")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/leadership/notes/active").with(user("consulta").roles("VIEWER"))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/leadership/players/{tag}/notes","#P01").with(user("consulta").roles("VIEWER"))).andExpect(status().isForbidden());
+        mvc.perform(post("/api/leadership/players/{tag}/notes","#P01").with(user("consulta").roles("VIEWER")).with(csrf())
+            .contentType("application/json").content("{}")).andExpect(status().isForbidden());
+        mvc.perform(post("/api/leadership/players/{tag}/notes","#P01").with(user("lider").roles("ADMIN"))
+            .contentType("application/json").content("{}")).andExpect(status().isForbidden());
+        mvc.perform(get("/api/leadership/notes/active").with(user("lider").roles("ADMIN"))).andExpect(status().isOk());
+    }
+
 }

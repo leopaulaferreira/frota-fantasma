@@ -54,6 +54,8 @@ test.beforeEach(async ({ page }) => {
           errorCode: null,
         },
       ]);
+    else if (path === "/api/leadership/notes/active") result = { generatedAt: report.generatedAt, timezone: "America/Sao_Paulo", notes: [] };
+    else if (path.startsWith("/api/leadership/players/") && path.endsWith("/notes")) result = paged([]);
     else if (path === "/api/analytics") result = report;
     else if (path.startsWith("/api/analytics/players/"))
       result = players.find((p) => path.endsWith(p.tag));
@@ -521,4 +523,67 @@ test("mural mostra fechamento automático e títulos publicados", async ({ page 
   await expect(final).toBeVisible();
   expect((await final.boundingBox())!.y).toBeLessThan((await projection.boundingBox())!.y);
   await expect(page.getByRole("link", { name: "Avaliação original →" })).toBeVisible();
+});
+
+
+test("líder registra contexto e encerra acompanhamento preservando histórico", async ({ page }) => {
+  let saved: Record<string, unknown> | null = null;
+  await page.route("**/api/leadership/**", async route => {
+    const path = decodeURIComponent(new URL(route.request().url()).pathname);
+    if (path.endsWith("/resolve")) {
+      saved = { ...saved, status: "RESOLVED", followUpDue: false, resolvedAt: report.generatedAt, resolvedBy: "lider", resolution: route.request().postDataJSON().reason };
+      return route.fulfill({ json: saved });
+    }
+    if (path.endsWith("/notes") && route.request().method() === "POST") {
+      const body = route.request().postDataJSON();
+      expect(body.requestKey).toBeTruthy();
+      saved = { ...body, id:"note-1",playerTag:players[0].tag,createdAt:report.generatedAt,createdBy:"lider",status:"ACTIVE",followUpDue:true,resolvedAt:null };
+      return route.fulfill({ json: saved });
+    }
+    if (path.endsWith("/active")) return route.fulfill({json:{generatedAt:report.generatedAt,timezone:"America/Sao_Paulo",notes:saved?.status==="ACTIVE"?[saved]:[]}});
+    return route.fulfill({json:{items:saved?[saved]:[],totalElements:saved?1:0,page:0,size:20}});
+  });
+  await page.goto("/membros/" + encodeURIComponent(players[0].tag) + "?tab=notas");
+  await page.getByLabel("Tipo de anotação").selectOption("JUSTIFICATION");
+  await page.getByLabel("Descrição da anotação").fill("Avisou viagem; conversar no retorno.");
+  await page.getByRole("button",{name:"Salvar anotação"}).click();
+  await expect(page.getByText("Anotação registrada.")).toBeVisible();
+  await expect(page.getByText("Avisou viagem; conversar no retorno.")).toBeVisible();
+  await page.goto("/");
+  const section=page.getByRole("region",{name:"Prioridades do líder"});
+  await section.getByLabel("Filtrar prioridade").selectOption("Retomar acompanhamento");
+  await expect(section.getByText("1 membros nesta seleção",{exact:false})).toBeVisible();
+  await section.getByRole("link",{name:"Abrir histórico e notas →"}).click();
+  await page.getByText("Encerrar acompanhamento",{exact:true}).click();
+  await page.getByLabel("Resultado do acompanhamento").fill("Retornou e participou da guerra.");
+  await page.getByRole("button",{name:"Salvar encerramento"}).click();
+  await expect(page.getByText(/Encerrada por lider/)).toBeVisible();
+  await expect(page.getByText("Avisou viagem; conversar no retorno.")).toBeVisible();
+});
+
+test("consulta não exibe notas nem prioridades privadas", async ({ page }) => {
+  await page.route("**/api/auth/me",route=>route.fulfill({json:{username:"consulta",roles:["VIEWER"]}}));
+  let privateRequests=0;
+  page.on("request",r=>{if(r.url().includes("/api/leadership/")) privateRequests++;});
+  await page.goto("/");
+  await expect(page.getByRole("heading",{name:"O rumo da Frota"})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Prioridades do líder"})).toHaveCount(0);
+  await page.goto("/membros/"+encodeURIComponent(players[0].tag)+"?tab=notas");
+  await expect(page.getByRole("heading",{name:players[0].name,exact:true})).toBeVisible();
+  await expect(page.getByRole("button",{name:"Notas da liderança"})).toHaveCount(0);
+  expect(privateRequests).toBe(0);
+});
+
+test("prioridades permitem percorrer toda a lista e reiniciam página ao buscar", async ({ page }) => {
+  const roster = Array.from({length: 12}, (_,i) => ({...players[0], tag:`#TEST${i}`, name:`Tripulante ${i}`, currentMember:true,
+    operationalStatus:{...players[0].operationalStatus,value:"OBSERVAR"}}));
+  await page.route("**/api/analytics", route=>route.fulfill({json:{...report,players:roster}}));
+  await page.goto("/");
+  const region=page.getByRole("region",{name:"Prioridades do líder"});
+  await expect(region.locator(".priority-list > li")).toHaveCount(10);
+  await region.getByRole("button",{name:"Próximas prioridades"}).click();
+  await expect(region.locator(".priority-list > li")).toHaveCount(2);
+  await region.getByLabel("Buscar nas prioridades").fill("Tripulante 11");
+  await expect(region.locator(".priority-list > li")).toHaveCount(1);
+  await expect(region.getByText("Tripulante 11",{exact:true})).toBeVisible();
 });
