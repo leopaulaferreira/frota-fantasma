@@ -1,5 +1,7 @@
+import { useAdmin } from "../lib/auth";
+import { LeaderNotes } from "../components/LeaderNotes";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   useApi,
   date,
@@ -148,9 +150,15 @@ export function Members() {
   );
 }
 export function PlayerProfile() {
+  const admin = useAdmin();
+  const [params] = useSearchParams();
   const { tag = "" } = useParams();
   const q = useApi<Player>("/analytics/players/" + tagPath(tag));
-  const [tab, setTab] = useState("Visão geral");
+  const [tab, setTab] = useState(
+    params.get("tab") === "notas" && admin
+      ? "Notas da liderança"
+      : "Visão geral",
+  );
   const p = q.data;
   return (
     <>
@@ -182,6 +190,7 @@ export function PlayerProfile() {
                 "Doações",
                 "Premiações",
                 "Todas as métricas",
+                ...(admin ? ["Notas da liderança"] : []),
               ].map((t) => (
                 <button
                   key={t}
@@ -193,6 +202,9 @@ export function PlayerProfile() {
                 </button>
               ))}
             </div>
+            {admin && tab === "Notas da liderança" && (
+              <LeaderNotes key={p.tag} tag={p.tag} />
+            )}
             {tab === "Visão geral" && (
               <>
                 <Metrics

@@ -1,3 +1,5 @@
+import { useAdmin } from "../lib/auth";
+import { LeaderPriorities } from "../components/LeaderPriorities";
 import { FleetBanner, AwardCard } from "../components/royale";
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
@@ -6,12 +8,10 @@ import {
   Heading,
   QueryState,
   Metrics,
-  Person,
-  Badge,
-  Table,
   Empty,
 } from "../components/ui";
 export function Overview() {
+  const admin = useAdmin();
   const q = useApi<Report>("/analytics");
   const r = q.data;
   return (
@@ -46,32 +46,7 @@ export function Overview() {
                 "membersOffline",
               ]}
             />
-            <div className="section-head">
-              <h2>Sinais que merecem atenção</h2>
-              <Link to="/recomendacoes">Ver recomendações →</Link>
-            </div>
-            <Table headers={["Membro", "Status", "Motivo"]}>
-              {r.players
-                .filter(
-                  (p) =>
-                    p.currentMember &&
-                    ["OBSERVAR", "REVISAR"].includes(
-                      String(p.operationalStatus.value),
-                    ),
-                )
-                .slice(0, 5)
-                .map((p) => (
-                  <tr key={p.tag}>
-                    <td>
-                      <Person player={p} />
-                    </td>
-                    <td>
-                      <Badge value={p.operationalStatus.value} />
-                    </td>
-                    <td className="reason">{p.operationalStatus.reason}</td>
-                  </tr>
-                ))}
-            </Table>
+            {admin && <LeaderPriorities report={r} />}
             <div className="section-head">
               <h2>Destaques provisórios</h2>
               <Link to="/premiacoes">Histórico de títulos →</Link>
