@@ -31,6 +31,7 @@ public class SecurityConfiguration {
         http.authorizeHttpRequests(a->a
                 .requestMatchers(HttpMethod.GET,"/api/auth/csrf","/actuator/health","/actuator/health/**").permitAll()
                 .requestMatchers("/api/auth/login","/api/auth/logout","/error").permitAll()
+                .requestMatchers("/api/leadership/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET,"/api/**").authenticated()
                 .requestMatchers("/swagger-ui/**","/swagger-ui.html","/v3/api-docs/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST,"/api/**").hasRole("ADMIN")
