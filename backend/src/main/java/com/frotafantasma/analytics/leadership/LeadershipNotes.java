@@ -14,7 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class LeadershipNotes {
-    public enum Kind { OBSERVATION, JUSTIFICATION, AGREEMENT }
+    public enum Kind { OBSERVATION, JUSTIFICATION, AGREEMENT, CANDIDACY }
     public record Create(@NotNull UUID requestKey, @NotNull Kind kind, @NotBlank @Size(max=2000) String body,
                          LocalDate expiresOn, LocalDate followUpOn) {}
     public record Resolve(@NotBlank @Size(max=1000) String reason) {}
@@ -67,6 +67,8 @@ public class LeadershipNotes {
                 join player p on p.id=h.player_id where c.tag=? and p.player_tag=?)
             """,Boolean.class,api.clanTag(),tag));
         if (!known) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Membro sem histórico neste clã.");
+        if (request.kind()==Kind.CANDIDACY && request.followUpOn()==null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Informe a data para reavaliar a candidatura.");
         if (request.expiresOn()!=null&&request.expiresOn().isBefore(today()))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"A validade não pode estar no passado.");
         if (request.followUpOn()!=null&&request.followUpOn().isBefore(today()))

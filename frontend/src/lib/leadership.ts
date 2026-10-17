@@ -2,7 +2,7 @@ import type { Player, Metric } from "./api";
 export interface LeaderNote {
   id: string;
   playerTag: string;
-  kind: "OBSERVATION" | "JUSTIFICATION" | "AGREEMENT";
+  kind: "OBSERVATION" | "JUSTIFICATION" | "AGREEMENT" | "CANDIDACY";
   body: string;
   createdAt: string;
   createdBy: string;
@@ -23,6 +23,7 @@ export const noteKinds = {
   OBSERVATION: "Observação",
   JUSTIFICATION: "Justificativa",
   AGREEMENT: "Combinado",
+  CANDIDACY: "Acompanhar candidatura a Ancião",
 };
 export const noteStatuses = {
   ACTIVE: "Vigente",

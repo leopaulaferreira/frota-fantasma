@@ -162,9 +162,10 @@ export function LeaderNotes({ tag }: { tag: string }) {
               />
             </label>
             <label>
-              Retomar acompanhamento em (opcional)
+              {kind === "CANDIDACY" ? "Data para reavaliar candidatura" : "Retomar acompanhamento em (opcional)"}
               <input
                 type="date"
+                required={kind === "CANDIDACY"}
                 value={followUpOn}
                 onChange={(e) => {
                   setFollowUpOn(e.target.value);

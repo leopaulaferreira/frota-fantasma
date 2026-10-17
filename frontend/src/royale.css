@@ -1379,3 +1379,56 @@ body:has(.metric-dialog[open]) {
     padding: 16px;
   }
 }
+
+.prospect-strong {
+  color: #a1f0c9;
+  background: #174c3d;
+  border-color: #37836a;
+}
+.prospect-near {
+  color: #ffe09a;
+  background: #4b3b18;
+  border-color: #96712c;
+}
+.prospect-developing {
+  color: #c1d9ff;
+  background: #213957;
+  border-color: #4c6c96;
+}
+.prospect-unknown {
+  color: #d3d8e1;
+  background: #303944;
+  border-color: #687486;
+}
+.elder-prospects .prospect-context > .prospect-strong,
+.elder-prospects .prospect-context > .prospect-near,
+.elder-prospects .prospect-context > .prospect-developing,
+.elder-prospects .prospect-context > .prospect-unknown {
+  margin-top: 12px;
+  white-space: normal;
+}
+.prospect-war-list {
+  min-width: 160px;
+  padding-left: 18px;
+  font-size: 12px;
+}
+.prospect-war-list li {
+  margin: 10px 0;
+}
+.watch-form {
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.watch-form label {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0;
+}
+.watch-form textarea {
+  min-width: 180px;
+  max-width: 100%;
+}
+.elder-prospects .toolbar input[type="checkbox"] {
+  width: auto;
+}
