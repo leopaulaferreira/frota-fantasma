@@ -117,8 +117,10 @@ Para investigação real, a coleta do backend precisa ter acumulado observaçõe
 
 ### Lista de possíveis candidatos em Premiações
 
-A lista inclui todos os membros atuais de cargo `member`, ordenados por
-`recentAverage` decrescente. Empates compartilham posição; médias ausentes
+A lista inclui todos os membros atuais de cargo `member`, separando primeiro
+quem tem quatro pontuações conhecidas de quem está formando histórico. Dentro
+de cada grupo, a ordenação inicial é por média decrescente; também permite
+ordenar por decks, guerras completas, doações e evolução. Médias ausentes
 ficam no fim e não são substituídas por zero. A referência inicial de 2.400
 pontos pode ser ajustada durante a consulta e não altera regras persistidas.
 A diferença é `recentAverage - referência`, preservando período, amostra e
@@ -151,3 +153,29 @@ Rotas `/api/leadership/**` são exclusivas de ADMIN, inclusive leitura; VIEWER n
 recebe o conteúdo. Gravações usam CSRF, validação, chave de idempotência e trava
 por clã. A migração V5 adiciona registros imutáveis de notas e encerramentos,
 incluídos nos backups do PostgreSQL. Dados ficam restritos ao clã configurado.
+
+
+### Sinais e filtros de candidatura
+
+A seção de Premiações compara os dados já fornecidos pelo backend com a
+referência local e as regras salvas. Não altera `elderCandidate` nem o status
+operacional. As cores sempre têm rótulo e explicação acessível:
+
+- Verde: média atinge o objetivo, quatro pontuações conhecidas, amostra suficiente,
+  doações/tempo/decks atingem as referências salvas, zero alertas registrados,
+  status MANTER e candidatura aprovada pelas regras atuais.
+- Amarelo: média próxima ou acima do objetivo, mas algum critério do verde não
+  foi atendido. A tolerância inicial é 5%, ajustável de 0% a 20% nesta consulta.
+- Azul: média abaixo da faixa próxima, com dados disponíveis.
+- Cinza: faltam dados, referências ou amostra suficiente para a avaliação completa.
+
+A cor não mede mérito pessoal nem substitui a leitura das evidências. Doações
+observadas continuam sendo limite inferior, e uma contagem abaixo da referência
+pode resultar de lacunas. Quatro pontuações, decks por guerra, evolução, período
+e evidências permanecem consultáveis. Filtros por sinal, amostra, nome e
+acompanhamento manual, com paginação de dez membros, não excluem registros.
+
+ADMIN pode registrar acompanhamento de candidatura (tipo `CANDIDACY`, migração
+V6), com motivo e data obrigatória para reavaliar. O registro usa as mesmas
+proteções e histórico das notas da liderança; pode ser encerrado no perfil.
+VIEWER não consulta os acompanhamentos privados. Nenhum cargo é alterado.
