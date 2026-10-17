@@ -127,3 +127,27 @@ mostra participação, decks, doações semanais observadas, tempo observado,
 alertas e acesso à avaliação pelas regras atuais. A ordem é uma comparação de
 pontuação, não uma decisão de promoção. Médias com menos de quatro pontuações
 conhecidas são explicitamente sinalizadas.
+
+### Prioridades e notas da liderança
+
+A visão geral do perfil ADMIN inclui uma lista filtrável de prioridades, sem
+limite silencioso de cinco membros, com navegação em páginas de dez. Ordem: retomadas com data atingida, revisão,
+atenção/queda, candidaturas, evolução, proximidade do objetivo e amostra pequena.
+As categorias podem coexistir para um membro e sempre expõem os motivos e as
+métricas originais. Evolução/queda usam a diferença entre duas guerras recentes
+e duas anteriores, exigindo amostra e período suficientes. Proximidade usa até
+5% abaixo da referência ajustável (inicialmente 2.400), com quatro pontuações
+conhecidas. Essas condições não alteram elegibilidade nem geram punições.
+
+No perfil, a aba **Notas da liderança** registra observações, justificativas e
+combinados. São dados manuais, separados dos dados da API. Cada nota tem autor
+obtido da sessão, data de criação, validade inclusiva opcional e data opcional
+para retomar o acompanhamento, no fuso America/Sao_Paulo. Encerrar exige um
+resultado, preservando o texto original. Correções são feitas encerrando a nota
+e registrando outra. O histórico é paginado e inclui notas expiradas/encerradas;
+o resumo usa apenas notas vigentes. Notas não mudam status ou alertas analíticos.
+
+Rotas `/api/leadership/**` são exclusivas de ADMIN, inclusive leitura; VIEWER não
+recebe o conteúdo. Gravações usam CSRF, validação, chave de idempotência e trava
+por clã. A migração V5 adiciona registros imutáveis de notas e encerramentos,
+incluídos nos backups do PostgreSQL. Dados ficam restritos ao clã configurado.
