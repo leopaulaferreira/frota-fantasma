@@ -82,4 +82,14 @@ class LeadershipNotesIT {
         assertThat(isolated.history("#P01",0,20).items()).isEmpty();
         assertThat(isolated.active().notes()).isEmpty();
     }
+    @Test void candidacyWatchRequiresReviewDateAndKeepsItsKind() {
+        assertThatThrownBy(()->service.create("#P01",new Create(UUID.randomUUID(),Kind.CANDIDACY,"Observar consistência",null,null),"lider")).hasMessageContaining("400");
+        var note=service.create("#P01",new Create(UUID.randomUUID(),Kind.CANDIDACY,"Observar consistência",null,LocalDate.parse("2026-10-20")),"lider");
+        assertThat(note.kind()).isEqualTo(Kind.CANDIDACY);
+        assertThat(service.active().notes()).extracting(Note::kind).containsExactly(Kind.CANDIDACY);
+        service.resolve(note.id(),new Resolve("Reavaliação concluída"),"lider");
+        assertThat(service.active().notes()).isEmpty();
+        assertThat(service.history("#P01",0,20).items().getFirst().kind()).isEqualTo(Kind.CANDIDACY);
+    }
+
 }

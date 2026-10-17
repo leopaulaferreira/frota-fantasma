@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { report, players, rules, evaluation, award } from "./fixtures";
+import { report, players, rules, evaluation, award, metric } from "./fixtures";
 test.beforeEach(async ({ page }) => {
   await page.route("**/api/**", async (route) => {
     const url = new URL(route.request().url());
@@ -586,4 +586,48 @@ test("prioridades permitem percorrer toda a lista e reiniciam página ao buscar"
   await region.getByLabel("Buscar nas prioridades").fill("Tripulante 11");
   await expect(region.locator(".priority-list > li")).toHaveCount(1);
   await expect(region.getByText("Tripulante 11",{exact:true})).toBeVisible();
+});
+
+
+test("candidaturas mostram cores filtros amostra e acompanhamento manual", async ({ page }) => {
+  const roster=structuredClone(players.slice(0,4));
+  for(const p of roster) {
+    p.metrics.standardDeckTargetPercent=metric(100);p.metrics.recentAlerts=metric(0);
+    p.operationalStatus=metric("MANTER");p.elderCandidate=metric(true);
+    p.metrics.weeklyDonations=metric(200);p.metrics.observedTenureDays=metric(60);
+  }
+  roster[0].metrics.recentAverage=metric(2500);
+  roster[1].metrics.recentAverage=metric(2320);
+  roster[2].metrics.recentAverage=metric(3100,{warsConsidered:1,insufficientSample:true});
+  roster[3].metrics.recentAverage=metric(1800);
+  await page.route("**/api/analytics",route=>route.fulfill({json:{...report,players:roster}}));
+  let note: Record<string,unknown>|null=null;
+  await page.route("**/api/leadership/**",async route=>{
+    if(route.request().method()==="POST") {
+      const body=route.request().postDataJSON();expect(body.kind).toBe("CANDIDACY");expect(body.followUpOn).toBe("2026-12-01");
+      note={...body,id:"watch-1",playerTag:roster[1].tag,createdAt:report.generatedAt,createdBy:"lider",status:"ACTIVE",followUpDue:false,resolvedAt:null};
+      return route.fulfill({json:note});
+    }
+    return route.fulfill({json:{generatedAt:report.generatedAt,timezone:"America/Sao_Paulo",notes:note?[note]:[]}});
+  });
+  await page.goto("/premiacoes");
+  const section=page.getByRole("region",{name:"Possíveis candidatos a Ancião"});
+  const rows=section.locator("tbody tr");
+  await expect(rows).toHaveCount(4);
+  await expect(rows.first()).toContainText(roster[0].name);
+  await expect(rows.last()).toContainText(roster[2].name);
+  await section.getByLabel("Filtrar sinal de candidatura").selectOption("strong");
+  await expect(rows).toHaveCount(1);await expect(rows.first().locator(".prospect-strong")).toBeVisible();
+  await section.getByLabel("Filtrar sinal de candidatura").selectOption("near");
+  await expect(rows).toHaveCount(1);await expect(rows.first().locator(".prospect-near")).toBeVisible();
+  await expect(rows.first()).toContainText("80 pontos abaixo");
+  await expect(rows.first().locator(".prospect-war-list li")).toHaveCount(4);
+  await section.getByText("Acompanhar para Ancião",{exact:true}).click();
+  await section.getByLabel("Motivo do acompanhamento").fill("Boa participação; acompanhar evolução.");
+  await section.getByLabel("Data para reavaliar").fill("2026-12-01");
+  await section.getByRole("button",{name:"Salvar acompanhamento"}).click();
+  await expect(section.getByText("Candidatura em acompanhamento",{exact:true})).toBeVisible();
+  await section.getByLabel("Filtrar sinal de candidatura").selectOption("");
+  await section.getByLabel("Somente acompanhados para Ancião").check();
+  await expect(rows).toHaveCount(1);await expect(rows.first()).toContainText(roster[1].name);
 });
