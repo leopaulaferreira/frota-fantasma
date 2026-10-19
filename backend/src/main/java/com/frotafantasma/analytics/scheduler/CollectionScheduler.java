@@ -51,6 +51,17 @@ public class CollectionScheduler {
         collect(CollectionKind.WEEKLY_CLOSE, LocalDate.now(clock.withZone(settings.timezone())).toString());
     }
 
+    // Explicit São Paulo schedule: the general UTC war-day schedule ends at 21h local on Sunday.
+    @Scheduled(cron = "0 */5 18-21 * * SUN", zone = "America/Sao_Paulo")
+    @Scheduled(cron = "0 59 21 * * SUN", zone = "America/Sao_Paulo")
+    public void weeklyReview() {
+        var local = clock.instant().atZone(java.time.ZoneId.of("America/Sao_Paulo"));
+        if (local.getDayOfWeek() != java.time.DayOfWeek.SUNDAY || local.getHour() < 18 || local.getHour() >= 22) return;
+        String minute = "REVIEW:" + local.toLocalDate() + ":" + local.getHour() + ":" + local.getMinute();
+        collect(CollectionKind.MEMBERS, minute);
+        collect(CollectionKind.RIVER, minute);
+    }
+
     private String bucket(Duration interval) { return Long.toString(clock.instant().getEpochSecond() / interval.toSeconds()); }
     private void collect(CollectionKind kind, String bucket) {
         try {

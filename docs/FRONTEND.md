@@ -115,20 +115,17 @@ backend validam os contratos internos com PostgreSQL descartável.
 O frontend pode executar sem histórico: apresenta estados vazios/insuficientes.
 Para investigação real, a coleta do backend precisa ter acumulado observações.
 
-### Lista de possíveis candidatos em Premiações
+### Área de candidatos a Ancião
 
-A lista inclui todos os membros atuais de cargo `member`, separando primeiro
-quem tem quatro pontuações conhecidas de quem está formando histórico. Dentro
-de cada grupo, a ordenação inicial é por média decrescente; também permite
-ordenar por decks, guerras completas, doações e evolução. Médias ausentes
-ficam no fim e não são substituídas por zero. A referência inicial de 2.400
-pontos pode ser ajustada durante a consulta e não altera regras persistidas.
-A diferença é `recentAverage - referência`, preservando período, amostra e
-limitações da média. Estar abaixo da referência não exclui ninguém. A tabela
-mostra participação, decks, doações semanais observadas, tempo observado,
-alertas e acesso à avaliação pelas regras atuais. A ordem é uma comparação de
-pontuação, não uma decisão de promoção. Médias com menos de quatro pontuações
-conhecidas são explicitamente sinalizadas.
+A rota `/anciao`, disponível na navegação principal, reúne os membros atuais de
+cargo `member`. Recomendações usa a mesma lista e Premiações oferece acesso a
+ela. A visão geral mostra atalhos para desenvolvimento, acompanhamento e
+confiabilidade das coletas. Comparar membros também apresenta prontidão e
+próximo passo antes dos indicadores e do histórico de guerras.
+
+A regra de triagem fica em `frontend/src/lib/prospects.ts`, compartilhada entre
+lista, resumo e comparação. Componentes de apresentação não implementam
+critérios diferentes. Estilos de gestão ficam em `leadership.css`.
 
 ### Prioridades e notas da liderança
 
@@ -138,7 +135,7 @@ atenção/queda, candidaturas, evolução, proximidade do objetivo e amostra peq
 As categorias podem coexistir para um membro e sempre expõem os motivos e as
 métricas originais. Evolução/queda usam a diferença entre duas guerras recentes
 e duas anteriores, exigindo amostra e período suficientes. Proximidade usa até
-5% abaixo da referência ajustável (inicialmente 2.400), com quatro pontuações
+5% abaixo da referência ajustável (inicialmente a meta das regras salvas), com quatro pontuações
 conhecidas. Essas condições não alteram elegibilidade nem geram punições.
 
 No perfil, a aba **Notas da liderança** registra observações, justificativas e
@@ -157,25 +154,74 @@ incluídos nos backups do PostgreSQL. Dados ficam restritos ao clã configurado.
 
 ### Sinais e filtros de candidatura
 
-A seção de Premiações compara os dados já fornecidos pelo backend com a
-referência local e as regras salvas. Não altera `elderCandidate` nem o status
-operacional. As cores sempre têm rótulo e explicação acessível:
+A lista explica oito critérios: amostra, média, participação positiva em toda a
+janela, uso do padrão de decks, tempo observado, doações semanais, alertas
+persistidos e situação operacional atual. Cada critério distingue atendido,
+pendente, sem evidência e revisão necessária. A avaliação oficial do backend
+continua obrigatória para sinalizar prontidão; esta triagem não altera cargos,
+regras ou `elderCandidate`.
 
-- Verde: média atinge o objetivo, quatro pontuações conhecidas, amostra suficiente,
-  doações/tempo/decks atingem as referências salvas, zero alertas registrados,
-  status MANTER e candidatura aprovada pelas regras atuais.
-- Amarelo: média próxima ou acima do objetivo, mas algum critério do verde não
-  foi atendido. A tolerância inicial é 5%, ajustável de 0% a 20% nesta consulta.
-- Azul: média abaixo da faixa próxima, com dados disponíveis.
-- Cinza: faltam dados, referências ou amostra suficiente para a avaliação completa.
+- **Pronto para avaliação:** todos os critérios atendidos e aprovação oficial.
+- **Poucas pendências:** até dois critérios pendentes, média dentro da tolerância
+  (5% inicialmente), sem alerta e sem dado ausente.
+- **Em desenvolvimento:** dados disponíveis, mas mais pendências ou média fora
+  da faixa próxima.
+- **Completar evidências:** referências, atividade, coleta atualizada ou amostra
+  insuficientes. O mínimo de guerras respeita as regras (2 a 4), e toda guerra
+  da janela disponível precisa ter pontos e decks conhecidos.
+- **Revisar alertas:** alerta persistido, situação operacional com ressalva ou
+  veto oficial não explicado pelos demais critérios. Um alerta conhecido tem
+  prioridade mesmo quando outros dados estão ausentes.
 
-A cor não mede mérito pessoal nem substitui a leitura das evidências. Doações
-observadas continuam sendo limite inferior, e uma contagem abaixo da referência
-pode resultar de lacunas. Quatro pontuações, decks por guerra, evolução, período
-e evidências permanecem consultáveis. Filtros por sinal, amostra, nome e
-acompanhamento manual, com paginação de dez membros, não excluem registros.
+A ordenação inicial prioriza prontos, poucas pendências, desenvolvimento e
+revisão de alertas, deixando evidências insuficientes por último. Dentro de
+cada grupo, prioriza o número de critérios atendidos,
+com desempate por média, uso de decks e tag. A ordenação por métrica escolhida
+pelo líder vale para toda a seleção, sem agrupamentos ocultos. Filtros por
+situação, pendência específica, nome/tag, amostra e acompanhamento manual têm
+lista única de todos os membros e botão de limpeza. Nenhum membro abaixo da meta é
+excluído automaticamente.
+
+A referência inicial usa `pointsTarget` das regras salvas. Simulações locais
+podem aumentar a exigência, mas nunca reduzem a meta oficial. Limpar o campo
+retoma a referência salva. Tolerância aceita 0% a 20%. A triagem não cria Score
+próprio nem soma pontos para compensar critérios não atendidos.
+
+Cada candidato aparece inicialmente em duas linhas, com posição numerada, nome,
+situação e resumo de critérios, média, decks e doações. A numeração segue a
+ordenação selecionada antes dos filtros, preservando a posição ao buscar um membro.
+A ordenação padrão prioriza prontidão; todos os resultados ficam na mesma lista,
+sem paginação. O primeiro clique abre o próximo passo, o checklist e as ações de
+acompanhamento. Um segundo expansor abre guerras, evolução e métricas completas. Doações observadas continuam sendo limite
+inferior: estar abaixo da meta não comprova falta de contribuição. Tempo
+observado desde JOIN/BASELINE não comprova ingresso real. Zero alertas não
+comprova monitoramento contínuo.
 
 ADMIN pode registrar acompanhamento de candidatura (tipo `CANDIDACY`, migração
 V6), com motivo e data obrigatória para reavaliar. O registro usa as mesmas
 proteções e histórico das notas da liderança; pode ser encerrado no perfil.
 VIEWER não consulta os acompanhamentos privados. Nenhum cargo é alterado.
+
+### Expulsões semanais
+
+A rota `/expulsoes` aparece abaixo de Premiações para ADMIN. Lista compacta,
+numerada e expansível com revisão por pontuação da semana e inatividade,
+consulta a recortes passados, filtros e registro de justificativas. A prévia
+acompanha as capturas até domingo às 22h de São Paulo. Os motivos e horários de
+coleta ficam explícitos, com grupos separados para dados insuficientes e
+membros sem sinal. Consulte [WEEKLY-REVIEW.md](WEEKLY-REVIEW.md).
+
+### Identidade visual da Frota
+
+A camada visual `src/fleet.css` reúne a identidade espectral (azul profundo,
+verde e latão), as superfícies compactas e a adaptação para celular. Reutiliza
+os assets locais com créditos em `public/assets/royale/NOTICE.md`, sem CDN.
+O menu se organiza em A bordo, Decisões do líder e Administração; Expulsões
+semanais permanece imediatamente após Premiações e restrita à liderança.
+
+A visão geral traz um atalho privado para a revisão semanal, com contagem dos
+sinais confirmados e indicação de fontes pendentes/erro. As posições dos
+candidatos preservam a ordenação e os dois níveis de expansão; as três primeiras
+recebem molduras distintas, sem representar aprovação ou cargo conquistado.
+Na revisão semanal, as instruções de funcionamento ficam em uma expansão,
+mas prazo, horários das fontes e alertas de qualidade permanecem visíveis.

@@ -42,4 +42,19 @@ class CollectionSchedulerTest {
         scheduler("2026-10-12T12:00:00Z").weekly();
         verify(coordinator).collect(CollectionKind.WEEKLY_CLOSE, "#RQJGC9GV:WEEKLY_CLOSE:2026-10-12");
     }
+    @Test void reviewCollectsBothSourcesOnSundayLocalEvenWhenUtcIsMondayAndStopsAt22() {
+        scheduler("2026-10-19T00:59:00Z").weeklyReview();
+        verify(coordinator).collect(CollectionKind.MEMBERS,"#RQJGC9GV:MEMBERS:REVIEW:2026-10-18:21:59");
+        verify(coordinator).collect(CollectionKind.RIVER,"#RQJGC9GV:RIVER:REVIEW:2026-10-18:21:59");
+        clearInvocations(coordinator);
+        scheduler("2026-10-19T01:00:00Z").weeklyReview();
+        scheduler("2026-10-18T20:59:00Z").weeklyReview();
+        scheduler("2026-10-20T00:59:00Z").weeklyReview();
+        verifyNoInteractions(coordinator);
+    }
+    @Test void reviewStillTriesRaceWhenRosterCollectionFails() {
+        when(coordinator.collect(eq(CollectionKind.MEMBERS),anyString())).thenThrow(new IllegalStateException());
+        scheduler("2026-10-19T00:55:00Z").weeklyReview();
+        verify(coordinator).collect(eq(CollectionKind.RIVER),contains("REVIEW:2026-10-18:21:55"));
+    }
 }

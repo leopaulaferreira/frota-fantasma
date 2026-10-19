@@ -1,5 +1,10 @@
 import { useSearchParams, Link } from "react-router-dom";
 import { useApi, date, type Report } from "../lib/api";
+import {
+  classifyProspect,
+  promotionSetting,
+  prospectBands,
+} from "../lib/prospects";
 import { label } from "../lib/labels";
 import {
   Heading,
@@ -68,6 +73,47 @@ export function Compare() {
         </div>
         {players.length ? (
           <>
+            <h2>Contexto para a decisão</h2>
+            <div className="comparison-decisions">
+              {players.map((p) => {
+                const assessment = classifyProspect(
+                  p,
+                  q.data!,
+                  promotionSetting(q.data!, "pointsTarget") ?? NaN,
+                  5,
+                );
+                return (
+                  <article className="panel" key={p.tag}>
+                    <Link to={"/membros/" + encodeURIComponent(p.tag)}>
+                      <h3>{p.name}</h3>
+                    </Link>
+                    {p.currentMember && p.role === "member" ? (
+                      <>
+                        <span className={`badge prospect-${assessment.band}`}>
+                          {prospectBands[assessment.band]}
+                        </span>
+                        <p>
+                          {assessment.passed}/{assessment.criteria.length}{" "}
+                          critérios para Ancião atendidos
+                        </p>
+                        <p className="muted">{assessment.nextAction}</p>
+                      </>
+                    ) : (
+                      <p className="muted">
+                        {!p.currentMember
+                          ? "Fora do elenco atual"
+                          : "Já possui cargo no clã"}
+                      </p>
+                    )}
+                    <MetricView
+                      compact
+                      name="Situação atual"
+                      metric={p.operationalStatus}
+                    />
+                  </article>
+                );
+              })}
+            </div>
             <h2>Indicadores comparáveis</h2>
             <Table headers={["Indicador", ...players.map((p) => p.name)]}>
               {[...new Set(players.flatMap((p) => Object.keys(p.metrics)))].map(

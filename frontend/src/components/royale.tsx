@@ -19,12 +19,12 @@ export function FleetBanner({ week }: { week?: string }) {
           <span>Um legado.</span>
         </h2>
         <p>
-          Cada guerra conta uma história. Conheça quem está ao seu lado e trace
-          o próximo rumo da Frota.
+          Seu clã, seu comando. Reconheça quem faz a diferença e escolha o
+          próximo rumo da Frota.
         </p>
         <div className="banner-actions">
-          <Link to="/membros" className="button primary">
-            Explorar a tripulação <ArrowUpRight size={17} />
+          <Link to="/anciao" className="button primary">
+            Avaliar candidatos <ArrowUpRight size={17} />
           </Link>
           <Link className="banner-link" to="/guerras">
             Diário de guerras →
@@ -38,7 +38,7 @@ export function FleetBanner({ week }: { week?: string }) {
       </div>
       <div className="fleet-banner-art" aria-hidden="true">
         <div className="crest-ring" />
-        <img className="banner-fisherman" src={art("fisherman")} alt="" />
+
         <img
           className="banner-ghost"
           src={art("royal-ghost")}

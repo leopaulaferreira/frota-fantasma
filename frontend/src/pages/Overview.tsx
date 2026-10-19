@@ -1,15 +1,11 @@
+import { LeadershipSummary } from "../components/LeadershipSummary";
 import { useAdmin } from "../lib/auth";
 import { LeaderPriorities } from "../components/LeaderPriorities";
 import { FleetBanner, AwardCard } from "../components/royale";
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { useApi, date, type Report } from "../lib/api";
-import {
-  Heading,
-  QueryState,
-  Metrics,
-  Empty,
-} from "../components/ui";
+import { Heading, QueryState, Metrics, Empty } from "../components/ui";
 export function Overview() {
   const admin = useAdmin();
   const q = useApi<Report>("/analytics");
@@ -25,6 +21,7 @@ export function Overview() {
       <QueryState query={q}>
         {r && (
           <>
+            <LeadershipSummary report={r} />
             <div className="section-head">
               <h2>Pulso da semana</h2>
               <small>

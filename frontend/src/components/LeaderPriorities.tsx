@@ -1,3 +1,4 @@
+import { promotionSetting } from "../lib/prospects";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { type Report, useApi, tagPath, dateTime } from "../lib/api";
@@ -8,7 +9,9 @@ export function LeaderPriorities({ report }: { report: Report }) {
   const notes = useApi<ActiveNotes>("/leadership/notes/active", 60000);
   const [page, setPage] = useState(0);
   const [filter, setFilter] = useState("");
-  const [objective, setObjective] = useState("2400");
+  const [objective, setObjective] = useState(
+    String(promotionSetting(report, "pointsTarget") ?? ""),
+  );
   const [search, setSearch] = useState("");
   const rows = report.players
     .filter((p) => p.currentMember)

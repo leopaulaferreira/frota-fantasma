@@ -16,7 +16,11 @@ import {
   Settings,
   RefreshCw,
   Activity,
+  UserRoundCheck,
+  UserRoundMinus,
 } from "lucide-react";
+import { WeeklyReview } from "./pages/WeeklyReview";
+import { ElderCandidates } from "./pages/ElderCandidates";
 import { Overview } from "./pages/Overview";
 import { Members, PlayerProfile } from "./pages/Players";
 import { Wars } from "./pages/Wars";
@@ -28,14 +32,18 @@ import { Operations } from "./pages/Operations";
 import { api } from "./lib/api";
 import "./style.css";
 import "./royale.css";
+import "./leadership.css";
+import "./fleet.css";
 const client = new QueryClient();
 const nav = [
   ["/", "Visão geral", LayoutDashboard],
   ["/membros", "Tripulação", Users],
   ["/guerras", "Guerras", Swords],
   ["/comparar", "Comparar", GitCompareArrows],
+  ["/anciao", "Candidatos a Ancião", UserRoundCheck],
   ["/recomendacoes", "Recomendações", ClipboardList],
   ["/premiacoes", "Premiações", Trophy],
+  ["/expulsoes", "Expulsões semanais", UserRoundMinus],
   ["/regras", "Regras", Settings],
   ["/operacoes", "Operações", Activity],
 ] as const;
@@ -75,29 +83,41 @@ function App() {
           <span>CLÃ • CLASH ROYALE</span>
           <div className="identity-rule" />
         </div>
-        <span className="nav-caption">CENTRAL DE COMANDO</span>
+
         <nav>
-          {nav.map(([to, name, Icon]) => (
-            <NavLink key={to} to={to} end={to === "/"}>
-              <Icon size={19} />
-              {name}
-            </NavLink>
+          {[
+            { label: "A bordo", items: nav.slice(0, 4) },
+            { label: "Decisões do líder", items: nav.slice(4, 8) },
+            { label: "Administração", items: nav.slice(8) },
+          ].map((group) => (
+            <div className="nav-group" key={group.label}>
+              <span className="nav-caption">{group.label}</span>
+              {group.items
+                .filter(([to]) => admin || to !== "/expulsoes")
+                .map(([to, name, Icon]) => (
+                  <NavLink key={to} to={to} end={to === "/"}>
+                    <Icon size={19} />
+                    {name}
+                  </NavLink>
+                ))}
+            </div>
           ))}
         </nav>
         <div className="sidebar-bottom">
           <img
-            className="sidebar-arena"
-            src="/assets/royale/royal-arena.png"
+            className="sidebar-ghost"
+            src="/assets/royale/royal-ghost.png"
             alt=""
           />
-          <span className="live-dot" /> A história da nossa Frota
-          <small>Histórico. Contexto. Decisão.</small>
+          <span className="live-dot" /> A Frota não afunda.
+          <small>Cada tripulante conta.</small>
         </div>
       </aside>
       <div className="workspace">
         <header className="topbar">
           <span>
-            CLASH ROYALE <span className="muted">/ Gestão do clã</span>
+            <span className="command-mark">⌖</span> CENTRAL DE COMANDO{" "}
+            <span className="muted">/ Frota Fantasma</span>
           </span>
           <div className="account-menu">
             <span>
@@ -142,10 +162,12 @@ function App() {
             <Route path="/membros/:tag" element={<PlayerProfile />} />
             <Route path="/guerras" element={<Wars />} />
             <Route path="/guerras/:id" element={<Wars />} />
+            <Route path="/anciao" element={<ElderCandidates />} />
             <Route path="/comparar" element={<Compare />} />
             <Route path="/recomendacoes" element={<Recommendations />} />
             <Route path="/recomendacoes/:id" element={<Recommendations />} />
             <Route path="/premiacoes" element={<Awards />} />
+            <Route path="/expulsoes" element={<WeeklyReview />} />
             <Route path="/operacoes" element={<Operations />} />
             <Route path="/regras" element={<Rules />} />
             <Route

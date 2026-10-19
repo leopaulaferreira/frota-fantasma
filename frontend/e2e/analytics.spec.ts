@@ -56,6 +56,10 @@ test.beforeEach(async ({ page }) => {
       ]);
     else if (path === "/api/leadership/notes/active") result = { generatedAt: report.generatedAt, timezone: "America/Sao_Paulo", notes: [] };
     else if (path.startsWith("/api/leadership/players/") && path.endsWith("/notes")) result = paged([]);
+    else if (path === "/api/leadership/weekly-review") result = {
+      week: report.week, phase: "LIVE", membersFresh: true, riverFresh: true,
+      rosterComplete: true, members: [{ status: "REVIEW" }, { status: "CLEAR" }],
+    };
     else if (path === "/api/analytics") result = report;
     else if (path.startsWith("/api/analytics/players/"))
       result = players.find((p) => path.endsWith(p.tag));
@@ -239,6 +243,7 @@ test("guerras anteriores, paginação e comparação alinhada", async ({
   await expect(
     page.getByRole("heading", { name: "Ranking da guerra" }),
   ).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.getByRole("button", { name: "Próxima página" }).click();
   await page.getByRole("link", { name: /Temporada 137 · seção -2/ }).click();
   await expect(page).toHaveURL(/guerras\/6$/);
@@ -480,19 +485,20 @@ test("evidências da guerra abrem sem esticar o ranking", async ({ page }) => {
   await expect(trigger).toBeFocused();
 });
 
-test("premiações permitem comparar candidatos sem corte no objetivo", async ({ page }) => {
-  await page.goto("/premiacoes");
+test("candidaturas mantêm membros acessíveis e simulam referência sem alterar regras", async ({ page }) => {
+  await page.goto("/anciao");
   const section = page.getByRole("region", { name: "Possíveis candidatos a Ancião" });
-  await expect(section).toBeVisible();
-  const rows = section.locator("tbody tr");
-  const expected = players.filter(p => p.currentMember && p.role === "member");
-  await expect(rows).toHaveCount(expected.length);
-  await page.getByLabel("Objetivo de referência (pontos)").fill("99999");
-  await expect(rows).toHaveCount(expected.length);
-  await expect(section.getByText(/pontos abaixo/).first()).toBeVisible();
-  await page.getByLabel("Objetivo de referência (pontos)").fill("");
+  const rows = section.locator(".prospect-card");
+  await expect(rows).toHaveCount(players.filter(p => p.currentMember && p.role === "member").length);
+  await section.getByText("Refinar a análise e simular referência", {exact:true}).click();
+  await expect(section.getByLabel("Objetivo de referência (pontos)")).toHaveAttribute("placeholder", "1600");
+  await section.getByLabel("Objetivo de referência (pontos)").fill("99999");
+  await expect(rows.first()).toContainText("99.999 pontos");
+  await section.getByLabel("Objetivo de referência (pontos)").fill("0");
   await expect(section.getByRole("alert")).toBeVisible();
-  await expect(rows).toHaveCount(expected.length);
+  await section.getByRole("button", {name:"Limpar filtros"}).click();
+  await expect(section.getByRole("alert")).toHaveCount(0);
+  await expect(rows).toHaveCount(players.length);
 });
 
 test("corrida atual ordena pontos do maior ao menor", async ({ page }) => {
@@ -530,6 +536,7 @@ test("líder registra contexto e encerra acompanhamento preservando histórico",
   let saved: Record<string, unknown> | null = null;
   await page.route("**/api/leadership/**", async route => {
     const path = decodeURIComponent(new URL(route.request().url()).pathname);
+    if (path.endsWith("/weekly-review")) return route.fallback();
     if (path.endsWith("/resolve")) {
       saved = { ...saved, status: "RESOLVED", followUpDue: false, resolvedAt: report.generatedAt, resolvedBy: "lider", resolution: route.request().postDataJSON().reason };
       return route.fulfill({ json: saved });
@@ -610,18 +617,21 @@ test("candidaturas mostram cores filtros amostra e acompanhamento manual", async
     }
     return route.fulfill({json:{generatedAt:report.generatedAt,timezone:"America/Sao_Paulo",notes:note?[note]:[]}});
   });
-  await page.goto("/premiacoes");
+  await page.goto("/anciao");
   const section=page.getByRole("region",{name:"Possíveis candidatos a Ancião"});
-  const rows=section.locator("tbody tr");
+  const rows=section.locator(".prospect-card");
   await expect(rows).toHaveCount(4);
   await expect(rows.first()).toContainText(roster[0].name);
   await expect(rows.last()).toContainText(roster[2].name);
+  await section.getByText("Refinar a análise e simular referência",{exact:true}).click();
+  await section.getByLabel("Objetivo de referência (pontos)").fill("2400");
   await section.getByLabel("Filtrar sinal de candidatura").selectOption("strong");
   await expect(rows).toHaveCount(1);await expect(rows.first().locator(".prospect-strong")).toBeVisible();
   await section.getByLabel("Filtrar sinal de candidatura").selectOption("near");
   await expect(rows).toHaveCount(1);await expect(rows.first().locator(".prospect-near")).toBeVisible();
-  await expect(rows.first()).toContainText("80 pontos abaixo");
+  await expect(rows.first()).toContainText("2.320 / 2.400 pontos");
   await expect(rows.first().locator(".prospect-war-list li")).toHaveCount(4);
+  await rows.first().locator(":scope > summary").click();
   await section.getByText("Acompanhar para Ancião",{exact:true}).click();
   await section.getByLabel("Motivo do acompanhamento").fill("Boa participação; acompanhar evolução.");
   await section.getByLabel("Data para reavaliar").fill("2026-12-01");
@@ -630,4 +640,71 @@ test("candidaturas mostram cores filtros amostra e acompanhamento manual", async
   await section.getByLabel("Filtrar sinal de candidatura").selectOption("");
   await section.getByLabel("Somente acompanhados para Ancião").check();
   await expect(rows).toHaveCount(1);await expect(rows.first()).toContainText(roster[1].name);
+});
+
+test("alertas não são candidatos próximos e a pendência específica orienta investigação", async ({page}, info) => {
+  const roster = structuredClone(players.slice(0,3));
+  for (const p of roster) {
+    p.metrics.recentAverage = metric(3000);
+    p.metrics.standardDeckTargetPercent = metric(100);
+    p.metrics.recentAlerts = metric(0);
+    p.elderCandidate = metric(true);
+    p.operationalStatus = metric("MANTER");
+  }
+  roster[1].metrics.recentAlerts = metric(1);
+  roster[2].metrics.weeklyDonations = metric(20);
+  roster[2].elderCandidate = metric(false);
+  await page.route("**/api/analytics", route => route.fulfill({json:{...report,players:roster}}));
+  await page.goto("/anciao");
+  const section = page.getByRole("region", {name:"Possíveis candidatos a Ancião"});
+  const cards = section.locator(".prospect-card");
+  await expect(cards.first()).toContainText(roster[0].name);
+  await expect(cards.last()).toContainText("Revisar alertas");
+  await section.getByLabel("Filtrar pendência").selectOption("donations");
+  await expect(cards).toHaveCount(1);
+  await expect(cards.first()).toContainText(roster[2].name);
+  await section.getByRole("button", {name:"Limpar filtros"}).click();
+  await section.getByRole("button", {name:/Revisar alertas/}).click();
+  await expect(cards).toHaveCount(1);
+  await cards.first().locator(":scope > summary").click();
+  await cards.first().getByText("Ver guerras, evolução e evidências completas").click();
+  await expect(cards.first().locator(".prospect-war-list li")).toHaveCount(4);
+  await page.screenshot({path:`test-results/elder-candidates-${info.project.name}.png`,fullPage:true});
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await cards.first().getByRole("link", {name:"Comparar membro →"}).click();
+  await expect(page.getByRole("button", {name:roster[1].name + " ×"})).toBeVisible();
+});
+
+test("candidatos numerados mostram todos os membros e abrem dois níveis de detalhes", async ({page}) => {
+  const roster = Array.from({length:43}, (_,i) => {
+    const p = structuredClone(players[0]);
+    p.tag = `#R${String(i).padStart(2,"0")}`;
+    p.name = `Candidato ${i + 1}`;
+    p.metrics.recentAverage = metric(3000-i*10);
+    p.metrics.standardDeckTargetPercent = metric(100);
+    p.metrics.recentAlerts = metric(0);
+    return p;
+  });
+  await page.route("**/api/analytics", route => route.fulfill({json:{...report,players:roster}}));
+  await page.goto("/anciao");
+  const section=page.getByRole("region",{name:"Possíveis candidatos a Ancião"});
+  const cards=section.locator(".prospect-card");
+  await expect(cards).toHaveCount(43);
+  await expect(cards.first().locator(".prospect-position")).toHaveText("1º");
+  await expect(cards.last().locator(".prospect-position")).toHaveText("43º");
+  await expect(section.getByRole("button", {name:"Próximos candidatos"})).toHaveCount(0);
+  await expect(cards.first()).not.toHaveAttribute("open", "");
+  await expect(cards.first().locator(".prospect-checklist")).toBeHidden();
+  await cards.first().locator(":scope > summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(cards.first().locator(".prospect-checklist")).toBeVisible();
+  await expect(cards.first().locator(".prospect-war-list")).toBeHidden();
+  await cards.first().getByText("Ver guerras, evolução e evidências completas",{exact:true}).click();
+  await expect(cards.first().locator(".prospect-war-list")).toBeVisible();
+  await cards.first().locator(":scope > summary").click();
+  await expect(cards.first().locator(".prospect-checklist")).toBeHidden();
+  await section.getByLabel("Buscar candidato").fill("Candidato 43");
+  await expect(cards).toHaveCount(1);
+  await expect(cards.first().locator(".prospect-position")).toHaveText("43º");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });

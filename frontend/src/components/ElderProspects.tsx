@@ -1,55 +1,47 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useAdmin } from "../lib/auth";
 import {
   classifyProspect,
+  compareProspects,
   fourKnown,
   numeric,
   prospectBands,
+  promotionSetting,
+  criterionLabels,
 } from "../lib/prospects";
 import type { ActiveNotes } from "../lib/leadership";
 import { CandidacyWatch } from "./CandidacyWatch";
-import { useState } from "react";
 import {
   type Player,
   type Report,
-  type Metric,
   date,
+  dateTime,
   format,
   useApi,
 } from "../lib/api";
-import { Badge, Empty, MetricView, Person, Table } from "./ui";
+import { Badge, Empty, MetricView } from "./ui";
 
 export function recentAverage(player: Player): number | null {
-  const value = player.metrics.recentAverage?.value;
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
+  return numeric(player.metrics.recentAverage);
 }
-
 export function orderedProspects(players: Player[]) {
   return players
     .filter((p) => p.currentMember && p.role === "member")
     .sort((a, b) => {
       const av = recentAverage(a),
         bv = recentAverage(b);
-      if (av === null && bv !== null) return 1;
-      if (bv === null && av !== null) return -1;
-      return (bv ?? 0) - (av ?? 0) || a.tag.localeCompare(b.tag);
+      return av === bv
+        ? a.tag.localeCompare(b.tag)
+        : av === null
+          ? 1
+          : bv === null
+            ? -1
+            : bv - av;
     });
 }
-
-function objectiveDistance(source: Metric, objective: number): Metric {
-  const average = source.value;
-  return {
-    ...source,
-    value: typeof average === "number" ? average - objective : null,
-    origin: "DERIVED",
-    reason: `Média recente menos o objetivo de referência (${objective} pontos). Valor positivo indica acima; negativo indica abaixo. Esta comparação não determina elegibilidade para promoção. ${source.reason}`,
-    dataUsed: [...source.dataUsed, `referenceObjective=${objective}`],
-  };
-}
-
 export function ElderProspects({ report }: { report: Report }) {
-  const admin = useAdmin();
-  return admin ? (
+  return useAdmin() ? (
     <PrivateProspects report={report} />
   ) : (
     <ProspectList report={report} />
@@ -78,20 +70,21 @@ function ProspectList({
   admin?: boolean;
   notes?: ActiveNotes;
 }) {
-  const [objectiveInput, setObjectiveInput] = useState("2400");
+  const savedTarget = promotionSetting(report, "pointsTarget");
+  const [objectiveInput, setObjectiveInput] = useState("");
   const [toleranceInput, setToleranceInput] = useState("5");
   const [band, setBand] = useState("");
   const [sample, setSample] = useState("");
+  const [gap, setGap] = useState("");
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("recentAverage");
+  const [sort, setSort] = useState("readiness");
   const [watched, setWatched] = useState(false);
-  const [page, setPage] = useState(0);
-  const objective = Number(objectiveInput),
-    tolerance = Number(toleranceInput);
-  const validObjective =
-    objectiveInput.trim() !== "" && Number.isFinite(objective) && objective > 0;
-  const validTolerance =
-    toleranceInput.trim() !== "" &&
+  const objective =
+    objectiveInput === "" ? (savedTarget ?? NaN) : Number(objectiveInput);
+  const tolerance = toleranceInput.trim() === "" ? NaN : Number(toleranceInput);
+  const valid =
+    Number.isFinite(objective) &&
+    objective > 0 &&
     Number.isFinite(tolerance) &&
     tolerance >= 0 &&
     tolerance <= 20;
@@ -100,338 +93,374 @@ function ProspectList({
       (n) =>
         n.playerTag === tag && n.kind === "CANDIDACY" && n.status === "ACTIVE",
     ) || [];
-  const all = orderedProspects(report.players).map((p) => ({
-    p,
-    full: fourKnown(p),
-    assessment: classifyProspect(
+  const all = orderedProspects(report.players)
+    .map((p) => ({
       p,
-      report,
-      validObjective ? objective : NaN,
-      validTolerance ? tolerance : NaN,
-    ),
-  }));
-  const players = all
-    .filter(
-      ({ p, full, assessment }) =>
-        (!band || assessment.band === band) &&
-        (!sample || (sample === "full" ? full : !full)) &&
-        (!watched || watches(p.tag).length > 0) &&
-        (p.name + p.tag).toLowerCase().includes(search.toLowerCase()),
-    )
-    .sort(
-      (a, b) =>
-        Number(b.full) - Number(a.full) ||
-        (numeric(b.p.metrics[sort]) ?? -Infinity) -
-          (numeric(a.p.metrics[sort]) ?? -Infinity) ||
-        a.p.tag.localeCompare(b.p.tag),
-    );
-  const currentPage = Math.min(
-    page,
-    Math.max(0, Math.ceil(players.length / 10) - 1),
+      full: fourKnown(p),
+      assessment: classifyProspect(p, report, objective, tolerance),
+    }))
+    .sort((a, b) => compareProspects(a, b, sort))
+    .map((row, index) => ({ ...row, position: index + 1 }));
+  const players = all.filter(
+    ({ p, full, assessment }) =>
+      (!band || assessment.band === band) &&
+      (!sample || (sample === "full" ? full : !full)) &&
+      (!gap ||
+        assessment.criteria.some((c) => c.key === gap && c.state !== "pass")) &&
+      (!watched || watches(p.tag).length > 0) &&
+      (p.name + p.tag)
+        .toLocaleLowerCase("pt-BR")
+        .includes(search.trim().toLocaleLowerCase("pt-BR")),
   );
+  const tenureTarget = promotionSetting(report, "promotionTenureDays");
+  const observedTenures = all
+    .map(({ p }) => numeric(p.metrics.observedTenureDays))
+    .filter((n): n is number => n !== null);
+  const longestObservation = observedTenures.length
+    ? Math.max(...observedTenures)
+    : null;
+  const reset = () => {
+    setBand("");
+    setSample("");
+    setGap("");
+    setSearch("");
+    setWatched(false);
+    setSort("readiness");
+    setObjectiveInput("");
+    setToleranceInput("5");
+  };
   return (
     <section
       aria-labelledby="elder-prospects-title"
       className="elder-prospects"
     >
-      <h2 id="elder-prospects-title">Possíveis candidatos a Ancião</h2>
+      <div className="section-head">
+        <h2 id="elder-prospects-title">Possíveis candidatos a Ancião</h2>
+        <Link to="/regras">Consultar regras →</Link>
+      </div>
       <p className="muted">
-        Todos os membros sem cargo continuam acessíveis. Primeiro aparecem os
-        membros com quatro pontuações conhecidas; depois, o histórico em
-        formação. A ordenação escolhida vale dentro de cada grupo.
+        Primeiro os membros prontos para avaliação, depois as pendências de
+        desenvolvimento. A numeração segue a ordenação selecionada e permanece
+        ao filtrar. Clique no resumo para abrir os critérios. Alertas e falta de
+        evidência têm grupos próprios. Uma pontuação alta não compensa outros
+        critérios.
       </p>
-      <div className="toolbar">
-        <label htmlFor="elder-objective">Objetivo de referência (pontos)</label>
-        <input
-          id="elder-objective"
-          type="number"
-          min="1"
-          step="any"
-          value={objectiveInput}
-          aria-invalid={!validObjective}
-          onChange={(e) => {
-            setObjectiveInput(e.target.value);
-            setPage(0);
+      {longestObservation !== null &&
+        tenureTarget !== null &&
+        longestObservation < tenureTarget && (
+          <div className="callout">
+            <strong>O histórico local ainda está se formando</strong>
+            <p>
+              Os membros sem cargo têm até {longestObservation} dias de
+              associação observada; a regra exige {tenureTarget} dias. Isso pode
+              impedir a aprovação oficial de membros que já estavam no clã antes
+              do sistema. Use as pendências para acompanhar os destaques e
+              registre o contexto nas notas, sem confundir primeira coleta com
+              ingresso real.
+            </p>
+          </div>
+        )}
+      <div className="prospect-summary" aria-label="Resumo das candidaturas">
+        <button
+          className={!band ? "selected" : ""}
+          aria-pressed={!band}
+          onClick={() => {
+            setBand("");
           }}
-        />
+        >
+          <strong>{all.length}</strong>Todos os membros
+        </button>
+        {Object.entries(prospectBands).map(([key, label]) => (
+          <button
+            key={key}
+            className={`prospect-${key} ${band === key ? "selected" : ""}`}
+            aria-pressed={band === key}
+            onClick={() => {
+              setBand(band === key ? "" : key);
+            }}
+          >
+            <strong>
+              {all.filter((r) => r.assessment.band === key).length}
+            </strong>
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="prospect-filters">
         <label>
-          Faixa próxima (%)
+          Buscar membro
           <input
-            type="number"
-            min="0"
-            max="20"
-            step="any"
-            value={toleranceInput}
-            aria-invalid={!validTolerance}
+            aria-label="Buscar candidato"
+            placeholder="Nome ou tag…"
+            value={search}
             onChange={(e) => {
-              setToleranceInput(e.target.value);
-              setPage(0);
+              setSearch(e.target.value);
             }}
           />
         </label>
-        <input
-          aria-label="Buscar candidato"
-          placeholder="Nome ou tag…"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(0);
-          }}
-        />
-        <select
-          aria-label="Filtrar sinal de candidatura"
-          value={band}
-          onChange={(e) => {
-            setBand(e.target.value);
-            setPage(0);
-          }}
-        >
-          <option value="">Todos os sinais</option>
-          {Object.entries(prospectBands).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v} ({all.filter((r) => r.assessment.band === k).length})
+        <label>
+          Situação
+          <select
+            aria-label="Filtrar sinal de candidatura"
+            value={band}
+            onChange={(e) => {
+              setBand(e.target.value);
+            }}
+          >
+            <option value="">Todos os sinais</option>
+            {Object.entries(prospectBands).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v} ({all.filter((r) => r.assessment.band === k).length})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Pendência específica
+          <select
+            aria-label="Filtrar pendência"
+            value={gap}
+            onChange={(e) => {
+              setGap(e.target.value);
+            }}
+          >
+            <option value="">Qualquer critério</option>
+            {[
+              ["sample", "Histórico de guerras"],
+              ["points", "Média recente"],
+              ["participation", "Participação"],
+              ["decks", "Uso de decks"],
+              ["tenure", "Tempo observado"],
+              ["donations", "Doações na semana"],
+              ["alerts", "Alertas registrados"],
+              ["status", "Situação atual"],
+            ].map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Ordenação
+          <select
+            aria-label="Ordenar candidatos"
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value);
+            }}
+          >
+            <option value="readiness">Prontidão e critérios atendidos</option>
+            <option value="recentAverage">Maior média recente</option>
+            <option value="standardDeckTargetPercent">
+              Maior uso do padrão de decks
             </option>
-          ))}
-        </select>
-        <select
-          aria-label="Filtrar amostra de candidatura"
-          value={sample}
-          onChange={(e) => {
-            setSample(e.target.value);
-            setPage(0);
-          }}
-        >
-          <option value="">Todas as amostras</option>
-          <option value="full">Quatro pontuações conhecidas</option>
-          <option value="partial">Histórico em formação</option>
-        </select>
-        <select
-          aria-label="Ordenar candidatos"
-          value={sort}
-          onChange={(e) => {
-            setSort(e.target.value);
-            setPage(0);
-          }}
-        >
-          <option value="recentAverage">Maior média recente</option>
-          <option value="completeStandardWars">
-            Mais guerras com 16 decks
-          </option>
-          <option value="recentDecks">Mais decks usados</option>
-          <option value="weeklyDonations">Mais doações observadas</option>
-          <option value="recentTrendPoints">Maior evolução recente</option>
-        </select>
-        {admin && (
+            <option value="weeklyDonations">Mais doações observadas</option>
+            <option value="observedTenureDays">Mais tempo observado</option>
+            <option value="recentTrendPoints">Maior evolução recente</option>
+          </select>
+        </label>
+      </div>
+      <details className="panel prospect-options">
+        <summary>Refinar a análise e simular referência</summary>
+        <div className="prospect-filters">
           <label>
+            Objetivo de referência (pontos)
+            <input
+              id="elder-objective"
+              type="number"
+              min="1"
+              placeholder={String(savedTarget ?? "")}
+              value={objectiveInput}
+              aria-invalid={!valid}
+              onChange={(e) => {
+                setObjectiveInput(e.target.value);
+              }}
+            />
+          </label>
+          <label>
+            Faixa próxima (%)
+            <input
+              type="number"
+              min="0"
+              max="20"
+              value={toleranceInput}
+              onChange={(e) => {
+                setToleranceInput(e.target.value);
+              }}
+            />
+          </label>
+          <label>
+            Amostra
+            <select
+              aria-label="Filtrar amostra de candidatura"
+              value={sample}
+              onChange={(e) => {
+                setSample(e.target.value);
+              }}
+            >
+              <option value="">Todas as amostras</option>
+              <option value="full">Quatro pontuações conhecidas</option>
+              <option value="partial">Histórico em formação</option>
+            </select>
+          </label>
+        </div>
+        <p className="muted">
+          Referência inicial: {format(savedTarget)} pontos, conforme regras
+          salvas. Uma simulação abaixo desse valor não reduz a exigência
+          oficial. “Poucas pendências” exige até dois critérios pendentes, média
+          dentro da faixa e nenhum alerta ou dado ausente. A simulação não
+          altera as regras.
+        </p>
+      </details>
+      <div className="prospect-results">
+        <p role="status">
+          {players.length} membros nesta seleção · {all.length} membros sem
+          cargo no elenco
+        </p>
+        {admin && (
+          <label className="check">
             <input
               type="checkbox"
               checked={watched}
               disabled={!notes}
               onChange={(e) => {
                 setWatched(e.target.checked);
-                setPage(0);
               }}
             />
             Somente acompanhados para Ancião
           </label>
         )}
+        <button onClick={reset}>Limpar filtros</button>
       </div>
-      {(!validObjective || !validTolerance) && (
+      {!valid && (
         <p role="alert">
           Informe um objetivo maior que zero e uma faixa de 0% a 20%.
         </p>
       )}
       <p className="muted">
-        Verde: objetivo atingido e critérios atuais atendidos. Amarelo:
-        pontuação próxima ou acima, com pontos a desenvolver. Azul: pontuação
-        abaixo da faixa. Cinza: dados insuficientes para a avaliação completa.
-        São sinais de candidatura, separados de MANTER/OBSERVAR/REVISAR.
+        Análise de {dateTime(report.generatedAt)} · Doações da semana de{" "}
+        {date(report.week)} são um limite inferior: coleta incompleta pode
+        subestimar a contribuição. Tempo observado não é a data real de
+        ingresso. Decisão e promoção cabem à liderança.
       </p>
-      <p className="muted">
-        Referências desta consulta; não alteram regras salvas. Doações: semana
-        de {date(report.week)}. As coletas podem ser incompletas. Indicadores
-        abrem período, amostra e evidências.
-      </p>
-      <p>{players.length} membros nesta seleção.</p>
-      <Table
-        headers={[
-          "Membro / candidatura",
-          "Quatro últimas guerras",
-          "Média / objetivo",
-          "Participação e decks",
-          "Doações / tempo",
-          "Contexto e acompanhamento",
-        ]}
-      >
-        {players
-          .slice(currentPage * 10, currentPage * 10 + 10)
-          .map(({ p, full, assessment }) => {
-            const average = recentAverage(p),
-              metric = p.metrics.recentAverage;
-            const diff =
-              average === null || !validObjective ? null : average - objective;
-            return (
-              <tr key={p.tag}>
-                <td className="prospect-context">
-                  <Person player={p} />
+      <div className="prospect-list">
+        {players.map(({ p, assessment, position }) => (
+          <details className="prospect-card" data-rank={position} key={p.tag}>
+            <summary className="prospect-row-summary">
+              <span
+                className="prospect-position"
+                aria-label={`Posição ${position}`}
+              >
+                {position}º
+              </span>
+              <span className="prospect-row-copy">
+                <span className="prospect-row-title">
+                  <strong>{p.name}</strong>
                   <span className={`badge prospect-${assessment.band}`}>
                     {prospectBands[assessment.band]}
                   </span>
-                  <p>
-                    {full ? "4 pontuações conhecidas" : "Histórico em formação"}
-                  </p>
-                  <details>
-                    <summary>Por que recebeu esta sinalização?</summary>
-                    <ul>
-                      {assessment.reasons.map((r, i) => (
-                        <li key={i}>{r}</li>
-                      ))}
-                    </ul>
-                    <MetricView
-                      compact
-                      name="Candidatura pelas regras atuais"
-                      metric={p.elderCandidate}
-                    />
-                  </details>
-                </td>
-                <td>
-                  <small>Da mais recente à mais antiga</small>
-                  <ol className="prospect-war-list">
-                    {Array.from({ length: 4 }, (_, i) => {
-                      const w = p.wars[i];
-                      return (
-                        <li key={w?.warId ?? `missing-${i}`}>
-                          {w ? (
-                            <>
-                              <Link to={`/guerras/${w.warId}`}>
-                                Publicada em {date(w.publishedAt)}
-                              </Link>
-                              <br />
-                              {format(w.points.value)} pontos ·{" "}
-                              {format(w.decksUsed.value)} decks
-                            </>
-                          ) : (
-                            "Guerra indisponível na janela"
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ol>
+                </span>
+                <span className="prospect-row-stats">
+                  {assessment.passed}/{assessment.criteria.length} critérios ·
+                  Média {format(numeric(p.metrics.recentAverage))} pts · Decks{" "}
+                  {format(numeric(p.metrics.standardDeckTargetPercent))}% ·
+                  Doações {format(numeric(p.metrics.weeklyDonations))}
+                </span>
+              </span>
+              <span className="prospect-expand" aria-hidden="true">
+                ⌄
+              </span>
+            </summary>
+            <div className="prospect-card-content">
+              <div className="prospect-card-heading">
+                <span>{p.tag}</span>
+                <Badge value={p.operationalStatus.value} />
+              </div>
+              <div className="prospect-action">
+                <strong>
+                  {assessment.passed}/{assessment.criteria.length} critérios
+                  atendidos
+                </strong>
+                <p>{assessment.nextAction}</p>
+              </div>
+              <ul
+                className="prospect-checklist"
+                aria-label={`Critérios de ${p.name}`}
+              >
+                {assessment.criteria.map((c) => (
+                  <li key={c.key} className={`criterion-${c.state}`}>
+                    <div>
+                      <strong>{c.label}</strong>
+                      <span>{criterionLabels[c.state]}</span>
+                    </div>
+                    <p>{c.detail}</p>
+                  </li>
+                ))}
+              </ul>
+              <div className="prospect-card-footer">
+                <Link to={`/membros/${encodeURIComponent(p.tag)}`}>
+                  Abrir perfil e histórico →
+                </Link>
+                <Link to={`/comparar?tags=${encodeURIComponent(p.tag)}`}>
+                  Comparar membro →
+                </Link>
+                {admin && (
+                  <CandidacyWatch
+                    tag={p.tag}
+                    notes={watches(p.tag)}
+                    available={!!notes}
+                  />
+                )}
+              </div>
+              <details className="prospect-evidence">
+                <summary>Ver guerras, evolução e evidências completas</summary>
+                <ol className="prospect-war-list">
+                  {p.wars.slice(0, 4).map((w) => (
+                    <li key={w.warId}>
+                      <Link to={`/guerras/${w.warId}`}>
+                        Publicada em {date(w.publishedAt)}
+                      </Link>
+                      <br />
+                      {format(w.points.value)} pontos ·{" "}
+                      {format(w.decksUsed.value)} decks
+                    </li>
+                  ))}
+                </ol>
+                {!p.wars.length && <p>Nenhuma guerra oficial disponível.</p>}
+                <div className="metrics">
                   <MetricView
                     compact
-                    name="Evolução: duas últimas vs. duas anteriores"
+                    name="Evolução recente"
                     metric={p.metrics.recentTrendPoints}
                   />
-                </td>
-                <td>
                   <MetricView
                     compact
-                    name="Média das últimas 4 guerras"
-                    metric={metric}
+                    name="Candidatura pelas regras salvas"
+                    metric={p.elderCandidate}
                   />
-                  <small>
-                    {metric?.warsConsidered ?? 0} pontuações conhecidas / até 4
-                    guerras
-                  </small>
-                  {metric &&
-                    (metric.insufficientSample ||
-                      metric.incompletePeriod ||
-                      !full) && <p>Amostra limitada: comparar com cautela.</p>}
-                  <p>
-                    <strong>
-                      {diff === null
-                        ? "Dados insuficientes"
-                        : diff === 0
-                          ? "No objetivo"
-                          : `${format(Math.abs(diff))} pontos ${diff > 0 ? "acima" : "abaixo"}`}
-                    </strong>
-                  </p>
-                  {metric && validObjective && (
-                    <MetricView
-                      compact
-                      name="Diferença para o objetivo"
-                      metric={objectiveDistance(metric, objective)}
-                    />
-                  )}
-                </td>
-                <td>
-                  <MetricView
-                    compact
-                    name="Participação"
-                    metric={p.metrics.recentParticipation}
-                  />
-                  <MetricView
-                    compact
-                    name="Decks usados"
-                    metric={p.metrics.recentDecks}
-                  />
-                  <MetricView
-                    compact
-                    name="Guerras com 16 decks"
-                    metric={p.metrics.completeStandardWars}
-                  />
-                </td>
-                <td>
-                  <MetricView
-                    compact
-                    name="Doações observadas na semana"
-                    metric={p.metrics.weeklyDonations}
-                  />
-                  <MetricView
-                    compact
-                    name="Dias observados no clã"
-                    metric={p.metrics.observedTenureDays}
-                  />
-                </td>
-                <td className="prospect-context">
-                  <Badge value={p.operationalStatus.value} />
-                  <p>{p.operationalStatus.reason}</p>
-                  <MetricView
-                    compact
-                    name="Alertas registrados"
-                    metric={p.metrics.recentAlerts}
-                  />
-                  {admin && (
-                    <CandidacyWatch
-                      tag={p.tag}
-                      notes={watches(p.tag)}
-                      available={!!notes}
-                    />
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-      </Table>
+                  {assessment.criteria
+                    .filter((c) => c.metric)
+                    .map((c) => (
+                      <MetricView
+                        key={c.key}
+                        compact
+                        name={c.label}
+                        metric={c.metric}
+                      />
+                    ))}
+                </div>
+              </details>
+            </div>
+          </details>
+        ))}
+      </div>
       {!players.length && (
         <Empty>
           Nenhum membro nesta seleção. Ajuste os filtros para consultar os
           demais.
         </Empty>
       )}
-      {players.length > 10 && (
-        <div className="pagination">
-          <span>
-            Página {currentPage + 1} de {Math.ceil(players.length / 10)}
-          </span>
-          <button
-            disabled={currentPage === 0}
-            onClick={() => setPage(currentPage - 1)}
-          >
-            Candidatos anteriores
-          </button>
-          <button
-            disabled={(currentPage + 1) * 10 >= players.length}
-            onClick={() => setPage(currentPage + 1)}
-          >
-            Próximos candidatos
-          </button>
-        </div>
-      )}
-      <p className="muted">
-        Uma sinalização verde não promove ninguém. Consulte o histórico e as
-        justificativas antes de decidir.
-      </p>
     </section>
   );
 }

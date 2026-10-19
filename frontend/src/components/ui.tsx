@@ -21,14 +21,16 @@ export function Heading({
   children?: ReactNode;
 }) {
   const path = useLocation().pathname;
-  const banner = path !== "/";
+  const banner = ["/guerras", "/membros", "/premiacoes", "/anciao"].some(
+    (route) => path.startsWith(route),
+  );
   const portrait = path.startsWith("/guerras")
     ? "skeleton-king"
     : path.startsWith("/membros")
       ? "fisherman"
       : path.startsWith("/premiacoes")
         ? "royal-ghost"
-        : "royal-arena";
+        : "crown-emblem";
   return (
     <header className={"page-heading" + (banner ? " illustrated-heading" : "")}>
       {banner && (

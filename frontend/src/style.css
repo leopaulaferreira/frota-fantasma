@@ -853,7 +853,7 @@ footer p {
     font-size: 28px;
   }
   .war-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .war-nav nav {
     display: grid;
@@ -1040,4 +1040,12 @@ td.reason {
 }
 .chart-note {
   font-size: 11px;
+}
+
+.war-body,
+.war-nav {
+  min-width: 0;
+}
+.pagination button {
+  flex-shrink: 0;
 }

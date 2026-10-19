@@ -1,0 +1,606 @@
+/* Frota identity: compact command surfaces, spectral light and brass details.
+   Shared component structure and evidence styles remain in their own sheets. */
+:root {
+  --mint: #8cebd5;
+  --muted: #a2b6c4;
+  --border: #29434e;
+  --panel: #11232d;
+  --brass: #dec08a;
+  color-scheme: dark;
+}
+body {
+  background:
+    radial-gradient(ellipse at 90% 0, #14404455, transparent 48%), #09151e;
+}
+.sidebar {
+  background:
+    radial-gradient(ellipse at 0 0, #23454855, transparent 55%),
+    linear-gradient(180deg, #10252e, #0a1721);
+  border-right-color: #31505a;
+  padding-top: 24px;
+}
+.brand img {
+  filter: drop-shadow(0 0 14px #71dcc329);
+}
+.sidebar-identity {
+  margin-bottom: 12px;
+}
+.identity-rule {
+  margin-top: 15px;
+}
+.nav-group {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 14px;
+}
+.nav-group .nav-caption {
+  margin: 4px 14px 6px;
+  color: #9db1ba;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+.sidebar nav a {
+  border-radius: 6px;
+  font-size: 12px;
+}
+.sidebar nav a.active {
+  background: linear-gradient(90deg, #235048, #162e36);
+  border-color: #426d68;
+  color: #b2ffdf;
+}
+.sidebar nav a:hover {
+  background: #1c3940;
+}
+.sidebar-bottom {
+  padding-top: 14px;
+}
+.sidebar-ghost {
+  display: block;
+  width: 95px;
+  height: 105px;
+  object-fit: contain;
+  margin: 0 auto 8px;
+  opacity: 0.8;
+  filter: drop-shadow(0 0 18px #7ce1c333);
+}
+.topbar {
+  height: 62px;
+  background: #0b1821d9;
+  border-color: #243c46;
+}
+.command-mark {
+  color: var(--mint);
+  font-size: 20px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+main {
+  padding-top: 24px;
+}
+h1 {
+  letter-spacing: -1px;
+}
+h2 {
+  letter-spacing: -0.4px;
+}
+.page-heading {
+  margin-bottom: 18px;
+}
+.eyebrow {
+  color: var(--brass);
+}
+.illustrated-heading {
+  min-height: 106px;
+  padding: 20px 24px;
+  border-color: #35545d;
+  border-top: 1px solid #8f8059;
+  border-radius: 10px;
+  background:
+    radial-gradient(ellipse at 85% 100%, #2e675044, transparent 65%),
+    linear-gradient(110deg, #162c36, #10232c);
+}
+.illustrated-heading .heading-art {
+  width: 130px;
+  height: 130px;
+  top: -5px;
+  right: 24px;
+  opacity: 0.32;
+}
+.illustrated-heading > div {
+  max-width: 100%;
+}
+.illustrated-heading .button {
+  margin-top: 0;
+  background: #11252ee8;
+}
+.fleet-banner {
+  min-height: 245px;
+  margin-bottom: 22px;
+  border-color: #41645f;
+  border-top-color: var(--brass);
+  background:
+    radial-gradient(ellipse at 79% 65%, #418c743d, transparent 55%),
+    linear-gradient(115deg, #16323c, #0d222d 65%, #224b4a);
+}
+.fleet-banner:before {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 39px, #83d8c407 40px),
+    repeating-linear-gradient(90deg, transparent 0 39px, #83d8c407 40px);
+}
+.fleet-banner:after {
+  background: linear-gradient(transparent, #0d252ddd);
+  height: 36px;
+}
+.fleet-banner-copy {
+  padding: 24px 30px;
+  width: 65%;
+}
+.fleet-banner h2 {
+  font-size: clamp(30px, 3vw, 43px);
+  margin: 12px 0;
+}
+.fleet-banner h2 br {
+  display: none;
+}
+.fleet-banner h2 span {
+  display: block;
+}
+.fleet-banner p {
+  max-width: 410px;
+  margin: 10px 0;
+  font-size: 12px;
+}
+.banner-actions {
+  margin-top: 16px;
+  gap: 18px;
+}
+.banner-period {
+  margin-top: 14px;
+  display: block;
+  color: #b2c9c5;
+}
+.fleet-banner-art {
+  inset: 0 0 0 60%;
+}
+.banner-ghost {
+  height: 290px;
+  width: 290px;
+  right: 10px;
+  bottom: -16px;
+  filter: drop-shadow(0 0 26px #87ffce22);
+}
+.banner-seal {
+  display: none;
+}
+.crest-ring {
+  width: 230px;
+  height: 230px;
+  top: 18px;
+  left: auto;
+  right: 40px;
+  border-style: dashed;
+  transform: rotate(-15deg);
+}
+.leadership-summary {
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  gap: 12px;
+  margin: 20px 0 26px;
+}
+.leadership-summary > a {
+  display: flex;
+  padding: 18px;
+  border-color: #32544f;
+  background: linear-gradient(125deg, #1a3738, #10242d);
+  position: relative;
+  overflow: hidden;
+  transition:
+    border-color 0.18s,
+    transform 0.18s;
+}
+.leadership-summary > a:after {
+  content: "↗";
+  position: absolute;
+  right: 15px;
+  top: 11px;
+  color: #8cebd57a;
+  font-size: 22px;
+}
+.leadership-summary > a:hover {
+  transform: translateY(-2px);
+  border-color: var(--mint);
+}
+.leadership-summary small {
+  color: #b2c9c5;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+}
+.leadership-summary strong {
+  font-size: 36px;
+  font-variant-numeric: tabular-nums;
+}
+.leadership-summary b {
+  font-size: 12px;
+}
+.leadership-summary span {
+  font-size: 11px;
+}
+.leadership-summary .weekly-decision {
+  border-color: #736345;
+  background: linear-gradient(125deg, #383628, #18262a);
+}
+.weekly-decision strong {
+  color: #f0d49d;
+}
+.metric {
+  background: linear-gradient(130deg, #172e38, #11232d);
+  border-color: #304a56;
+  box-shadow: none;
+}
+.metric-trigger {
+  padding: 16px;
+}
+.metric strong {
+  font-variant-numeric: tabular-nums;
+}
+.panel,
+.toolbar {
+  border-color: #29434e;
+  background-color: #10232d;
+}
+.toolbar {
+  gap: 12px;
+  padding: 14px;
+}
+input,
+select,
+textarea {
+  background: #0b1c26;
+  border-color: #3e5964;
+}
+button,
+.button {
+  border-color: #3c5961;
+}
+.table-scroll {
+  background: #10232d;
+  border-color: #304a56;
+}
+th {
+  background: #1b333d;
+}
+tr:hover td {
+  background: #294c4c44;
+}
+.prospect-summary {
+  margin: 16px 0;
+}
+.elder-prospects .prospect-summary {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.prospect-summary button {
+  padding: 12px;
+  border-radius: 8px;
+  gap: 6px;
+}
+.prospect-summary button.selected {
+  outline-width: 1px;
+  outline-offset: 0;
+  box-shadow: inset 0 -3px var(--mint);
+}
+.prospect-summary strong {
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.elder-prospects {
+  margin-top: 18px;
+}
+.elder-prospects .section-head {
+  margin-top: 18px;
+}
+.elder-prospects .callout {
+  padding: 12px 16px;
+}
+.elder-prospects .callout p {
+  margin-bottom: 0;
+}
+.prospect-list > .prospect-card {
+  background: linear-gradient(110deg, #142c35, #10212b);
+  border-color: #2c4852;
+}
+.prospect-card[open] {
+  box-shadow: 0 8px 22px #0002;
+}
+.prospect-card[open] > summary {
+  background: #1b393e;
+}
+.prospect-position {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 40px;
+  border: 1px solid #41606a;
+  border-radius: 8px 8px 14px 14px;
+  font-size: 17px;
+  background: #1c353e;
+  color: #b8d1d7;
+}
+.prospect-card[data-rank="1"] .prospect-position {
+  color: #ffe6a6;
+  border-color: #aa9157;
+  background: linear-gradient(145deg, #605135, #2d3027);
+}
+.prospect-card[data-rank="2"] .prospect-position {
+  color: #e0edf4;
+  border-color: #7b94a1;
+  background: #30444d;
+}
+.prospect-card[data-rank="3"] .prospect-position {
+  color: #f3c5a4;
+  border-color: #9c7454;
+  background: #40372d;
+}
+.prospect-row-title > strong {
+  font-size: 14px;
+}
+.prospect-row-summary:hover {
+  background: #294e4c55;
+}
+.prospect-card-content {
+  background: #0e212a;
+}
+.review-deadline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 20px;
+  padding: 14px 18px;
+  border: 1px solid #355a57;
+  border-left: 3px solid var(--mint);
+  border-radius: 8px;
+  background: #163238;
+  margin-bottom: 12px;
+}
+.review-deadline > strong {
+  color: #bcf2df;
+  font-size: 13px;
+}
+.review-deadline > p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.review-help {
+  flex-basis: 100%;
+  font-size: 12px;
+}
+.review-help summary {
+  cursor: pointer;
+  color: var(--brass);
+  padding: 4px 0;
+}
+.review-help p {
+  max-width: 900px;
+}
+.review-sources {
+  padding: 6px 0;
+  font-size: 11px;
+}
+.royale-award {
+  border-color: #76694e;
+  border-top-color: #e4c787;
+  background: linear-gradient(150deg, #263a3e, #11252f);
+  box-shadow: 0 12px 28px #0003;
+}
+.award-stage {
+  height: 200px;
+  background:
+    radial-gradient(ellipse at 50% 85%, #a594574d, transparent 70%), #1b2b35;
+}
+.award-stage:after {
+  content: "";
+  position: absolute;
+  bottom: 9px;
+  left: 18%;
+  right: 18%;
+  height: 15px;
+  border: 1px solid #bda66b55;
+  border-radius: 50%;
+  background: #d7b66e15;
+  pointer-events: none;
+}
+.award-number {
+  color: #d6c18c33;
+}
+.award-content {
+  border-top: 1px solid #8c795333;
+}
+.award-content h3 {
+  color: #f0dcac;
+}
+@media (min-width: 1500px) {
+  .fleet-banner-copy {
+    width: 65%;
+  }
+}
+@media (max-width: 1100px) {
+  .elder-prospects .prospect-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .leadership-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .leadership-summary > a {
+    display: flex;
+  }
+  .banner-ghost {
+    right: -45px;
+  }
+  .fleet-banner-copy {
+    width: 70%;
+  }
+}
+@media (max-height: 900px) and (min-width: 721px) {
+  .sidebar-bottom {
+    display: none;
+  }
+}
+@media (max-width: 720px) {
+  .sidebar {
+    padding: 12px 16px;
+  }
+  .sidebar nav {
+    gap: 8px;
+  }
+  .nav-group {
+    display: contents;
+  }
+  .nav-group .nav-caption {
+    display: none;
+  }
+  .sidebar nav a {
+    flex-shrink: 0;
+  }
+  .brand {
+    margin-bottom: 10px;
+  }
+  .brand br {
+    display: none;
+  }
+  .brand b {
+    margin-left: 5px;
+  }
+  .brand img {
+    height: 32px;
+    width: 29px;
+  }
+  .topbar {
+    height: auto;
+    padding: 10px 16px;
+  }
+  .topbar > span {
+    font-size: 9px;
+  }
+  .topbar > span .muted {
+    display: none;
+  }
+  .command-mark {
+    font-size: 15px;
+  }
+  main {
+    padding-top: 18px;
+  }
+  .illustrated-heading {
+    padding: 18px;
+    min-height: 105px;
+  }
+  .illustrated-heading .heading-art {
+    width: 100px;
+    height: 100px;
+    right: 0;
+    top: 10px;
+    opacity: 0.2;
+  }
+  .page-heading h1 {
+    font-size: 25px;
+  }
+  .fleet-banner {
+    min-height: 0;
+    margin-bottom: 16px;
+  }
+  .fleet-banner-copy {
+    padding: 20px;
+    width: 100%;
+  }
+  .fleet-banner h2 {
+    font-size: 30px;
+    max-width: 240px;
+  }
+  .fleet-banner .eyebrow {
+    font-size: 8px;
+    letter-spacing: 0.8px;
+    white-space: normal;
+  }
+  .fleet-banner p {
+    max-width: 66%;
+    font-size: 11px;
+  }
+  .banner-actions {
+    max-width: none;
+    gap: 14px;
+  }
+  .banner-period {
+    max-width: none;
+    margin-top: 12px;
+  }
+  .fleet-banner-art {
+    inset: 40px 0 auto auto;
+    width: 120px;
+    height: 165px;
+  }
+  .banner-ghost {
+    width: 165px;
+    height: 165px;
+    right: -34px;
+    bottom: 0;
+    opacity: 0.75;
+  }
+  .crest-ring {
+    width: 130px;
+    height: 130px;
+    right: -20px;
+  }
+  .leadership-summary {
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .leadership-summary > a {
+    padding: 13px;
+    gap: 6px;
+  }
+  .leadership-summary > a:after {
+    display: none;
+  }
+  .leadership-summary strong {
+    font-size: 28px;
+  }
+  .leadership-summary small {
+    font-size: 8px;
+    letter-spacing: 0.8px;
+  }
+  .leadership-summary b {
+    font-size: 11px;
+  }
+  .leadership-summary span {
+    font-size: 10px;
+  }
+  .elder-prospects .prospect-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .prospect-position {
+    width: 28px;
+    height: 34px;
+    font-size: 14px;
+    border-radius: 6px 6px 10px 10px;
+  }
+  .prospect-row-title > strong {
+    font-size: 12px;
+  }
+  .toolbar {
+    padding: 12px;
+  }
+  .review-deadline {
+    padding: 12px;
+  }
+  .review-sources {
+    gap: 4px;
+    flex-direction: column;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .leadership-summary > a {
+    transition: none;
+  }
+  .leadership-summary > a:hover {
+    transform: none;
+  }
+}

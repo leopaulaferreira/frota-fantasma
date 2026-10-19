@@ -193,11 +193,14 @@ Consulte [RECOMMENDATIONS.md](docs/RECOMMENDATIONS.md) para exemplos de payloads
 - `.env` e variantes estão no `.gitignore`; `.env.example` contém apenas placeholders. O contexto Docker também exclui `.env`.
 - O token entra somente no processo do backend; não é gravado no banco, incluído nos DTOs ou no OpenAPI.
 - Logs da aplicação não registram o token ou corpos de erro da Supercell. Não habilite logs de headers HTTP com credenciais reais.
-- Esta fase tem acesso local sem autenticação de usuários. Autenticação e controles para publicação externa fazem parte da etapa de deploy.
+- O painel exige autenticação; a liderança pode registrar notas, coletar dados e editar regras. A conta de consulta tem acesso de leitura, sem notas privadas.
 - Consulte [origem e limites dos dados](docs/DATA-SOURCES.md) antes de interpretar atividade, doações ou participação.
 - Consulte o [roteiro de implementação](docs/ROADMAP.md) para os critérios das próximas fases.
 
-A interface e os screenshots chegam na Fase 5. Nenhum asset externo foi incorporado nesta fase. Antes do frontend, será inspecionado o [RoyaleAPI/cr-api-assets](https://github.com/RoyaleAPI/cr-api-assets), inclusive seus avisos/licenças. Apenas arquivos efetivamente utilizados serão copiados com origem documentada; não haverá dependência desse repositório em runtime.
+O painel inclui gestão de membros, guerras, recomendações e uma área própria de
+[candidatos a Ancião](docs/FRONTEND.md), com critérios, pendências e acompanhamento.
+Os assets incorporados têm origem e avisos documentados em
+`frontend/public/assets/royale/NOTICE.md`.
 
 ## Frontend — Fase 5
 
@@ -220,3 +223,14 @@ regras, avaliações e formalização de títulos são restritas à liderança.
 O Compose inclui backup diário. Monitoramento fica na página Operações.
 Setup, recuperação, verificações reais e preparação para HTTPS:
 [OPERATIONS.md](docs/OPERATIONS.md).
+
+## Revisão semanal de expulsões
+
+No menu, **Expulsões semanais** fica abaixo de Premiações e é reservada à
+liderança. Lista membros com menos de 1.600 pontos na corrida da semana **ou
+mais de 5 dias offline**, com contexto e justificativas para decisão individual.
+A prévia usa o recorte de domingo às 22h de São Paulo e permite consultar
+semanas anteriores. Com o sistema ligado e a coleta habilitada, há tentativas
+adicionais a cada cinco minutos entre 18h e 21h55 de domingo e às 21h59.
+Horários, falhas e dados insuficientes ficam visíveis; não há expulsão automática.
+Detalhes: [WEEKLY-REVIEW.md](docs/WEEKLY-REVIEW.md).

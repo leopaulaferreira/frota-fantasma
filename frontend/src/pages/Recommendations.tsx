@@ -54,7 +54,13 @@ function RecommendationList() {
       <QueryState query={q}>
         {q.data && (
           <>
+            <ElderProspects report={q.data} />
             <h2>Acompanhamento operacional</h2>
+            <p className="muted">
+              Membros que precisam de atenção por atividade, participação nas
+              guerras ou dados insuficientes. Confira os motivos e converse com
+              o jogador antes de decidir qualquer ação.
+            </p>
             <ul
               className="recommendation-list"
               aria-label="Acompanhamento operacional"
@@ -82,27 +88,6 @@ function RecommendationList() {
                   </li>
                 ))}
             </ul>
-            <h2>Candidaturas a Ancião</h2>
-            <p className="muted">
-              Elegíveis e não elegíveis, com os motivos da avaliação.
-            </p>
-            {q.data.players
-              .filter((p) => p.currentMember && p.role === "member")
-              .map((p) => (
-                <details className="panel" key={p.tag}>
-                  <summary>
-                    {p.name} ·{" "}
-                    {p.elderCandidate.value === true
-                      ? "Candidato"
-                      : "Não elegível / dados insuficientes"}
-                  </summary>
-                  <p>{p.elderCandidate.reason}</p>
-                  <MetricView name="Candidatura" metric={p.elderCandidate} />
-                  <Link to={"/membros/" + encodeURIComponent(p.tag)}>
-                    Investigar histórico completo →
-                  </Link>
-                </details>
-              ))}
           </>
         )}
       </QueryState>
@@ -341,7 +326,13 @@ export function Awards() {
           ))}
         </div>
       </QueryState>
-      {q.data && <ElderProspects report={q.data} />}
+      <div className="callout">
+        <Link to="/anciao">Avaliar candidatos a Ancião →</Link>
+        <p>
+          Consulte critérios, pendências e acompanhamentos na área de
+          desenvolvimento da tripulação.
+        </p>
+      </div>
     </>
   );
 }
