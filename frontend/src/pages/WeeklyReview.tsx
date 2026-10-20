@@ -1,13 +1,17 @@
+import { WeeklyDecision } from "../components/WeeklyDecision";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useAdmin } from "../lib/auth";
-import { api, useApi, date, format, tagPath } from "../lib/api";
+import { api, ApiError, useApi, date, format, tagPath } from "../lib/api";
 import { type ActiveNotes, type LeaderNote } from "../lib/leadership";
 import {
   type WeeklyReviewReport,
   type WeeklyReviewMember,
   reviewStatuses,
+  decisionLabels,
+  decisionPending,
+  type ReviewDecision,
   saoPauloTime,
   offlineDuration,
 } from "../lib/weeklyReview";
@@ -29,6 +33,8 @@ function PrivateWeeklyReview() {
   const [filter, setFilter] = useState("REVIEW");
   const [search, setSearch] = useState("");
   const [justified, setJustified] = useState(false);
+  const [progress, setProgress] = useState("");
+  const [notice, setNotice] = useState("");
   const q = useApi<WeeklyReviewReport>(
     "/leadership/weekly-review" +
       (week ? `?week=${encodeURIComponent(week)}` : ""),
@@ -36,6 +42,25 @@ function PrivateWeeklyReview() {
   );
   const notes = useApi<ActiveNotes>("/leadership/notes/active", 60000);
   const r = q.data;
+  const decisions = useQuery({
+    queryKey: ["weekly-review-decisions", r?.week],
+    queryFn: () =>
+      api<ReviewDecision[]>(
+        "/leadership/weekly-review/decisions?week=" + r!.week,
+      ),
+    retry: (count, error) =>
+      count < 1 && (!(error instanceof ApiError) || error.status >= 500),
+    enabled: !!r,
+    refetchInterval: 60000,
+  });
+  const history = (tag: string) =>
+    decisions.data?.filter((d) => d.playerTag === tag) || [];
+  const matchesProgress = (tag: string) =>
+    !progress ||
+    (!!decisions.data &&
+      (progress === "pending"
+        ? decisionPending(history(tag)[0])
+        : !decisionPending(history(tag)[0])));
   const activeNotes = (tag: string) =>
     notes.data?.notes.filter(
       (n) => n.playerTag === tag && n.status === "ACTIVE",
@@ -43,6 +68,7 @@ function PrivateWeeklyReview() {
   const rows =
     r?.members.filter(
       (p) =>
+        matchesProgress(p.tag) &&
         (!filter || p.status === filter) &&
         (p.name + p.tag)
           .toLocaleLowerCase("pt-BR")
@@ -70,6 +96,8 @@ function PrivateWeeklyReview() {
             aria-label="Semana da revisão"
             value={week}
             onChange={(e) => {
+              setNotice("");
+              setProgress("");
               setWeek(e.target.value);
               setFilter("REVIEW");
             }}
@@ -77,6 +105,8 @@ function PrivateWeeklyReview() {
         </label>
         <button
           onClick={() => {
+            setNotice("");
+            setProgress("");
             setWeek("");
             setFilter("REVIEW");
           }}
@@ -87,6 +117,7 @@ function PrivateWeeklyReview() {
           onClick={() => {
             q.refetch();
             notes.refetch();
+            decisions.refetch();
           }}
         >
           Recarregar lista
@@ -168,6 +199,46 @@ function PrivateWeeklyReview() {
                 </button>
               ))}
             </div>
+            <div className="toolbar" aria-label="Andamento das avaliações">
+              <label>
+                Andamento
+                <select
+                  aria-label="Filtrar andamento"
+                  value={progress}
+                  disabled={!decisions.data}
+                  onChange={(e) => setProgress(e.target.value)}
+                >
+                  <option value="">Pendentes e avaliados</option>
+                  <option value="pending">Pendentes</option>
+                  <option value="done">Avaliados</option>
+                </select>
+              </label>
+              {decisions.data ? (
+                <span>
+                  {
+                    r.members.filter((p) => decisionPending(history(p.tag)[0]))
+                      .length
+                  }{" "}
+                  pendentes ·{" "}
+                  {
+                    r.members.filter((p) => !decisionPending(history(p.tag)[0]))
+                      .length
+                  }{" "}
+                  avaliados no elenco da semana
+                </span>
+              ) : (
+                <span>Andamento indisponível até carregar as decisões.</span>
+              )}
+            </div>
+            {decisions.error && (
+              <p role="alert" className="error">
+                Não foi possível carregar as decisões.{" "}
+                <button onClick={() => decisions.refetch()}>
+                  Recarregar decisões
+                </button>
+              </p>
+            )}
+            {notice && <p role="status">{notice}</p>}
             <div className="toolbar">
               <input
                 aria-label="Buscar na revisão"
@@ -201,6 +272,7 @@ function PrivateWeeklyReview() {
                   setSearch("");
                   setFilter("");
                   setJustified(false);
+                  setProgress("");
                 }}
               >
                 Mostrar todos
@@ -227,6 +299,9 @@ function PrivateWeeklyReview() {
                   report={r}
                   notes={activeNotes(p.tag)}
                   notesAvailable={!!notes.data}
+                  decisions={history(p.tag)}
+                  decisionsAvailable={!!decisions.data}
+                  onSaved={setNotice}
                 />
               ))}
             </div>
@@ -234,9 +309,11 @@ function PrivateWeeklyReview() {
               <Empty>
                 {!r.members.length
                   ? "Sem elenco coletado para este recorte. Consulte as coletas."
-                  : filter === "REVIEW"
-                    ? "Nenhum sinal confirmado nesta seleção. Confira também o grupo de dados pendentes e as fontes acima."
-                    : "Nenhum membro nesta seleção."}
+                  : progress
+                    ? "Nenhum membro corresponde ao andamento e aos demais filtros selecionados."
+                    : filter === "REVIEW"
+                      ? "Nenhum sinal confirmado nesta seleção. Confira também o grupo de dados pendentes e as fontes acima."
+                      : "Nenhum membro nesta seleção."}
               </Empty>
             )}
           </>
@@ -251,12 +328,18 @@ function ReviewMember({
   report,
   notes,
   notesAvailable,
+  decisions,
+  decisionsAvailable,
+  onSaved,
 }: {
   player: WeeklyReviewMember;
   position: number;
   report: WeeklyReviewReport;
   notes: LeaderNote[];
   notesAvailable: boolean;
+  decisions: ReviewDecision[];
+  decisionsAvailable: boolean;
+  onSaved: (message: string) => void;
 }) {
   const justifications = notes.filter((n) => n.kind === "JUSTIFICATION");
   const reasons = [
@@ -279,6 +362,12 @@ function ReviewMember({
             </span>
           </span>
           <span className="prospect-row-stats">
+            {decisionsAvailable
+              ? decisions[0]
+                ? decisionLabels[decisions[0].action]
+                : "Pendente"
+              : "Decisão não carregada"}{" "}
+            ·{" "}
             {p.points === null
               ? "Pontos desconhecidos"
               : `${format(p.points)} pontos`}{" "}
@@ -352,6 +441,18 @@ function ReviewMember({
           . A primeira observação não comprova ingresso real. Confira se o
           membro entrou durante a guerra ou avisou uma ausência.
         </p>
+        {decisionsAvailable ? (
+          <WeeklyDecision
+            tag={p.tag}
+            week={report.week}
+            history={decisions}
+            onSaved={onSaved}
+          />
+        ) : (
+          <p>
+            Carregue as decisões para registrar uma avaliação com segurança.
+          </p>
+        )}
         <h3>Justificativas e contexto vigentes hoje</h3>
         <p className="muted">
           As notas abaixo são atuais, inclusive ao consultar semanas passadas.

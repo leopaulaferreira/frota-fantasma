@@ -46,3 +46,25 @@ export function offlineDuration(seconds: number | null) {
     minutes = Math.floor((seconds % 3600) / 60);
   return `${days}d ${hours}h ${minutes}min`;
 }
+
+export const decisionLabels = {
+  KEEP: "Manter nesta semana",
+  TALK: "Conversar com o membro",
+  DISMISS: "Dispensar do clã",
+  WAIT: "Aguardar justificativa",
+  PENDING: "Reabrir avaliação",
+};
+export interface ReviewDecision {
+  revision: number;
+  playerTag: string;
+  week: string;
+  action: keyof typeof decisionLabels;
+  reason: string;
+  createdAt: string;
+  createdBy: string;
+}
+export function decisionPending(decision?: ReviewDecision) {
+  return (
+    !decision || decision.action === "WAIT" || decision.action === "PENDING"
+  );
+}
