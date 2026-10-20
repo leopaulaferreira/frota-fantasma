@@ -234,3 +234,15 @@ semanas anteriores. Com o sistema ligado e a coleta habilitada, há tentativas
 adicionais a cada cinco minutos entre 18h e 21h55 de domingo e às 21h59.
 Horários, falhas e dados insuficientes ficam visíveis; não há expulsão automática.
 Detalhes: [WEEKLY-REVIEW.md](docs/WEEKLY-REVIEW.md).
+
+A revisão semanal também permite registrar decisões individuais, com motivo,
+autor e histórico: manter, conversar, dispensar, aguardar justificativa ou
+reabrir avaliação. Os filtros **Pendentes** e **Avaliados** ajudam a acompanhar
+o trabalho da liderança. A decisão de dispensar não executa a remoção no jogo.
+
+## Convenção de commits
+
+Use commits separados por finalidade: `feat:` para funcionalidades, `fix:`
+para correções, `docs:` para documentação, `style:` para formatação sem mudança
+de lógica, `refactor:` para reestruturação sem mudança de comportamento,
+`test:` para testes e `chore:` para manutenção de configuração/build/dependências.

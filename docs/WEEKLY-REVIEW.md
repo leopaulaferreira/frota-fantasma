@@ -91,3 +91,43 @@ PostgreSQL descartável para verificar o recorte entre capturas anteriores e
 posteriores às 22h, elenco correto, leitura sem escrita, datas inválidas e
 permissões ADMIN. Playwright valida navegação, filtros, justificativas,
 indicadores de coleta e bloqueio de contas de consulta em desktop e mobile.
+
+## Decisão individual e andamento
+
+Ao expandir um membro, a liderança pode registrar **Manter nesta semana**,
+**Conversar com o membro**, **Dispensar do clã**, **Aguardar justificativa** ou
+**Reabrir avaliação**, sempre com motivo. Manter, Conversar e Dispensar contam
+como avaliados; sem decisão, Aguardar e Reabrir contam como pendentes. Conversar
+significa que essa foi a decisão registrada, não que a conversa já ocorreu.
+O filtro de andamento combina com os filtros de regras, nome e justificativa.
+Os contadores de andamento se referem ao elenco inteiro do recorte.
+
+As decisões são próprias de cada clã, membro e semana. Abrir outra semana não
+carrega a decisão da anterior. Cada alteração preserva as versões anteriores,
+com autor autenticado, horário e motivo. O histórico fica dentro do membro na
+semana consultada. Os sinais das regras e as justificativas continuam visíveis.
+**Dispensar não expulsa o jogador:** a remoção é feita manualmente no jogo.
+
+A migration V7 cria `weekly_review_decision`, com histórico imutável e índice
+por clã/semana/membro. Cada registro guarda também as evidências do membro e
+os horários das fontes consultadas no momento da decisão. Essas evidências são
+preservadas no banco; o histórico visual mostra decisão, motivo, autor e data.
+Nenhuma migration anterior foi alterada.
+
+- `GET /api/leadership/weekly-review/decisions?week=YYYY-MM-DD`: revisões em
+  ordem decrescente; o primeiro registro de cada membro é a decisão vigente.
+- `POST /api/leadership/weekly-review/decisions/{tag}`: `week`, `action`,
+  `reason`, `requestKey` (UUID) e `expectedRevision` (zero na primeira decisão).
+- Semana deve ser uma segunda-feira atual ou passada; membro deve pertencer
+  ao elenco daquele recorte. Motivo obrigatório, até 2.000 caracteres.
+- ADMIN e CSRF são exigidos. Autor vem da sessão, nunca do formulário.
+- Repetição idêntica da chave retorna a revisão original. Reutilização da chave
+  para outro conteúdo ou revisão desatualizada retorna 409, sem sobrescrever.
+- Atualizações concorrentes são serializadas por clã e conferem a revisão
+  esperada. Falha ao carregar decisões não classifica membros como pendentes;
+  o formulário só é liberado quando o histórico está disponível.
+
+Testes em PostgreSQL descartável cobrem migration, imutabilidade, autorização,
+CSRF, validação, idempotência, revisão concorrente e evidências preservadas.
+Testes de navegador cobrem pendentes/avaliados, reabertura, troca de semana,
+recarregamento e falhas, no computador e no celular.
