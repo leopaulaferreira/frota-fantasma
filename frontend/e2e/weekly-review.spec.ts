@@ -15,6 +15,7 @@ test.beforeEach(async({page})=>{
     const path=new URL(route.request().url()).pathname;
     if(path==="/api/auth/me") return route.fulfill({json:{username:"lider",roles:["ADMIN"]}});
     if(path==="/api/auth/csrf") return route.fulfill({json:{headerName:"X-CSRF-TOKEN",token:"test-token"}});
+    if(path==="/api/leadership/weekly-review/decisions") return route.fulfill({json:[]});
     if(path==="/api/leadership/weekly-review") return route.fulfill({json:report});
     if(path==="/api/leadership/notes/active") return route.fulfill({json:{generatedAt:report.generatedAt,timezone:report.timezone,notes:[]}});
     return route.fulfill({status:404,json:{detail:"Sem registro"}});
@@ -70,4 +71,66 @@ test("consulta não vê menu nem solicita dados privados",async({page})=>{
   await expect(page.getByText("Esta revisão e as justificativas são reservadas à liderança.")).toBeVisible();
   await expect(page.locator(".sidebar nav").getByRole("link",{name:"Expulsões semanais"})).toHaveCount(0);
   expect(privateRequests).toBe(0);
+});
+
+test("decisões semanais preservam histórico, separam pendentes e não apagam sinais", async ({page}) => {
+  const history: Record<string,unknown>[] = [];
+  await page.route("**/api/leadership/weekly-review/decisions?*", route => {
+    const week = new URL(route.request().url()).searchParams.get("week");
+    return route.fulfill({json: history.filter(d => d.week === week)});
+  });
+  await page.route("**/api/leadership/weekly-review/decisions/*", route => {
+    const body = route.request().postDataJSON();
+    const current = history.find(d => d.week === body.week);
+    expect(body.expectedRevision).toBe(current?.revision || 0);
+    expect(body.requestKey).toBeTruthy();
+    expect(body.reason.trim()).not.toBe("");
+    const decision = {...body, revision:history.length+1,playerTag:"#BOTH",createdAt:report.generatedAt,createdBy:"lider"};
+    history.unshift(decision);
+    return route.fulfill({json:decision});
+  });
+  await page.route("**/api/leadership/weekly-review?*", route => route.fulfill({json:{...report,week:new URL(route.request().url()).searchParams.get("week")}}));
+  await page.goto("/expulsoes");
+  const rows=page.locator(".weekly-review-member");
+  await expect(page.getByText("4 pendentes · 0 avaliados no elenco da semana")).toBeVisible();
+  await page.getByLabel("Filtrar andamento").selectOption("pending");
+  await rows.first().locator(":scope > summary").click();
+  const form=page.getByRole("region",{name:"Decisão da revisão semanal"});
+  await form.getByLabel("Decisão",{exact:true}).selectOption("WAIT");
+  await form.getByLabel("Motivo da decisão").fill("Aguardando retorno do membro.");
+  await form.getByRole("button",{name:"Salvar decisão"}).click();
+  await expect(page.getByRole("status").filter({hasText:"Decisão registrada: Aguardar justificativa."})).toBeVisible();
+  await expect(rows).toHaveCount(2);
+  await form.getByLabel("Decisão",{exact:true}).selectOption("KEEP");
+  await form.getByLabel("Motivo da decisão").fill("Justificativa aceita nesta semana.");
+  await form.getByRole("button",{name:"Salvar decisão"}).click();
+  await expect(rows).toHaveCount(1);
+  await page.getByLabel("Filtrar andamento").selectOption("done");
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toContainText("Duas regras");
+  await rows.first().locator(":scope > summary").click();
+  await form.getByText("Histórico de decisões desta semana (2)",{exact:true}).click();
+  await expect(form.getByText("Aguardando retorno do membro.",{exact:true})).toBeVisible();
+  await form.getByLabel("Decisão",{exact:true}).selectOption("PENDING");
+  await form.getByLabel("Motivo da decisão").fill("Reavaliar após informação nova.");
+  await form.getByRole("button",{name:"Salvar decisão"}).click();
+  await expect(rows).toHaveCount(0);
+  await page.getByLabel("Filtrar andamento").selectOption("pending");
+  await expect(rows).toHaveCount(2);
+  await page.reload();
+  await expect(rows.first().locator(":scope > summary")).toContainText("Reabrir avaliação");
+  await page.getByLabel("Semana da revisão",{exact:true}).fill("2026-10-05");
+  await expect(rows.first().locator(":scope > summary")).toContainText("Pendente");
+  await expect(page.getByText("4 pendentes · 0 avaliados no elenco da semana")).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+test("falha das decisões não classifica membros como pendentes nem permite sobrescrita",async({page})=>{
+  await page.route("**/api/leadership/weekly-review/decisions?*",route=>route.fulfill({status:403,json:{detail:"Indisponível"}}));
+  await page.goto("/expulsoes");
+  await expect(page.getByRole("alert").filter({hasText:"Não foi possível carregar as decisões"})).toBeVisible();
+  await expect(page.getByLabel("Filtrar andamento")).toBeDisabled();
+  await page.locator(".weekly-review-member").first().locator(":scope > summary").click();
+  await expect(page.getByRole("button",{name:"Salvar decisão"})).toHaveCount(0);
+  await expect(page.getByText("4 pendentes · 0 avaliados no elenco da semana")).toHaveCount(0);
 });

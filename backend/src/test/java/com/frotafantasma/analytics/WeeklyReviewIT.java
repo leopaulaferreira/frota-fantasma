@@ -31,6 +31,7 @@ class WeeklyReviewIT {
     @Container static final PostgreSQLContainer<?> DB=new PostgreSQLContainer<>("postgres:17-alpine");
     @DynamicPropertySource static void properties(DynamicPropertyRegistry p){p.add("spring.datasource.url",DB::getJdbcUrl);p.add("spring.datasource.username",DB::getUsername);p.add("spring.datasource.password",DB::getPassword);}
     @Autowired WeeklyReviewService service;
+    @Autowired WeeklyReviewDecisions decisions;
     @Autowired JdbcTemplate sql;
     @Autowired ClashRoyaleProperties api;
     @Autowired MockMvc mvc;
@@ -74,5 +75,65 @@ class WeeklyReviewIT {
         sql.execute("TRUNCATE clan,player,collection_run CASCADE");
         var r=service.report(null);assertThat(r.members()).isEmpty();assertThat(r.membersFresh()).isFalse();assertThat(r.riverFresh()).isFalse();assertThat(r.rosterComplete()).isFalse();
         assertThat(sql.queryForObject("select count(*) from collection_run",Long.class)).isZero();
+    }
+
+    @Test void decisionsPreserveHistoryEvidenceAndRejectStaleWrites() {
+        var week=LocalDate.parse("2026-10-12");
+        var request=new WeeklyReviewDecisions.Create(week,WeeklyReviewDecisions.Action.WAIT,"Avisou viagem",UUID.randomUUID(),0L);
+        var first=decisions.create("#P01",request,"leader");
+        assertThat(decisions.create("#P01",request,"leader")).isEqualTo(first);
+        assertThat(decisions.history(week)).hasSize(1);
+        assertThat(sql.queryForObject("select evidence->'member'->>'points' from weekly_review_decision where revision=?",String.class,first.revision())).isEqualTo("1599");
+        var keep=new WeeklyReviewDecisions.Create(week,WeeklyReviewDecisions.Action.KEEP,"Justificativa aceita",UUID.randomUUID(),first.revision());
+        var second=decisions.create("#P01",keep,"other-leader");
+        assertThat(decisions.history(week)).containsExactly(second,first);
+        assertThat(decisions.create("#P01",request,"leader")).isEqualTo(first);
+        assertThat(decisions.history(week.plusWeeks(1))).isEmpty();
+        assertThatThrownBy(()->decisions.create("#P01",new WeeklyReviewDecisions.Create(week,WeeklyReviewDecisions.Action.DISMISS,"Outra sessão",UUID.randomUUID(),first.revision()),"leader"))
+            .isInstanceOf(org.springframework.web.server.ResponseStatusException.class).hasMessageContaining("409");
+        assertThatThrownBy(()->decisions.create("#P01",new WeeklyReviewDecisions.Create(week,WeeklyReviewDecisions.Action.DISMISS,"Chave reutilizada",request.requestKey(),0L),"leader"))
+            .isInstanceOf(org.springframework.web.server.ResponseStatusException.class).hasMessageContaining("409");
+        assertThatThrownBy(()->decisions.create("#P02",new WeeklyReviewDecisions.Create(week,WeeklyReviewDecisions.Action.KEEP,"Fora do recorte",UUID.randomUUID(),0L),"leader"))
+            .isInstanceOf(org.springframework.web.server.ResponseStatusException.class).hasMessageContaining("404");
+        assertThatThrownBy(()->sql.update("update weekly_review_decision set reason='alterada' where revision=?",first.revision()))
+            .isInstanceOf(org.springframework.dao.DataAccessException.class);
+        var reopened=decisions.create("#P01",new WeeklyReviewDecisions.Create(week,WeeklyReviewDecisions.Action.PENDING,"Reavaliar evidência",UUID.randomUUID(),second.revision()),"leader");
+        assertThat(decisions.history(week)).containsExactly(reopened,second,first);
+    }
+    @Test void decisionEndpointsRequireAdminCsrfAndValidatedInput() throws Exception {
+        String base="/api/leadership/weekly-review/decisions";
+        String body="""
+          {"week":"2026-10-12","action":"KEEP","reason":"Contexto revisado","requestKey":"%s","expectedRevision":0}
+          """.formatted(UUID.randomUUID());
+        mvc.perform(get(base+"?week=2026-10-12").with(user("viewer").roles("VIEWER"))).andExpect(status().isForbidden());
+        mvc.perform(post(base+"/#P01").with(user("leader").roles("ADMIN")).contentType("application/json").content(body)).andExpect(status().isForbidden());
+        mvc.perform(post(base+"/{tag}","#P01").with(user("viewer").roles("VIEWER")).with(csrf()).contentType("application/json").content(body)).andExpect(status().isForbidden());
+        mvc.perform(post(base+"/{tag}","#P01").with(user("leader").roles("ADMIN")).with(csrf()).contentType("application/json").content(body.replace("Contexto revisado"," "))).andExpect(status().isBadRequest());
+        mvc.perform(post(base+"/{tag}","#P01").with(user("leader").roles("ADMIN")).with(csrf()).contentType("application/json").content(body.replace("2026-10-12","2026-10-26"))).andExpect(status().isBadRequest());
+        mvc.perform(post(base+"/{tag}","#P01").with(user("leader").roles("ADMIN")).with(csrf()).contentType("application/json").content(body))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.createdBy").value("leader"));
+        mvc.perform(get(base+"?week=2026-10-12").with(user("leader").roles("ADMIN")))
+            .andExpect(status().isOk()).andExpect(jsonPath("$[0].action").value("KEEP"));
+        assertThat(sql.queryForObject("select count(*) from weekly_review_decision",Long.class)).isEqualTo(1);
+        assertThat(service.report(LocalDate.parse("2026-10-12")).members().getFirst().status()).isEqualTo("REVIEW");
+    }
+
+    @Test void concurrentSessionsCannotOverwriteEachOther() throws Exception {
+        var week=LocalDate.parse("2026-10-12");
+        var start=new java.util.concurrent.CountDownLatch(1);
+        try(var executor=java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            var results=new ArrayList<java.util.concurrent.Future<Integer>>();
+            for(int i=0;i<2;i++) results.add(executor.submit(()->{
+                start.await();
+                try {
+                    decisions.create("#P01",new WeeklyReviewDecisions.Create(week,WeeklyReviewDecisions.Action.KEEP,"Revisado",UUID.randomUUID(),0L),"leader");
+                    return 200;
+                } catch(org.springframework.web.server.ResponseStatusException e) {return e.getStatusCode().value();}
+            }));
+            start.countDown();
+            assertThat(List.of(results.get(0).get(10,java.util.concurrent.TimeUnit.SECONDS),results.get(1).get(10,java.util.concurrent.TimeUnit.SECONDS)))
+                .containsExactlyInAnyOrder(200,409);
+        }
+        assertThat(decisions.history(week)).hasSize(1);
     }
 }
