@@ -313,9 +313,22 @@ export function Metrics({
     </div>
   );
 }
-export function Person({ player }: { player: Pick<Player, "name" | "tag"> }) {
+export function Person({
+  player,
+  week,
+}: {
+  player: Pick<Player, "name" | "tag">;
+  week?: string;
+}) {
   return (
-    <Link className="person" to={"/membros/" + encodeURIComponent(player.tag)}>
+    <Link
+      className="person"
+      to={
+        "/membros/" +
+        encodeURIComponent(player.tag) +
+        (week ? "?week=" + week : "")
+      }
+    >
       <span className="avatar">{player.name.slice(0, 2).toUpperCase()}</span>
       <span>
         <b>{player.name}</b>

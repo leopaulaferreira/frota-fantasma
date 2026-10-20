@@ -708,3 +708,35 @@ test("candidatos numerados mostram todos os membros e abrem dois níveis de deta
   await expect(cards.first().locator(".prospect-position")).toHaveText("43º");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test("histórico de doações sobrevive ao reset e mantém semana no perfil", async ({ page }) => {
+  const previous = "2026-10-05";
+  const roster = (values: (number | null)[]) => players.slice(0, 2).map((p, i) => ({
+    ...p, metrics: { ...p.metrics, weeklyDonations: metric(values[i], { incompletePeriod: true, insufficientSample: values[i] === null }) },
+  }));
+  await page.route("**/api/analytics*", route => {
+    const week = new URL(route.request().url()).searchParams.get("week") || report.week;
+    return route.fulfill({ json: { ...report, week, players: roster(week === previous ? [1200, null] : [0, 40]) } });
+  });
+  await page.route("**/api/analytics/players/*", route => {
+    expect(new URL(route.request().url()).searchParams.get("week")).toBe(previous);
+    return route.fulfill({ json: roster([1200, null])[0] });
+  });
+  await page.goto("/membros");
+  await page.getByRole("button", { name: "Semana passada", exact: true }).click();
+  await expect(page).toHaveURL(/week=2026-10-05/);
+  await expect(page.getByRole("columnheader", { name: "Doações · 05/10/2026" })).toBeVisible();
+  await expect(page.locator("tbody").getByText("1.200", {exact:true})).toBeVisible();
+  await page.getByRole("link", {name:/Maré Negra/}).click();
+  await expect(page).toHaveURL(/week=2026-10-05/);
+  await expect(page.getByText(/Consulta histórica · semana de 05/)).toBeVisible();
+  await page.getByRole("link", {name:"← Tripulação"}).click();
+  await page.getByRole("button", { name: "Semana atual", exact: true }).click();
+  await page.getByLabel("Comparar doações entre semanas").check();
+  const comparison = page.getByRole("region", {name:"Comparação de doações"});
+  await expect(comparison.locator("tbody tr").first()).toContainText("-1.200");
+  await expect(comparison.locator("tbody tr").nth(1)).toContainText("Sem dados para comparar");
+  await page.getByLabel("Data da semana", {exact:true}).fill("2026-10-08");
+  await expect(page).toHaveURL(/week=2026-10-05/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

@@ -225,3 +225,24 @@ candidatos preservam a ordenação e os dois níveis de expansão; as três prim
 recebem molduras distintas, sem representar aprovação ou cargo conquistado.
 Na revisão semanal, as instruções de funcionamento ficam em uma expansão,
 mas prazo, horários das fontes e alertas de qualidade permanecem visíveis.
+
+### Consultar e comparar doações anteriores
+
+Em **Tripulação**, use **Semana passada** ou **Consultar semana de**. A data
+escolhida é normalizada para a segunda-feira e fica na URL (`?week=YYYY-MM-DD`).
+O relatório usa o calendário configurado no backend e as coletas persistidas até
+o recorte da semana. O elenco/cargo/status também correspondem a esse recorte;
+“Incluir membros que saíram até o recorte” permite consultar outros registros.
+A média de guerras continua usando até quatro resultados publicados até o recorte,
+não uma soma de pontos da guerra daquela semana.
+
+**Comparar doações entre semanas** apresenta, por jogador da seleção, as doações
+observadas em duas semanas e a diferença. Valores ausentes não viram zero;
+as diferenças não comprovam evolução real se a cobertura das coletas divergir.
+O perfil aberto nessa lista mantém a semana consultada e oferece retorno ao
+perfil atual. Notas privadas continuam sendo notas atuais.
+
+Os snapshots já eram persistidos: o reset do contador no jogo não remove o
+histórico local. O filtro apenas expõe a consulta histórica existente. Coletas
+anteriores à implantação, intervalos sem captura e resets não observados não
+são reconstruídos; os totais de doações permanecem limites inferiores.

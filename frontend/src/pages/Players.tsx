@@ -1,3 +1,4 @@
+import { mondayOf, shiftWeek } from "../lib/weeks";
 import { useAdmin } from "../lib/auth";
 import { LeaderNotes } from "../components/LeaderNotes";
 import { useState } from "react";
@@ -25,7 +26,18 @@ import {
   Paged,
 } from "../components/ui";
 export function Members() {
-  const q = useApi<Report>("/analytics");
+  const [params, setParams] = useSearchParams();
+  const week = mondayOf(params.get("week") || "");
+  const current = useApi<Report>("/analytics");
+  const q = useApi<Report>("/analytics" + (week ? "?week=" + week : ""));
+  const [compare, setCompare] = useState(false);
+  const selectedWeek = week || current.data?.week;
+  const selectWeek = (value: string) => {
+    const next = new URLSearchParams(params);
+    if (value) next.set("week", value);
+    else next.delete("week");
+    setParams(next);
+  };
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [role, setRole] = useState("");
@@ -51,6 +63,52 @@ export function Members() {
         Consulte evidências, acompanhe a consistência e conheça o contexto antes
         de decidir.
       </p>
+      <div className="toolbar" aria-label="Período da tripulação">
+        <label>
+          Consultar semana de
+          <input
+            type="date"
+            aria-label="Data da semana"
+            value={selectedWeek || ""}
+            max={current.data?.week}
+            onChange={(e) => selectWeek(mondayOf(e.target.value))}
+          />
+        </label>
+        <button onClick={() => selectWeek("")}>Semana atual</button>
+        <button
+          disabled={!current.data}
+          onClick={() =>
+            current.data && selectWeek(shiftWeek(current.data.week, -1))
+          }
+        >
+          Semana passada
+        </button>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={compare}
+            onChange={(e) => setCompare(e.target.checked)}
+          />
+          Comparar doações entre semanas
+        </label>
+      </div>
+      {selectedWeek && (
+        <p className="muted">
+          Semana de {date(selectedWeek)} · Calendário{" "}
+          {String(
+            current.data?.recommendationRules.settings.analytics.timezone ||
+              "configurado no sistema",
+          )}{" "}
+          ·{" "}
+          {week
+            ? "Consulta histórica: elenco e indicadores até o fim da semana selecionada, ou até a coleta mais recente se ainda estiver em andamento."
+            : "Semana atual em acompanhamento."}{" "}
+          Doações são limites inferiores observados nas coletas salvas; o reset
+          do jogo não apaga esse histórico. As médias de guerra consideram até
+          quatro guerras publicadas até o recorte, não apenas a guerra dessa
+          semana.
+        </p>
+      )}
       <div className="toolbar">
         <input
           aria-label="Buscar membro"
@@ -105,43 +163,58 @@ export function Members() {
             checked={former}
             onChange={(e) => setFormer(e.target.checked)}
           />{" "}
-          Incluir ex-membros
+          {week
+            ? "Incluir membros que saíram até o recorte"
+            : "Incluir ex-membros"}
         </label>
       </div>
       <QueryState query={q}>
         <p className="muted">{players.length} membros encontrados</p>
-        <Table
-          headers={[
-            "Membro",
-            "Status",
-            "Média • 4 guerras",
-            "Participação",
-            "Frota Score",
-            "Doações",
-          ]}
-        >
-          {players.map((p) => (
-            <tr key={p.tag}>
-              <td>
-                <Person player={p} />
-                {!p.currentMember && <small>Ex-membro</small>}
-              </td>
-              <td>
-                <Badge value={p.operationalStatus.value} />
-              </td>
-              {[
-                "recentAverage",
-                "recentParticipation",
-                "frotaScore",
-                "weeklyDonations",
-              ].map((k) => (
-                <td key={k}>
-                  <MetricView compact name={label(k)} metric={p.metrics[k]} />
+        {compare && selectedWeek && q.data ? (
+          <DonationComparison
+            key={selectedWeek}
+            week={selectedWeek}
+            players={players}
+            maxWeek={current.data?.week || selectedWeek}
+          />
+        ) : (
+          <Table
+            headers={[
+              "Membro",
+              "Status",
+              "Média • 4 guerras",
+              "Participação",
+              "Frota Score",
+              "Doações" + (q.data ? " · " + date(q.data.week) : ""),
+            ]}
+          >
+            {players.map((p) => (
+              <tr key={p.tag}>
+                <td>
+                  <Person player={p} week={week} />
+                  {!p.currentMember && (
+                    <small>
+                      {week ? "Fora do clã no recorte" : "Ex-membro"}
+                    </small>
+                  )}
                 </td>
-              ))}
-            </tr>
-          ))}
-        </Table>
+                <td>
+                  <Badge value={p.operationalStatus.value} />
+                </td>
+                {[
+                  "recentAverage",
+                  "recentParticipation",
+                  "frotaScore",
+                  "weeklyDonations",
+                ].map((k) => (
+                  <td key={k}>
+                    <MetricView compact name={label(k)} metric={p.metrics[k]} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </Table>
+        )}
         {!players.length && (
           <Empty>Nenhum membro corresponde aos filtros.</Empty>
         )}
@@ -153,7 +226,10 @@ export function PlayerProfile() {
   const admin = useAdmin();
   const [params] = useSearchParams();
   const { tag = "" } = useParams();
-  const q = useApi<Player>("/analytics/players/" + tagPath(tag));
+  const week = mondayOf(params.get("week") || "");
+  const q = useApi<Player>(
+    "/analytics/players/" + tagPath(tag) + (week ? "?week=" + week : ""),
+  );
   const [tab, setTab] = useState(
     params.get("tab") === "notas" && admin
       ? "Notas da liderança"
@@ -162,15 +238,31 @@ export function PlayerProfile() {
   const p = q.data;
   return (
     <>
-      <Link className="back" to="/membros">
+      <Link className="back" to={"/membros" + (week ? "?week=" + week : "")}>
         ← Tripulação
       </Link>
+      {week && (
+        <p className="callout">
+          Consulta histórica · semana de {date(week)}. Cargo, associação e
+          indicadores correspondem ao recorte; notas da liderança continuam
+          atuais.{" "}
+          <Link to={"/membros/" + tagPath(tag)}>Ver perfil atual →</Link>
+        </p>
+      )}
       <QueryState query={q}>
         {p && (
           <>
             <Heading
               eyebrow={
-                p.tag + " · " + (p.currentMember ? "MEMBRO ATUAL" : "EX-MEMBRO")
+                p.tag +
+                " · " +
+                (week
+                  ? p.currentMember
+                    ? "NO CLÃ NO RECORTE"
+                    : "FORA DO CLÃ NO RECORTE"
+                  : p.currentMember
+                    ? "MEMBRO ATUAL"
+                    : "EX-MEMBRO")
               }
               title={p.name}
             >
@@ -550,5 +642,95 @@ export function Donations({ player: p }: { player: Player }) {
         <Empty>Dados insuficientes: aguardando snapshots comparáveis.</Empty>
       )}
     </>
+  );
+}
+
+function DonationComparison({
+  week,
+  players,
+  maxWeek,
+}: {
+  week: string;
+  players: Player[];
+  maxWeek: string;
+}) {
+  const [other, setOther] = useState(shiftWeek(week, -1));
+  const query = useApi<Report>("/analytics?week=" + other);
+  return (
+    <section aria-label="Comparação de doações">
+      <div className="toolbar">
+        <label>
+          Comparar com a semana de
+          <input
+            type="date"
+            aria-label="Semana de comparação"
+            value={other}
+            max={maxWeek}
+            onChange={(e) => {
+              const normalized = mondayOf(e.target.value);
+              if (normalized) setOther(normalized);
+            }}
+          />
+        </label>
+      </div>
+      <p className="muted">
+        Compara os membros da seleção acima. A diferença é entre valores
+        observados, não comprova aumento ou queda real quando a cobertura das
+        coletas é diferente. Ausência de registro não vira zero.
+      </p>
+      <QueryState query={query}>
+        {query.data && (
+          <Table
+            headers={[
+              "Membro",
+              "Doações · " + date(other),
+              "Doações · " + date(week),
+              "Diferença observada",
+            ]}
+          >
+            {players.map((p) => {
+              const previous = query.data!.players.find(
+                (row) => row.tag === p.tag,
+              )?.metrics.weeklyDonations;
+              const before = previous ? num(previous) : null;
+              const after = num(p.metrics.weeklyDonations);
+              const delta =
+                before === null || after === null ? null : after - before;
+              return (
+                <tr key={p.tag}>
+                  <td>
+                    <Person player={p} week={week} />
+                  </td>
+                  <td>
+                    {previous ? (
+                      <MetricView
+                        compact
+                        name="Doações na semana comparada"
+                        metric={previous}
+                      />
+                    ) : (
+                      <span>Sem registro nessa semana</span>
+                    )}
+                  </td>
+                  <td>
+                    <MetricView
+                      compact
+                      name="Doações na semana selecionada"
+                      metric={p.metrics.weeklyDonations}
+                    />
+                  </td>
+                  <td>
+                    {delta === null
+                      ? "Sem dados para comparar"
+                      : (delta > 0 ? "+" : "") + format(delta)}
+                    <small>Totais observados / cobertura parcial</small>
+                  </td>
+                </tr>
+              );
+            })}
+          </Table>
+        )}
+      </QueryState>
+    </section>
   );
 }
