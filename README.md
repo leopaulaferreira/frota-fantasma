@@ -260,20 +260,15 @@ números já coletados. O histórico completo continua nas consultas por data.
 
 ## CSV manual do RoyaleAPI
 
-ADMIN pode acessar **Operações → Dados externos → Importar CSV** para analisar
-exports e registrar lotes pendentes com procedência, SHA-256 e auditoria imutável.
-Os exemplos de membros/corrida fornecidos não identificam com segurança o período:
-**nesta etapa, nenhum registro CSV entra nas métricas**. A interface informa as
-pendências, sem inventar datas ou guerras. A Supercell permanece autoritativa;
-não existe sincronização automática RoyaleAPI nem sobrescrita de dados oficiais.
-Formatos observados, limites e etapa restante: [ROYALEAPI-IMPORT.md](docs/ROYALEAPI-IMPORT.md).
+Em **Operações → Dados externos**, ADMIN pode importar CSV, identificar seu contexto
+e confirmar **Incorporar ao histórico** após uma prévia. Somente lotes cuja resolução
+atual é IDENTIFIED podem contribuir. Conflitos não sobrescrevem valores oficiais;
+campos ausentes continuam desconhecidos. Capturas de corrida sem temporada/publicação
+comprovadas não são convertidas em guerras finais.
 
-
-### Identificação de CSV — Fase 2
-
-No histórico de **Operações → Dados externos**, use **Identificar dados** para
-comparar River Race com guerras/snapshots persistidos ou confirmar clã, data e fuso
-de um CSV de membros. Igualdade completa e compatibilidade parcial são distinguidas;
-nenhum alvo é escolhido silenciosamente. Correções ficam em revisões imutáveis.
-Estados: pendente, identificado, conflito ou rejeitado. **Mesmo identificado, o lote
-continua fora do analytics até a Fase 3**; dados oficiais não são substituídos.
+Supercell permanece autoritativa: dados oficiais posteriores prevalecem sem duplicar
+a guerra e sem apagar a auditoria importada. Perfil, comparação e analytics usam o
+histórico preferencial com fontes explícitas; doações mantêm as regras de diferenças,
+resets e cobertura. A interface mostra se o lote realmente influencia as métricas.
+Não há sincronização automática RoyaleAPI, promoções, expulsões ou premiações disparadas
+pela incorporação. Contratos, limites e testes: [ROYALEAPI-IMPORT.md](docs/ROYALEAPI-IMPORT.md).

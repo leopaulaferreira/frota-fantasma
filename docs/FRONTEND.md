@@ -318,8 +318,24 @@ Para membros, o modal apresenta clã, sugestão de data até o minuto e fuso edi
 são exigidos antes de confirmar. Nenhuma sugestão é salva automaticamente. O histórico
 preserva resoluções/correções anteriores e evidências. Conflitos de concorrência ou
 evidência desatualizada exigem atualização. O aviso de que identificação não sobrescreve
-Supercell nem incorpora CSV ao analytics permanece visível.
+Supercell nem incorpora CSV por si só permanece visível.
 
 Listas extensas de correspondências mostram inicialmente 20 candidatos ordenados.
 **Mostrar mais correspondências** revela mais 20 na mesma tela, até disponibilizar
 todos; a contagem total permanece visível e nenhum alvo é pré-selecionado.
+
+
+### Incorporar dados identificados
+
+Lotes IDENTIFIED oferecem **Incorporar ao histórico**: modal com analisados, novos,
+duplicados, conflitos, ignorados, jogadores afetados, período e motivos por linha.
+Cancelar não grava; confirmação exige checkbox e prévia válida. Resultado parcial
+mostra pendências explicitamente. Reabrir uma execução concluída consulta o resultado
+preservado, sem executar novamente. Erros e conflitos de prévia permanecem visíveis.
+
+O histórico diferencia identificação atual e incorporação, com contagens da execução
+e **Analytics: Sim/Não**, calculado pelo backend para o estado atual. Uma chegada
+oficial posterior pode tornar importados inativos sem apagar a auditoria. Métricas
+mostram fontes combinadas; a página Guerras identifica backfill no arquivo, ranking
+e evidências, sem rotular valores importados como exclusivamente oficiais. Perfil e
+Comparar recebem o mesmo histórico do analytics, sem novos cálculos no frontend.

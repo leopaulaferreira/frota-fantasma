@@ -7,11 +7,10 @@ observados, consultar problemas por registro e confirmar o armazenamento de um
 lote **pendente de identificação**. A Supercell permanece a fonte principal e
 autoritativa. Não há sincronização, scraping ou download automático do RoyaleAPI.
 
-**O backfill nas métricas ainda não está habilitado.** A Fase 2 permite identificar
-lotes usando evidências oficiais persistidas ou contexto confirmado pelo ADMIN.
-Identificar não altera guerras, membros, doações ou fórmulas; a incorporação de
-registros ao analytics será uma Fase 3 separada. `rowsImported` continua zero.
-O upload preserva seu estado inicial; resoluções imutáveis registram o estado atual.
+A Fase 3 permite incorporar registros de lotes cuja **última resolução é IDENTIFIED**.
+A incorporação exige prévia e confirmação separadas. Novos registros entram no histórico
+preferencial; duplicados não criam observações adicionais e conflitos preservam o existente.
+Os estados originais do upload e as resoluções continuam imutáveis.
 
 ## Formatos efetivamente observados
 
@@ -61,8 +60,9 @@ Na análise inicial, novos/duplicados/conflitos ficam em zero **não classificad
 da contagem de pendências e de aviso. Zero nesses contadores não comprova ausência
 de conflito. Campos vazios continuam vazios na quarentena; não viram valores zero.
 
-Nenhuma tabela de coleta, associação, guerra, participação, doação, avaliação ou
-premiação é alterada. `HistoryStore.saveMembers` e `saveWarLog` não são reutilizados
+Upload e identificação não alteram o histórico funcional. A incorporação explícita
+pode acrescentar guerras, participações e capturas; nunca cria eventos de associação,
+altera elenco atual ou executa avaliações/premiações. `HistoryStore.saveMembers` e `saveWarLog` não são reutilizados
 como importadores: seus efeitos incluem atualização de elenco e substituição de
 participantes oficiais. Agendamentos e comunicação com a Supercell são preservados.
 
@@ -192,12 +192,111 @@ Lock transacional por lote serializa decisões concorrentes. Reenvio idêntico c
 mesma requestKey/autor retorna a mesma resolução; conteúdo diferente retorna conflito.
 Triggers imutáveis reutilizam a proteção de auditoria anterior. Uma resolução usa
 as evidências preservadas naquele momento; alterações oficiais posteriores não
-reescrevem sua decisão. A Fase 3 terá de revalidar novamente antes de incorporar dados.
+reescrevem sua decisão. A Fase 3 revalida o histórico e a resolução antes de incorporar dados.
 
-## Fase 3 — ainda não implementada
+## Fase 3 — incorporação confirmada
 
-Nenhuma resolução, inclusive `IDENTIFIED`, entra nos cálculos atuais. A próxima fase
-deve fazer deduplicação por identidade oficial, preservar prioridade Supercell,
-registrar conflitos por campo, decidir complementos permitidos e expor procedência,
-qualidade e limitações nas evidências analíticas. CSV não aumenta artificialmente a
-precisão nem completa dados que não contém. Não há backfill ou sincronização automática.
+Em Operações → Dados externos, lotes `IDENTIFIED` oferecem **Incorporar ao histórico**.
+A prévia informa analisados, novos, duplicados, conflitos, ignorados, jogadores com novos
+registros e o período comprovado. Depois da confirmação, o resultado real permanece
+consultável. “Incorporação com pendências” nunca é anunciada como sucesso total.
+
+### Modelo e prioridade
+
+V10 estende **as mesmas tabelas** `war`, `war_participant` e `clan_membership_history`
+com `source`, `batch_id`, `resolution_id` e `imported_at`. Não cria um modelo paralelo
+de guerras. Registros anteriores continuam `DIRECT_API`. Capturas importadas não
+inventam `collection_run`: seu `run_id` é nulo, com proveniência obrigatória. Capturas
+oficiais continuam exigindo runId. O horário da incorporação não é capturedAt histórico.
+
+`import_application` e `import_application_row` preservam execução, autor, resolução,
+contagens, valores normalizados e motivos por linha. Os triggers imutáveis mantêm essa
+auditoria mesmo quando a Supercell passa a ocupar o registro funcional correspondente.
+Os valores originais do arquivo continuam em `import_row`.
+
+A leitura única `HistoricalReadService` usa as views `effective_war`,
+`effective_war_participant` e `effective_membership_history`. Estas exigem aplicação
+confirmada vinculada à última resolução IDENTIFIED para utilizar registros importados.
+Rejeitar/reabrir/corrigir uma resolução remove seus dados anteriores da leitura; a
+correção precisa de nova incorporação. O contexto importado da guerra também precisa
+continuar válido. Nenhum registro funcional excluído vira zero no analytics.
+
+Prioridade por identidade: **Supercell → RoyaleAPI confirmado**. Valores derivados
+continuam calculados no módulo analytics; não concorrem com os registros de origem.
+Membros são identificados por clã, playerId e instante confirmado, com uma observação
+preferencial nesse instante. Um oficial prevalece integralmente, inclusive campos nulos.
+Participações mantêm a chave única `war_id + player_id`. O contexto da guerra mantém
+`clan_id + season_id + section_index`.
+
+Campos relevantes iguais: duplicado, sem novo registro funcional. Diferença, inclusive
+CSV preenchido contra campo oficial nulo: conflito, sem preenchimento complementar.
+Nomes são descritivos, não chave nem critério de conflito de contadores. Divergência
+contra outro backfill ativo também fica em conflito; não há substituição silenciosa.
+Tags reais validadas podem originar um cadastro histórico inativo, sem ingresso,
+saída, cargo atual ou tempo de associação inventados.
+
+### Guerras e limites da identidade
+
+A Fase 3 usa **somente** o alvo e as evidências confirmados na Fase 2; não faz matching.
+Para WAR, exige seasonId, sectionIndex e publicação oficial preservados na resolução,
+revalida a publicação se a guerra existir e reconcilia cada participação. Uma lacuna
+local pode ser reconstruída usando essa identidade oficial anteriormente comprovada,
+sem criar temporada/seção/data por estimativa. Não há caminho para criar uma guerra
+nunca identificada pela Fase 2 a partir de um CSV sem esses metadados.
+
+O teste de guerra ausente preserva uma resolução válida, simula a ausência do histórico
+funcional, incorpora o CSV e depois executa uma coleta oficial da mesma identidade.
+A coleta passa a fornecer a linha preferencial sem duplicar a guerra; o CSV anterior
+fica na auditoria. Novas linhas oficiais substituem participações importadas homônimas;
+participações importadas ainda válidas e não presentes no payload oficial permanecem
+com sua proveniência, sem transformar ausência oficial em zero.
+
+Um alvo **SNAPSHOT** não fornece seasonId/publicação nem prova resultado final. Suas
+linhas são ignoradas na incorporação analítica desta fase, com motivo explícito. Não
+convertemos snapshots de corrida em guerras encerradas, mesmo com state=full. Um CSV
+ligado a WAR também pode conter contadores parciais: valores diferentes do oficial
+são conflitos; backfill novo tem cobertura incompleta explicitamente sinalizada.
+
+`captured_at` de guerras/participações incorporadas registra o recebimento local,
+nunca a data da batalha; `imported_at` e a interface deixam isso explícito. O agrupamento
+analítico continua usando a publicação oficial confirmada. Início/fim permanecem nulos.
+
+### Membros, doações e analytics
+
+Membros exigem data de captura e clã confirmados. Preservam troféus, cargo histórico,
+doações, doações recebidas, ranks e lastSeen; vazio continua nulo. Não há evento automático
+de associação nem atualização da tabela de elenco ativo por causa da incorporação.
+
+Analytics, perfil, comparação, guerras e evolução consomem a mesma leitura preferencial.
+Médias, quatro guerras recentes, tendência, participação, candidatos, destaques e Frota
+Score usam as fórmulas existentes. `DonationCalculator` continua calculando diferenças,
+resets, episódios e semanas; o contador bruto nunca é somado como total de doações.
+A revisão semanal operacional continua usando capturas oficiais, e uma guerra de backfill
+não aciona o fechamento automático como se fosse publicação oficial recém-coletada.
+A incorporação não dispara ou reescreve premiações, promoções ou expulsões.
+
+Métricas diretas indicam `DIRECT_API` ou `ROYALEAPI_IMPORT`; derivadas mantêm `DERIVED`
+ou `SNAPSHOT_DERIVED`, com `sources` e `dataUsed` identificando as origens, lotes e
+resoluções. Backfill não comprova completude; as métricas afetadas sinalizam a limitação.
+Ausência não vira zero e a disponibilidade individual de decks continua desconhecida.
+
+### API, transação e idempotência
+
+- `GET /api/imports/royaleapi/{batchId}/backfill/preview`: ADMIN, leitura consistente,
+  sem gravação no banco; guarda um comprovante da prévia na sessão por 15 minutos.
+- `POST /api/imports/royaleapi/{batchId}/backfill`: ADMIN + CSRF, JSON
+  `resolutionId`, `evidenceVersion`, `confirmed=true`. Exige a prévia na mesma sessão.
+
+O servidor trava o lote e usa a **mesma chave PostgreSQL de exclusão por clã da coleta**.
+Uma coleta/incorporação concorrente retorna 409 para nova tentativa. Resolução ou
+histórico alterados invalidam a confirmação e exigem nova prévia. Falha causa rollback
+de aplicação, linhas de auditoria e novos dados funcionais. Cada par lote/resolução
+é incorporado uma vez; reenvio retorna a execução preservada, sem duplicação.
+
+A coluna **Histórico / Analytics** separa importação, identificação e incorporação.
+`Analytics: Sim/Não` é calculado das linhas atualmente elegíveis, não das contagens
+originais: pode virar Não após chegada oficial, rejeição ou correção. Contagens de
+incorporação permanecem como auditoria da execução. A confirmação não é uma garantia
+de que todos os registros da aplicação continuarão usados para sempre.
+
+Não existe scraping, download ou sincronização automática com RoyaleAPI.

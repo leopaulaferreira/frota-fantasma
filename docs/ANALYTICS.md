@@ -30,10 +30,10 @@ Toda métrica contém `value`, `origin`, `quality`, `period`, `warsConsidered`, 
 
 | Campo / indicador | Origem | Fórmula ou limite |
 | --- | --- | --- |
-| `wars[].points` | DIRECT_API | `fame` da guerra oficial; ausente continua nulo |
-| `wars[].decksUsed` | DIRECT_API | `decksUsed` oficial |
-| `trophies` | DIRECT_API | Valor do último snapshot de membros |
-| `lastKnownActivity` | DIRECT_API | `lastSeen` oficial do snapshot; timestamp futuro é inválido para análise |
+| `wars[].points` | DIRECT_API / ROYALEAPI_IMPORT | `fame` do registro preferencial; ausente continua nulo |
+| `wars[].decksUsed` | DIRECT_API / ROYALEAPI_IMPORT | `decksUsed` do registro preferencial |
+| `trophies` | DIRECT_API / ROYALEAPI_IMPORT | Valor do último snapshot de membros |
+| `lastKnownActivity` | DIRECT_API / ROYALEAPI_IMPORT | `lastSeen` registrado do snapshot; timestamp futuro é inválido para análise |
 | `offlineDays` | DERIVED | Dias completos entre `lastSeen` e captura; nunca acumular dias offline só porque a coleta parou |
 | `recentPoints`, `recentAverage` | DERIVED | Soma de `fame` conhecido e divisão pelo número de pontuações conhecidas nas últimas quatro guerras **do clã** |
 | `historicalAverage` | DERIVED | Média das pontuações conhecidas em todas as guerras disponíveis |
@@ -119,25 +119,33 @@ As regras efetivas aparecem em `rules` e `recommendationRules` no relatório. Ha
 
 As configurações são repassadas pelo Compose e validadas na inicialização. Alterar o fuso muda agrupamentos de doações/publicações: comparar relatórios exige manter as regras e o fuso usados.
 
-## Procedência de CSV externo
+## Procedência de CSV externo e histórico preferencial
 
-`ROYALEAPI_IMPORT` identifica importação manual complementar. As origens existentes
-`DIRECT_API`, `DERIVED`, `SNAPSHOT_DERIVED` e `UNAVAILABLE` permanecem válidas e suas
-fórmulas não foram alteradas. A Supercell é a fonte principal e conflitos não podem
-sobrescrever valores oficiais.
+Somente registros incorporados por ADMIN, vinculados à última resolução IDENTIFIED,
+complementam o engine. `HistoricalReadService` fornece a mesma leitura para analytics,
+perfil, comparação e histórico. Não duplica fórmulas ou temporadas/seções. A prioridade
+por identidade é Supercell, depois RoyaleAPI confirmado; resultados derivados continuam
+sendo produzidos pelas fórmulas deste documento.
 
-Os exports verificados não identificam guerra/temporada/seção ou instante de captura
-com segurança. Por isso, nesta etapa, são analisados e registrados em quarentena;
-**não alimentam o engine, não preenchem guerras ausentes e não aumentam cobertura**.
-Nenhuma métrica atual se apresenta como fonte mista. A origem consta na auditoria;
-a integração analítica dependerá de metadados verificáveis e de evidências explícitas
-por registro. CSV não torna conhecido um dado ausente. Veja [ROYALEAPI-IMPORT.md](ROYALEAPI-IMPORT.md).
+`ROYALEAPI_IMPORT` identifica valores de origem importada; `DIRECT_API` continua
+identificando valores oficiais. Métricas derivadas mantêm suas origens atuais e expõem
+`sources` e `dataUsed`, incluindo lotes e resoluções usados. Indicadores com backfill
+sinalizam período incompleto; CSV não aumenta artificialmente a cobertura ou comprova
+resultado final. Pontos/decks desconhecidos continuam nulos. Nenhuma disponibilidade
+individual de decks é inventada.
 
+Capturas de membros importadas usam capturedAt confirmado, nunca lastSeen/upload.
+Diferenças de doações, resets, semanas e episódios permanecem em `DonationCalculator`.
+No mesmo instante e identidade, o snapshot oficial prevalece integralmente sobre o
+importado, inclusive valores nulos. Períodos entre observações continuam sujeitos a lacunas.
 
-Na Fase 2, a identificação compara tags e contadores com registros oficiais e pode
-associar um lote por confirmação do ADMIN, com proveniência explícita da decisão.
-As resoluções são metadados de quarentena: **até lotes IDENTIFIED ficam fora do engine**.
-A associação a uma guerra não transforma automaticamente o CSV em resultado final;
-valores menores podem ser apenas uma captura parcial. Um snapshot associado não
-recebe seasonId deduzido nem fornece capturedAt ao CSV. Fórmulas, amostras e qualidade
-atuais permanecem intactas; revalidação e integração analítica ficam para a Fase 3.
+Guerras exigem identidade/publicação preservadas pela resolução; alvos SNAPSHOT sem
+temporada/publicação ficam fora das médias de guerras. Dados oficiais posteriores
+ocupam a identidade existente, sem duplicar pontos ou guerras e preservando o importado
+na auditoria. Correção/rejeição de uma resolução retira sua contribuição anterior da
+leitura; o histórico de decisões/premiações congeladas não é reescrito.
+
+A incorporação não executa ações de liderança nem formaliza títulos. A revisão semanal
+operacional continua com capturas oficiais. O gatilho de fechamento automático exige
+uma guerra publicada pela Supercell, não apenas um registro de backfill.
+Detalhes: [ROYALEAPI-IMPORT.md](ROYALEAPI-IMPORT.md).

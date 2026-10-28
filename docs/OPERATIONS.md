@@ -181,7 +181,8 @@ e não grava no banco. Um novo arquivo exige nova prévia.
 
 A V8 armazena lotes e linhas em quarentena, com checksum SHA-256, autor e motivos.
 Reenvios idênticos retornam o lote anterior, inclusive sob concorrência. Os exemplos
-atuais ficam **pendentes de identificação**, sem backfill nas métricas. Falhas de
+atuais entram **pendentes de identificação**; identificação e incorporação são
+confirmações separadas. Falhas de
 validação não gravam dados; falhas de persistência fazem rollback. Backups existentes
 incluem a auditoria. Não há sincronização automática com RoyaleAPI nem alterações
 na coleta oficial. Consulte [ROYALEAPI-IMPORT.md](ROYALEAPI-IMPORT.md).
@@ -199,3 +200,18 @@ e revise novamente. Uma mesma requestKey não duplica a resolução. Para membro
 confirme também o fuso da captura; o filename só sugere até o minuto. Corridas com
 valores incompatíveis são marcadas como conflito. Nenhuma resolução faz backfill
 ou altera a coleta. Contrato: [ROYALEAPI-IMPORT.md](ROYALEAPI-IMPORT.md).
+
+
+### Incorporação ao histórico — Fase 3
+
+Após identificação válida, use **Incorporar ao histórico**, revise contagens/período
+e confirme. A prévia vale 15 minutos na sessão; 409 exige atualizar/revisar ou aguardar
+a coleta em curso. A incorporação compartilha a trava do clã usada pela coleta oficial,
+é transacional e idempotente por lote/resolução. VIEWER não consulta nem executa o fluxo.
+
+V10 amplia as tabelas históricas com fonte/lote/resolução e registra aplicações/linhas
+imutáveis. Backup PostgreSQL inclui dados e auditoria. Supercell posterior prevalece;
+contagens de auditoria não são reescritas. **Analytics: Sim/Não** reflete uso atual das
+linhas preferenciais. Rejeitar/reabrir/corrigir resolução pode retirar backfill da leitura.
+Alvos de corrida sem identidade de guerra publicada são ignorados, não convertidos em
+resultados finais. Nenhuma incorporação dispara ações de liderança ou premiações.
