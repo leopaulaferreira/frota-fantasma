@@ -156,6 +156,29 @@ class HistoricalBackfillIT {
         assertThat(analytics.report(null).players()).noneMatch(p->p.tag().equals("#P06"));
         assertThat(sql.queryForObject("select count(*) from import_application_row",Long.class)).isEqualTo(6);
     }
+    @Test void clanCollectionLockAndChangedOfficialDataBlockStaleWrites() throws Exception {
+        store.saveWarLog(config.clanTag(),List.of(official(3,3200)),captured);var id=race(3200,true);identifyWar(id,3);
+        var plan=backfill.preview(id);var request=new Confirm(plan.resolutionId(),plan.evidenceVersion(),true);
+        try(var connection=sql.getDataSource().getConnection();var lock=connection.prepareStatement("select pg_advisory_lock(hashtextextended(?,0))")) {
+            lock.setString(1,"frota:collection:"+config.clanTag());lock.execute();
+            try { assertThatThrownBy(()->backfill.incorporate(id,request,"leader")).hasMessageContaining("andamento"); }
+            finally { try(var release=connection.prepareStatement("select pg_advisory_unlock(hashtextextended(?,0))")) { release.setString(1,"frota:collection:"+config.clanTag());release.execute(); } }
+        }
+        store.saveWarLog(config.clanTag(),List.of(official(3,3500)),captured.plusSeconds(3600));
+        assertThatThrownBy(()->backfill.incorporate(id,request,"leader")).hasMessageContaining("histórico mudou");
+        assertThat(sql.queryForObject("select count(*) from import_application",Long.class)).isZero();
+    }
+    @Test void riverSnapshotIsNotTurnedIntoPublishedWar() throws Exception {
+        var entry=official(3,3200);store.saveWarLog(config.clanTag(),List.of(entry),captured);
+        UUID run=UUID.randomUUID();runs.save(new CollectionRun(run,config.clanTag(),"RIVER","SUCCESS",captured,null,null,null,null));
+        store.saveRiver(run,config.clanTag(),new RiverRaceDto("full",entry.standings().getFirst().clan(),List.of(),3,0,"warDay",null),captured);
+        var id=race(3200,false);var a=identities.identify(id);
+        var target=a.candidates().stream().filter(c->c.kind().equals("SNAPSHOT")).findFirst().orElseThrow();
+        identities.resolve(id,new Resolve(UUID.randomUUID(),0,a.evidenceVersion(),"IDENTIFY",target.key(),config.clanTag(),null,null,null,true,"Snapshot conferido"),"leader");
+        var plan=backfill.preview(id);assertThat(plan.rowsNew()).isZero();assertThat(plan.rowsIgnored()).isEqualTo(5);
+        assertThat(apply(id).status()).isEqualTo("PARTIAL");assertThat(backfill.summary(id).influencesAnalytics()).isFalse();
+        assertThat(history.wars(0,20).items()).hasSize(1);
+    }
     @Test void adminPreviewSessionAndCsrfAreRequired() throws Exception {
         store.saveWarLog(config.clanTag(),List.of(official(3,3200)),captured);var id=race(3200,true);identifyWar(id,3);
         String path="/api/imports/royaleapi/"+id+"/backfill";var session=new MockHttpSession();
