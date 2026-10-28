@@ -23,14 +23,14 @@ export function LeadershipSummary({ report }: { report: Report }) {
   ).length;
   return (
     <section className="leadership-summary" aria-label="Atalhos de gestão">
-      <Link to="/anciao">
+      <Link to="/recomendacoes?tipo=candidatos">
         <small>DESENVOLVER</small>
         <strong>{ready}</strong>
         <b>Prontos para avaliar</b>
         <span>Critérios para Ancião e próximos passos →</span>
       </Link>
       {admin && <WeeklyDecision />}
-      <Link to="/recomendacoes">
+      <Link to="/recomendacoes?tipo=acompanhamento">
         <small>ACOMPANHAR</small>
         <strong>{review + observe}</strong>
         <b>

@@ -21,30 +21,39 @@ export function Heading({
   children?: ReactNode;
 }) {
   const path = useLocation().pathname;
-  const banner = ["/guerras", "/membros", "/premiacoes", "/anciao"].some(
-    (route) => path.startsWith(route),
-  );
-  const portrait = path.startsWith("/guerras")
-    ? "skeleton-king"
-    : path.startsWith("/membros")
-      ? "fisherman"
-      : path.startsWith("/premiacoes")
-        ? "royal-ghost"
-        : "crown-emblem";
+  const section = path.split("/")[1];
+  const portraits: Record<string, string> = {
+    "": "clan-emblem",
+    membros: "fisherman",
+    guerras: "skeleton-king",
+    premiacoes: "royal-ghost",
+    anciao: "crown-emblem",
+    recomendacoes: "royal-ghost",
+    comparar: "war-emblem",
+    doacoes: "cards-token",
+    expulsoes: "skeleton-king",
+    regras: "crown-emblem",
+    operacoes: "royal-arena",
+  };
+  const portrait = portraits[section] || "clan-emblem";
   return (
-    <header className={"page-heading" + (banner ? " illustrated-heading" : "")}>
-      {banner && (
+    <header className="page-heading illustrated-heading">
+      <div className="heading-main">
+        <div className="heading-copy">
+          <div className="eyebrow">{eyebrow || "CENTRAL DE COMANDO"}</div>
+          <h1>{title}</h1>
+        </div>
         <img
           className="heading-art"
           src={"/assets/royale/" + portrait + ".png"}
           alt=""
         />
-      )}
-      <div>
-        <div className="eyebrow">{eyebrow || "CENTRAL DE COMANDO"}</div>
-        <h1>{title}</h1>
       </div>
-      {children}
+      {children && (
+        <div className="heading-actions" aria-label="Ações da página">
+          {children}
+        </div>
+      )}
     </header>
   );
 }

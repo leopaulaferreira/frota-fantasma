@@ -42,6 +42,7 @@ test.beforeEach(async ({ page }) => {
           },
         ],
       };
+    else if (path === "/api/imports/royaleapi") result = paged([]);
     else if (path === "/api/collections")
       result = paged([
         {
@@ -263,7 +264,7 @@ test("guerras anteriores, paginação e comparação alinhada", async ({
 test("avaliações explícitas, evidências congeladas e coleta parcial", async ({
   page,
 }) => {
-  await page.goto("/recomendacoes");
+  await page.goto("/recomendacoes?tipo=avaliacoes");
   await page.getByRole("button", { name: "Registrar avaliação" }).click();
   await page.getByRole("link", { name: "Consultar evidências →" }).click();
   await expect(
@@ -397,7 +398,7 @@ test("conta de consulta acessa histórico e não altera regras", async ({
   await expect(
     page.getByRole("button", { name: "Atualizar dados" }),
   ).toBeDisabled();
-  await page.goto("/recomendacoes");
+  await page.goto("/recomendacoes?tipo=avaliacoes");
   await expect(
     page.getByRole("button", { name: "Registrar avaliação" }),
   ).toBeDisabled();
@@ -739,4 +740,33 @@ test("histórico de doações sobrevive ao reset e mantém semana no perfil", as
   await page.getByLabel("Data da semana", {exact:true}).fill("2026-10-08");
   await expect(page).toHaveURL(/week=2026-10-05/);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+
+test("recomendações centraliza análises e preserva filtro, histórico e atalhos", async ({ page }) => {
+  await page.goto("/recomendacoes");
+  const filter = page.getByLabel("Tipo de análise");
+  const candidates = page.getByRole("region", { name: "Possíveis candidatos a Ancião" });
+  await expect(filter).toHaveValue("candidatos");
+  await expect(candidates).toBeVisible();
+  await expect(page.locator("nav").getByRole("link", { name: "Candidatos a Ancião" })).toHaveCount(0);
+  await expect(page.locator("nav").getByRole("link", { name: "Recomendações", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("button", { name: "Registrar avaliação" })).toHaveCount(0);
+  await filter.selectOption("acompanhamento");
+  await expect(candidates).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Membros para acompanhar" })).toBeVisible();
+  await page.reload();
+  await expect(filter).toHaveValue("acompanhamento");
+  await filter.selectOption("avaliacoes");
+  await expect(page.getByRole("heading", { name: "Avaliações anteriores" })).toBeVisible();
+  await page.getByRole("link", { name: /^Semana de/ }).click();
+  await expect(page.getByRole("heading", { name: "Evidências preservadas" })).toBeVisible();
+  await page.getByRole("link", { name: "← Avaliações" }).click();
+  await expect(filter).toHaveValue("avaliacoes");
+  await page.goto("/anciao");
+  await expect(page).toHaveURL(/\/recomendacoes\?tipo=candidatos$/);
+  await expect(candidates).toBeVisible();
+  await page.goto("/recomendacoes?tipo=invalido");
+  await expect(filter).toHaveValue("candidatos");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });

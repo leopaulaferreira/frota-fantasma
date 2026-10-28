@@ -89,29 +89,74 @@ h2 {
 .eyebrow {
   color: var(--brass);
 }
-.illustrated-heading {
-  min-height: 106px;
-  padding: 20px 24px;
-  border-color: #35545d;
-  border-top: 1px solid #8f8059;
+/* Shared page header: artwork and actions occupy separate rows. */
+.page-heading.illustrated-heading {
+  display: block;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid #35545d;
+  border-top-color: #8f8059;
   border-radius: 10px;
   background:
-    radial-gradient(ellipse at 85% 100%, #2e675044, transparent 65%),
+    radial-gradient(ellipse at 90% 50%, #2e675044, transparent 65%),
     linear-gradient(110deg, #162c36, #10232c);
 }
-.illustrated-heading .heading-art {
-  width: 130px;
-  height: 130px;
-  top: -5px;
-  right: 24px;
-  opacity: 0.32;
+.heading-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  gap: 24px;
+  align-items: center;
+  min-height: 116px;
+  padding: 14px 24px;
 }
-.illustrated-heading > div {
-  max-width: 100%;
+.heading-copy {
+  min-width: 0;
 }
-.illustrated-heading .button {
-  margin-top: 0;
-  background: #11252ee8;
+.heading-copy h1 {
+  overflow-wrap: anywhere;
+}
+.heading-main .heading-art {
+  display: block;
+  width: 112px;
+  height: 88px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 8px #0004);
+}
+.heading-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 24px;
+  border-top: 1px solid #35545d;
+  background: #0c2029b3;
+}
+.heading-actions .button {
+  margin: 0;
+  background: #172f38;
+}
+@media (max-width: 720px) {
+  .heading-main {
+    grid-template-columns: minmax(0, 1fr) 72px;
+    gap: 12px;
+    min-height: 108px;
+    padding: 16px;
+  }
+  .heading-main .heading-art {
+    width: 72px;
+    height: 78px;
+  }
+  .heading-copy .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .heading-actions {
+    padding: 10px 16px;
+  }
+  .heading-actions .button {
+    white-space: normal;
+    text-align: left;
+  }
 }
 .fleet-banner {
   min-height: 245px;
@@ -488,17 +533,6 @@ tr:hover td {
   }
   main {
     padding-top: 18px;
-  }
-  .illustrated-heading {
-    padding: 18px;
-    min-height: 105px;
-  }
-  .illustrated-heading .heading-art {
-    width: 100px;
-    height: 100px;
-    right: 0;
-    top: 10px;
-    opacity: 0.2;
   }
   .page-heading h1 {
     font-size: 25px;

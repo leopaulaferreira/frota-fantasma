@@ -541,3 +541,20 @@
 .weekly-review-member summary {
   cursor: pointer;
 }
+
+.donation-window table {
+  min-width: 1120px;
+}
+.donation-window td {
+  vertical-align: top;
+}
+.donation-window td:first-child {
+  min-width: 170px;
+}
+.donation-window td:last-child {
+  min-width: 150px;
+}
+.donation-window td > small {
+  max-width: 170px;
+  white-space: normal;
+}

@@ -2,7 +2,7 @@ import { ElderProspects } from "../components/ElderProspects";
 import { useAdmin } from "../lib/auth";
 import { AwardCard } from "../components/royale";
 import { useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   api,
@@ -28,8 +28,105 @@ export function Recommendations() {
   return id ? <EvaluationDetail id={id} /> : <RecommendationList />;
 }
 function RecommendationList() {
+  const q = useApi<Report>("/analytics", 60000);
+  const [params, setParams] = useSearchParams();
+  const requested = params.get("tipo");
+  const analysis =
+    requested === "acompanhamento" || requested === "avaliacoes"
+      ? requested
+      : "candidatos";
+  return (
+    <>
+      <Heading eyebrow="APOIO À LIDERANÇA" title="Recomendações com contexto">
+        <Link className="button" to="/comparar">
+          Comparar membros →
+        </Link>
+      </Heading>
+      <div className="toolbar">
+        <label htmlFor="analysis-type">Tipo de análise</label>
+        <select
+          id="analysis-type"
+          value={analysis}
+          onChange={(event) => {
+            const next = new URLSearchParams(params);
+            next.set("tipo", event.target.value);
+            setParams(next);
+          }}
+        >
+          <option value="candidatos">Candidatos a Ancião</option>
+          <option value="acompanhamento">Membros para acompanhar</option>
+          <option value="avaliacoes">Avaliações registradas</option>
+        </select>
+      </div>
+      <div className="callout">
+        Classificações analíticas para revisão humana. Nenhuma expulsão ou
+        promoção é executada pelo sistema.
+      </div>
+      {analysis !== "avaliacoes" && (
+        <QueryState query={q}>
+          {q.data && (
+            <>
+              {analysis === "candidatos" ? (
+                <ElderProspects report={q.data} />
+              ) : (
+                <>
+                  <h2>Membros para acompanhar</h2>
+                  <p className="muted">
+                    Membros que precisam de atenção por atividade, participação
+                    nas guerras ou dados insuficientes. Confira os motivos e
+                    converse com o jogador antes de decidir qualquer ação.
+                  </p>
+                  {!q.data.players.some(
+                    (p) =>
+                      p.currentMember &&
+                      ["OBSERVAR", "REVISAR"].includes(
+                        String(p.operationalStatus.value),
+                      ),
+                  ) && (
+                    <p className="muted">
+                      Nenhum membro sinalizado para acompanhamento nesta
+                      análise.
+                    </p>
+                  )}
+                  <ul
+                    className="recommendation-list"
+                    aria-label="Membros para acompanhar"
+                  >
+                    {q.data.players
+                      .filter(
+                        (p) =>
+                          p.currentMember &&
+                          ["OBSERVAR", "REVISAR"].includes(
+                            String(p.operationalStatus.value),
+                          ),
+                      )
+                      .map((p) => (
+                        <li className="recommendation-row" key={p.tag}>
+                          <Person player={p} />
+                          <Badge value={p.operationalStatus.value} />
+                          <p className="recommendation-reason">
+                            {p.operationalStatus.reason}
+                          </p>
+                          <MetricView
+                            name="Evidências do status"
+                            compact
+                            metric={p.operationalStatus}
+                          />
+                        </li>
+                      ))}
+                  </ul>
+                </>
+              )}
+            </>
+          )}
+        </QueryState>
+      )}
+      {analysis === "avaliacoes" && <RegisteredEvaluations />}
+    </>
+  );
+}
+function RegisteredEvaluations() {
   const admin = useAdmin();
-  const q = useApi<Report>("/analytics");
   const client = useQueryClient();
   const [week, setWeek] = useState("");
   const requestKey = useRef({ week: "", key: crypto.randomUUID() });
@@ -46,51 +143,6 @@ function RecommendationList() {
   });
   return (
     <>
-      <Heading eyebrow="APOIO À LIDERANÇA" title="Recomendações com contexto" />
-      <div className="callout">
-        Classificações analíticas para revisão humana. Nenhuma expulsão ou
-        promoção é executada pelo sistema.
-      </div>
-      <QueryState query={q}>
-        {q.data && (
-          <>
-            <ElderProspects report={q.data} />
-            <h2>Acompanhamento operacional</h2>
-            <p className="muted">
-              Membros que precisam de atenção por atividade, participação nas
-              guerras ou dados insuficientes. Confira os motivos e converse com
-              o jogador antes de decidir qualquer ação.
-            </p>
-            <ul
-              className="recommendation-list"
-              aria-label="Acompanhamento operacional"
-            >
-              {q.data.players
-                .filter(
-                  (p) =>
-                    p.currentMember &&
-                    ["OBSERVAR", "REVISAR"].includes(
-                      String(p.operationalStatus.value),
-                    ),
-                )
-                .map((p) => (
-                  <li className="recommendation-row" key={p.tag}>
-                    <Person player={p} />
-                    <Badge value={p.operationalStatus.value} />
-                    <p className="recommendation-reason">
-                      {p.operationalStatus.reason}
-                    </p>
-                    <MetricView
-                      name="Evidências do status"
-                      compact
-                      metric={p.operationalStatus}
-                    />
-                  </li>
-                ))}
-            </ul>
-          </>
-        )}
-      </QueryState>
       <h2>Registrar avaliação</h2>
       {!admin && (
         <p className="muted">
@@ -170,7 +222,7 @@ function EvaluationDetail({ id }: { id: string }) {
   });
   return (
     <>
-      <Link to="/recomendacoes">← Avaliações</Link>
+      <Link to="/recomendacoes?tipo=avaliacoes">← Avaliações</Link>
       <Heading title="Evidências preservadas" />
       <QueryState query={q}>
         {q.data && (
@@ -327,7 +379,9 @@ export function Awards() {
         </div>
       </QueryState>
       <div className="callout">
-        <Link to="/anciao">Avaliar candidatos a Ancião →</Link>
+        <Link to="/recomendacoes?tipo=candidatos">
+          Avaliar candidatos a Ancião →
+        </Link>
         <p>
           Consulte critérios, pendências e acompanhamentos na área de
           desenvolvimento da tripulação.

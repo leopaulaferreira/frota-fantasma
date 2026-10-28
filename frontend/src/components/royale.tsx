@@ -23,7 +23,7 @@ export function FleetBanner({ week }: { week?: string }) {
           próximo rumo da Frota.
         </p>
         <div className="banner-actions">
-          <Link to="/anciao" className="button primary">
+          <Link to="/recomendacoes?tipo=candidatos" className="button primary">
             Avaliar candidatos <ArrowUpRight size={17} />
           </Link>
           <Link className="banner-link" to="/guerras">

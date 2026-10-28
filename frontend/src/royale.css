@@ -477,51 +477,6 @@ td.reason {
 .award-content .metric {
   margin-top: 13px;
 }
-.illustrated-heading {
-  min-height: 170px;
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  padding: 30px;
-  border: 1px solid #42546c;
-  border-top: 2px solid #c6a96d;
-  border-radius: 11px;
-  background:
-    radial-gradient(ellipse at 90% 50%, #244855, transparent 60%),
-    linear-gradient(120deg, #1b2c46, #142338);
-}
-.illustrated-heading > div {
-  position: relative;
-  z-index: 2;
-  max-width: 70%;
-}
-.illustrated-heading h1 {
-  max-width: 620px;
-}
-.illustrated-heading .heading-art {
-  position: absolute;
-  right: -5px;
-  top: -12px;
-  width: 220px;
-  height: 220px;
-  object-fit: contain;
-  z-index: -1;
-}
-.illustrated-heading .button,
-.illustrated-heading > .badge {
-  position: relative;
-  z-index: 2;
-  margin-top: 15px;
-}
-.illustrated-heading:has(.button) {
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  column-gap: 20px;
-}
-.illustrated-heading:has(.button) > div {
-  flex-basis: 100%;
-  max-width: 80%;
-}
 .panel {
   background: linear-gradient(120deg, #17263c, #122033);
   border-color: #314660;
@@ -679,12 +634,6 @@ footer a {
   }
   .sidebar-arena {
     width: 150px;
-  }
-  .illustrated-heading h1 {
-    font-size: 29px;
-  }
-  .illustrated-heading .heading-art {
-    right: -35px;
   }
 }
 @media (max-width: 720px) {
@@ -870,38 +819,6 @@ footer a {
   }
   .awards {
     gap: 20px;
-  }
-  .illustrated-heading {
-    min-height: 165px;
-    padding: 24px 20px;
-  }
-  .illustrated-heading .heading-art {
-    right: -48px;
-    width: 175px;
-    height: 195px;
-    top: 0;
-  }
-  .illustrated-heading > div {
-    max-width: 76%;
-  }
-  .illustrated-heading h1 {
-    font-size: 27px;
-    max-width: 240px;
-  }
-  .illustrated-heading .eyebrow {
-    font-size: 8px;
-    letter-spacing: 1.1px;
-  }
-  .illustrated-heading:has(.button) > div {
-    max-width: 78%;
-    flex-basis: 100%;
-  }
-  .illustrated-heading .button {
-    font-size: 11px;
-  }
-  .illustrated-heading:has(.button) {
-    min-height: 195px;
-    row-gap: 0;
   }
   .toolbar {
     padding: 13px;

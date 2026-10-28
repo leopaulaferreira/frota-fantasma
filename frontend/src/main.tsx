@@ -1,6 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, NavLink, Routes, Route, Link } from "react-router-dom";
+import {
+  BrowserRouter,
+  NavLink,
+  Routes,
+  Route,
+  Link,
+  Navigate,
+} from "react-router-dom";
 import {
   QueryClient,
   QueryClientProvider,
@@ -16,11 +23,10 @@ import {
   Settings,
   RefreshCw,
   Activity,
-  UserRoundCheck,
   UserRoundMinus,
 } from "lucide-react";
+import { DonationHistory } from "./pages/DonationHistory";
 import { WeeklyReview } from "./pages/WeeklyReview";
-import { ElderCandidates } from "./pages/ElderCandidates";
 import { Overview } from "./pages/Overview";
 import { Members, PlayerProfile } from "./pages/Players";
 import { Wars } from "./pages/Wars";
@@ -40,7 +46,6 @@ const nav = [
   ["/membros", "Tripulação", Users],
   ["/guerras", "Guerras", Swords],
   ["/comparar", "Comparar", GitCompareArrows],
-  ["/anciao", "Candidatos a Ancião", UserRoundCheck],
   ["/recomendacoes", "Recomendações", ClipboardList],
   ["/premiacoes", "Premiações", Trophy],
   ["/expulsoes", "Expulsões semanais", UserRoundMinus],
@@ -87,8 +92,8 @@ function App() {
         <nav>
           {[
             { label: "A bordo", items: nav.slice(0, 4) },
-            { label: "Decisões do líder", items: nav.slice(4, 8) },
-            { label: "Administração", items: nav.slice(8) },
+            { label: "Decisões do líder", items: nav.slice(4, 7) },
+            { label: "Administração", items: nav.slice(7) },
           ].map((group) => (
             <div className="nav-group" key={group.label}>
               <span className="nav-caption">{group.label}</span>
@@ -159,10 +164,14 @@ function App() {
           <Routes>
             <Route path="/" element={<Overview />} />
             <Route path="/membros" element={<Members />} />
+            <Route path="/doacoes" element={<DonationHistory />} />
             <Route path="/membros/:tag" element={<PlayerProfile />} />
             <Route path="/guerras" element={<Wars />} />
             <Route path="/guerras/:id" element={<Wars />} />
-            <Route path="/anciao" element={<ElderCandidates />} />
+            <Route
+              path="/anciao"
+              element={<Navigate to="/recomendacoes?tipo=candidatos" replace />}
+            />
             <Route path="/comparar" element={<Compare />} />
             <Route path="/recomendacoes" element={<Recommendations />} />
             <Route path="/recomendacoes/:id" element={<Recommendations />} />
