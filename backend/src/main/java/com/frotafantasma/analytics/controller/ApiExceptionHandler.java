@@ -14,6 +14,18 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ProblemDetail> uploadTooLarge() {
+        return ResponseEntity.status(413).body(ProblemDetail.forStatusAndDetail(
+                org.springframework.http.HttpStatus.PAYLOAD_TOO_LARGE, "O CSV deve ter no máximo 512 KiB."));
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MultipartException.class)
+    public ResponseEntity<ProblemDetail> invalidUpload() {
+        return ResponseEntity.badRequest().body(ProblemDetail.forStatusAndDetail(
+                org.springframework.http.HttpStatus.BAD_REQUEST, "Upload inválido. Envie um CSV no campo file."));
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ProblemDetail> handleStatus(ResponseStatusException exception) {
         return ResponseEntity.status(exception.getStatusCode())

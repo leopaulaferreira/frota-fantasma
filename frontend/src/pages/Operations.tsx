@@ -1,3 +1,5 @@
+import { RoyaleApiImport } from "../components/RoyaleApiImport";
+import { useAdmin } from "../lib/auth";
 import { useApi, dateTime, type Page } from "../lib/api";
 import { Heading, QueryState, Paged, Table, Badge } from "../components/ui";
 interface Run {
@@ -19,6 +21,7 @@ interface Source {
   latest: Run | null;
 }
 export function Operations() {
+  const admin = useAdmin();
   const q = useApi<{
     generatedAt: string;
     collectionEnabled: boolean;
@@ -66,6 +69,7 @@ export function Operations() {
           </>
         )}
       </QueryState>
+      {admin && <RoyaleApiImport />}
       <h2>Histórico de execuções</h2>
       <Paged<Run>
         path="/collections"
