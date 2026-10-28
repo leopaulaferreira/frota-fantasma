@@ -182,6 +182,8 @@ Consulte [ANALYTICS.md](docs/ANALYTICS.md) para fórmulas, configurações `ANAL
 
 ## Recomendações e avaliações persistidas
 
+No menu **Recomendações**, use **Tipo de análise** para alternar entre **Candidatos a Ancião** (inicial), **Membros para acompanhar** e **Avaliações registradas**. A seleção permanece ao recarregar a página. O endereço antigo `/anciao` redireciona para os candidatos.
+
 A Fase 4 adiciona versões de regras editáveis em `/api/recommendations/rules`, registro explícito de avaliações em `/api/recommendations/evaluations`, histórico de status por jogador e formalização de premiações semanais. Os GETs de analytics continuam sem escrita; o relatório inclui a versão ativa, histórico de alertas e Frota Score opcional.
 
 Cada avaliação congela o relatório e suas evidências. Alertas registrados podem impedir candidatura a Ancião mesmo após melhora no status atual. Títulos formalizados não mudam quando dados/regras são atualizados e não se repetem para um jogador na mesma semana. Nenhuma dessas operações altera cargos ou membros na Supercell.
@@ -246,3 +248,32 @@ Use commits separados por finalidade: `feat:` para funcionalidades, `fix:`
 para correções, `docs:` para documentação, `style:` para formatação sem mudança
 de lógica, `refactor:` para reestruturação sem mudança de comportamento,
 `test:` para testes e `chore:` para manutenção de configuração/build/dependências.
+
+## Histórico de doações — seis semanas
+
+Em **Tripulação**, escolha **Doações** no seletor de indicadores. Na página
+aberta, use **Semana** para consultar um período ou todas as seis semanas. Consulte os últimos
+contadores salvos por membro, com data da captura, e as doações observadas.
+A janela reúne a semana atual e cinco anteriores e se renova automaticamente:
+a semana mais antiga sai do painel e do acumulado. O reset do jogo preserva os
+números já coletados. O histórico completo continua nas consultas por data.
+
+## CSV manual do RoyaleAPI
+
+ADMIN pode acessar **Operações → Dados externos → Importar CSV** para analisar
+exports e registrar lotes pendentes com procedência, SHA-256 e auditoria imutável.
+Os exemplos de membros/corrida fornecidos não identificam com segurança o período:
+**nesta etapa, nenhum registro CSV entra nas métricas**. A interface informa as
+pendências, sem inventar datas ou guerras. A Supercell permanece autoritativa;
+não existe sincronização automática RoyaleAPI nem sobrescrita de dados oficiais.
+Formatos observados, limites e etapa restante: [ROYALEAPI-IMPORT.md](docs/ROYALEAPI-IMPORT.md).
+
+
+### Identificação de CSV — Fase 2
+
+No histórico de **Operações → Dados externos**, use **Identificar dados** para
+comparar River Race com guerras/snapshots persistidos ou confirmar clã, data e fuso
+de um CSV de membros. Igualdade completa e compatibilidade parcial são distinguidas;
+nenhum alvo é escolhido silenciosamente. Correções ficam em revisões imutáveis.
+Estados: pendente, identificado, conflito ou rejeitado. **Mesmo identificado, o lote
+continua fora do analytics até a Fase 3**; dados oficiais não são substituídos.

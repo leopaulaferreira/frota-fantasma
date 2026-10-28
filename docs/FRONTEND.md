@@ -117,9 +117,13 @@ Para investigação real, a coleta do backend precisa ter acumulado observaçõe
 
 ### Área de candidatos a Ancião
 
-A rota `/anciao`, disponível na navegação principal, reúne os membros atuais de
-cargo `member`. Recomendações usa a mesma lista e Premiações oferece acesso a
-ela. A visão geral mostra atalhos para desenvolvimento, acompanhamento e
+Recomendações (`/recomendacoes`) centraliza o seletor **Tipo de análise**:
+**Candidatos a Ancião** (padrão), **Membros para acompanhar** e
+**Avaliações registradas**. A seleção fica na URL (`tipo=candidatos`,
+`tipo=acompanhamento` ou `tipo=avaliacoes`) e persiste ao recarregar.
+Candidatos reúne os membros atuais de cargo `member`, mantendo ranking e
+dois níveis de detalhes. A antiga rota `/anciao` redireciona para esse filtro;
+não existe mais um item separado no menu. Premiações oferece acesso direto. A visão geral mostra atalhos para desenvolvimento, acompanhamento e
 confiabilidade das coletas. Comparar membros também apresenta prontidão e
 próximo passo antes dos indicadores e do histórico de guerras.
 
@@ -246,3 +250,76 @@ Os snapshots já eram persistidos: o reset do contador no jogo não remove o
 histórico local. O filtro apenas expõe a consulta histórica existente. Coletas
 anteriores à implantação, intervalos sem captura e resets não observados não
 são reconstruídos; os totais de doações permanecem limites inferiores.
+
+### Histórico móvel de seis semanas de doações
+
+Em Tripulação, **Doações** no seletor de indicadores abre `/doacoes`. O filtro
+**Semana** abre por padrão a semana atual e permite escolher qualquer uma das
+últimas seis ou mostrar todas juntas. A seleção permanece na URL e ao recarregar.
+O perfil
+individual também oferece esse atalho, preenchendo a busca com a tag.
+A janela inclui a semana atual e as cinco anteriores, no calendário configurado
+nas regras. Ao virar a semana, a coluna mais antiga sai e o acumulado é recalculado.
+Essa renovação é da visualização; o histórico persistido e as evidências de
+avaliações continuam preservados nas consultas anteriores por data.
+
+Por padrão, cada célula mostra o **último contador salvo** naquela semana e o
+horário da captura. Esse valor é o contador informado pelo jogo na coleta, não
+uma garantia do total final da semana. Mesmo uma única captura pode informar o
+contador. Um zero explícito é exibido como zero; ausência de coleta é desconhecida.
+O seletor permite consultar as **doações observadas no período**, calculadas por
+diferenças entre coletas. O acumulado usa apenas essas diferenças nas seis semanas,
+com cobertura e limitação visíveis; nunca soma contadores como se fossem doações
+adicionais. Filtros por membro e inclusão de ex-membros ficam disponíveis.
+
+Os contadores já são gravados em `clan_membership_history` pelas coletas regulares.
+A resposta de cada período passa a incluir `lastCounter` e `counterCapturedAt`,
+calculados dessas capturas, sem alterar a fórmula usada nas avaliações ou prêmios.
+O painel atualiza a consulta a cada minuto. A coleta depende do sistema ligado;
+o período anterior à primeira coleta não pode ser reconstruído.
+
+### Cabeçalhos consistentes
+
+O componente `Heading` aplica o mesmo cabeçalho ilustrado a todas as páginas,
+incluindo Recomendações, Comparar, Doações, Expulsões, Regras e Operações.
+Cada seção reutiliza uma arte local do Clash. Título e imagem ocupam colunas
+próprias; ações do cabeçalho ficam em uma faixa inferior integrada ao painel,
+sem sobrepor a arte. O layout e sua adaptação para celular estão centralizados
+em `fleet.css`; as regras antigas de posicionamento absoluto foram removidas.
+
+### Dados externos em Operações
+
+Sem novo item na sidebar: ADMIN encontra **Dados externos → Importar CSV** na página
+Operações. O modal permite escolher/arrastar arquivo, analisar, consultar contagens
+e motivos por registro, cancelar e confirmar somente após prévia. O transporte usa
+`FormData` no cliente `api`, preservando CSRF e tratamento de sessão/erros; o browser
+define o boundary multipart.
+
+Os formatos verificados têm identidade temporal incompleta. O botão deixa explícito
+**Registrar pendências (sem alterar métricas)**, e o resultado informa zero registros
+incorporados. Arquivos inválidos não podem ser confirmados. Trocar arquivo invalida
+prévia; loading bloqueia confirmação concorrente; erros permanecem visíveis.
+
+O histórico paginado mostra data, arquivo, origem, novos, ignorados, conflitos,
+inválidos, pendentes e status, com detalhes da análise. VIEWER não carrega a auditoria.
+Formatos e limitação do backfill: [ROYALEAPI-IMPORT.md](ROYALEAPI-IMPORT.md).
+
+
+### Identificar dados externos
+
+Cada lote no histórico de Operações oferece **Identificar dados** ou **Revisar
+identificação**. River Race apresenta correspondência exata/possíveis candidatos,
+contagens por campo, tags coincidentes, diferenças e contexto oficial. O ADMIN deve
+selecionar explicitamente um alvo; valores incompatíveis indicam que a confirmação
+registrará conflito. Sem correspondência, só é possível rejeitar ou manter pendente.
+
+Para membros, o modal apresenta clã, sugestão de data até o minuto e fuso editável.
+**Alterar** registra a data como informada pelo usuário. Motivo e checkbox explícito
+são exigidos antes de confirmar. Nenhuma sugestão é salva automaticamente. O histórico
+preserva resoluções/correções anteriores e evidências. Conflitos de concorrência ou
+evidência desatualizada exigem atualização. O aviso de que identificação não sobrescreve
+Supercell nem incorpora CSV ao analytics permanece visível.
+
+Listas extensas de correspondências mostram inicialmente 20 candidatos ordenados.
+**Mostrar mais correspondências** revela mais 20 na mesma tela, até disponibilizar
+todos; a contagem total permanece visível e nenhum alvo é pré-selecionado.

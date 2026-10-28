@@ -118,3 +118,26 @@ As regras efetivas aparecem em `rules` e `recommendationRules` no relatório. Ha
 | `ANALYTICS_TIMEZONE` | UTC | ZoneId válido; calendário analítico |
 
 As configurações são repassadas pelo Compose e validadas na inicialização. Alterar o fuso muda agrupamentos de doações/publicações: comparar relatórios exige manter as regras e o fuso usados.
+
+## Procedência de CSV externo
+
+`ROYALEAPI_IMPORT` identifica importação manual complementar. As origens existentes
+`DIRECT_API`, `DERIVED`, `SNAPSHOT_DERIVED` e `UNAVAILABLE` permanecem válidas e suas
+fórmulas não foram alteradas. A Supercell é a fonte principal e conflitos não podem
+sobrescrever valores oficiais.
+
+Os exports verificados não identificam guerra/temporada/seção ou instante de captura
+com segurança. Por isso, nesta etapa, são analisados e registrados em quarentena;
+**não alimentam o engine, não preenchem guerras ausentes e não aumentam cobertura**.
+Nenhuma métrica atual se apresenta como fonte mista. A origem consta na auditoria;
+a integração analítica dependerá de metadados verificáveis e de evidências explícitas
+por registro. CSV não torna conhecido um dado ausente. Veja [ROYALEAPI-IMPORT.md](ROYALEAPI-IMPORT.md).
+
+
+Na Fase 2, a identificação compara tags e contadores com registros oficiais e pode
+associar um lote por confirmação do ADMIN, com proveniência explícita da decisão.
+As resoluções são metadados de quarentena: **até lotes IDENTIFIED ficam fora do engine**.
+A associação a uma guerra não transforma automaticamente o CSV em resultado final;
+valores menores podem ser apenas uma captura parcial. Um snapshot associado não
+recebe seasonId deduzido nem fornece capturedAt ao CSV. Fórmulas, amostras e qualidade
+atuais permanecem intactas; revalidação e integração analítica ficam para a Fase 3.

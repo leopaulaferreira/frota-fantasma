@@ -171,3 +171,31 @@ persistidos atomicamente, sob trava do clã, uma única vez. Premiações já
 formalizadas manualmente são preservadas. A automação não grava decisões de
 promoção, expulsão ou mudança de cargo. O mural consulta atualizações a cada
 minuto enquanto aberto. A máquina precisa estar ligada para executar jobs.
+
+## Dados externos — CSV RoyaleAPI
+
+A seção **Dados externos** em Operações é restrita a ADMIN, incluindo histórico.
+A análise e confirmação usam a sessão/CSRF existentes. Limites: CSV UTF-8 até
+512 KiB, 2.000 registros; 600 KiB por requisição. A prévia expira em 15 minutos
+e não grava no banco. Um novo arquivo exige nova prévia.
+
+A V8 armazena lotes e linhas em quarentena, com checksum SHA-256, autor e motivos.
+Reenvios idênticos retornam o lote anterior, inclusive sob concorrência. Os exemplos
+atuais ficam **pendentes de identificação**, sem backfill nas métricas. Falhas de
+validação não gravam dados; falhas de persistência fazem rollback. Backups existentes
+incluem a auditoria. Não há sincronização automática com RoyaleAPI nem alterações
+na coleta oficial. Consulte [ROYALEAPI-IMPORT.md](ROYALEAPI-IMPORT.md).
+
+
+### Resolução dos lotes externos
+
+ADMIN pode identificar, corrigir, rejeitar ou reabrir lotes em Dados externos.
+A V9 conserva decisões em `import_resolution`; o lote V8 e seus registros continuam
+imutáveis e incluídos nos backups. A interface mostra o estado atual separado das
+contagens originais. CSRF, motivo e confirmação explícita são obrigatórios.
+
+Evidências alteradas ou uma revisão concorrente causam 409: use **Atualizar evidências**
+e revise novamente. Uma mesma requestKey não duplica a resolução. Para membros,
+confirme também o fuso da captura; o filename só sugere até o minuto. Corridas com
+valores incompatíveis são marcadas como conflito. Nenhuma resolução faz backfill
+ou altera a coleta. Contrato: [ROYALEAPI-IMPORT.md](ROYALEAPI-IMPORT.md).
