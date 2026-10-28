@@ -42,4 +42,22 @@ class DonationCalculatorTest {
         assertThat(periods.getFirst().week()).isEqualTo(LocalDate.of(2026,10,5));
         assertThat(periods.getFirst().observedDonations().value()).isEqualTo(10L);
     }
+
+    @Test void preservesSavedCounterAfterResetAndDoesNotInventDifferences() {
+        var rows=List.of(row(1,"2026-10-11T23:00:00Z",800),row(2,"2026-10-12T10:00:00Z",0));
+        var periods=DonationCalculator.calculate(rows,List.of(),ZoneOffset.UTC,Instant.parse("2026-10-12T12:00:00Z"));
+        assertThat(periods.getFirst().lastCounter().value()).isEqualTo(800);
+        assertThat(periods.getFirst().counterCapturedAt()).isEqualTo(Instant.parse("2026-10-11T23:00:00Z"));
+        assertThat(periods.getFirst().observedDonations().value()).isNull();
+        assertThat(periods.getLast().lastCounter().value()).isZero();
+        assertThat(periods.getLast().detectedResets()).isEqualTo(1);
+        assertThat(DonationCalculator.calculate(rows,List.of(),ZoneOffset.UTC,Instant.parse("2026-10-12T00:00:00Z"))).containsExactly(periods.getFirst());
+    }
+    @Test void missingLatestCounterDoesNotReuseAnOlderNumber() {
+        var rows=List.of(row(1,"2026-10-05T10:00:00Z",500),row(2,"2026-10-05T11:00:00Z",null));
+        var period=DonationCalculator.calculate(rows,List.of(),ZoneOffset.UTC,Instant.parse("2026-10-06T00:00:00Z")).getFirst();
+        assertThat(period.lastCounter().value()).isNull();
+        assertThat(period.lastCounter().insufficientSample()).isTrue();
+        assertThat(period.counterCapturedAt()).isEqualTo(Instant.parse("2026-10-05T11:00:00Z"));
+    }
 }

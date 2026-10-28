@@ -2,7 +2,12 @@ import { mondayOf, shiftWeek } from "../lib/weeks";
 import { useAdmin } from "../lib/auth";
 import { LeaderNotes } from "../components/LeaderNotes";
 import { useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import {
   useApi,
   date,
@@ -26,6 +31,7 @@ import {
   Paged,
 } from "../components/ui";
 export function Members() {
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const week = mondayOf(params.get("week") || "");
   const current = useApi<Report>("/analytics");
@@ -140,7 +146,18 @@ export function Members() {
         <select
           aria-label="Ordenar membros"
           value={sort}
-          onChange={(e) => setSort(e.target.value)}
+          onChange={(e) => {
+            if (e.target.value === "weeklyDonations") {
+              const destination = new URLSearchParams();
+              if (search) destination.set("membro", search);
+              if (former) destination.set("ex", "1");
+              if (week) destination.set("week", week);
+              navigate(
+                "/doacoes" +
+                  (destination.size ? "?" + destination.toString() : ""),
+              );
+            } else setSort(e.target.value);
+          }}
         >
           {[
             "recentAverage",
@@ -153,7 +170,7 @@ export function Members() {
             "recentPoints",
           ].map((k) => (
             <option key={k} value={k}>
-              {label(k)}
+              {k === "weeklyDonations" ? "Doações" : label(k)}
             </option>
           ))}
         </select>
@@ -614,6 +631,9 @@ export function Donations({ player: p }: { player: Player }) {
   return (
     <>
       <h2>Doações por período</h2>
+      <Link to={"/doacoes?membro=" + encodeURIComponent(p.tag)}>
+        Consultar últimas 6 semanas →
+      </Link>
       <p className="lede">
         Diferenças entre snapshots, com resets detectados. Os valores são
         limites inferiores observados; períodos incompletos permanecem

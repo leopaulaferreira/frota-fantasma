@@ -55,9 +55,17 @@ public final class DonationCalculator {
             String reason = "Limite inferior observado: soma de diferenças positivas; queda do contador inicia novo segmento e soma o valor pós-reset. "
                     + "Não soma o primeiro contador nem diferenças entre semanas ou reingressos. "
                     + "Lacunas e resets ocultos impedem garantir o total exato; período incompleto.";
+            var last = rows.getLast();
+            Integer counter = valid(last.getDonations()) ? last.getDonations() : null;
+            var lastCounter = new Metric<>(counter, Origin.DIRECT_API,
+                    counter == null ? Quality.INSUFFICIENT_DATA : Quality.AVAILABLE,
+                    new Period(last.getCapturedAt(), last.getCapturedAt(), "MEMBERSHIP_SNAPSHOT"), 0,
+                    counter == null, false,
+                    List.of("membership:" + last.getId() + "@" + last.getCapturedAt() + ":donations=" + last.getDonations()),
+                    "Último contador de doações coletado nesta semana. É o número informado pelo jogo naquele instante; não comprova o total da semana nem o horário do reset.");
             result.add(new DonationPeriod(entry.getKey(), new Metric<>(comparisons == 0 ? null : total,
                     Origin.SNAPSHOT_DERIVED, comparisons == 0 ? Quality.INSUFFICIENT_DATA : Quality.INCOMPLETE,
-                    new Period(start, end, "CALENDAR_WEEK_" + zone), 0, comparisons == 0, true, evidence, reason), rows.size(), resets));
+                    new Period(start, end, "CALENDAR_WEEK_" + zone), 0, comparisons == 0, true, evidence, reason), rows.size(), resets, lastCounter, last.getCapturedAt()));
             precedingWeek = rows.getLast();
         }
         return List.copyOf(result);

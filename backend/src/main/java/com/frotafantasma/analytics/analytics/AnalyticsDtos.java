@@ -7,14 +7,14 @@ import java.util.Map;
 
 public final class AnalyticsDtos {
     private AnalyticsDtos() {}
-    public enum Origin { DIRECT_API, DERIVED, SNAPSHOT_DERIVED, UNAVAILABLE }
+    public enum Origin { DIRECT_API, ROYALEAPI_IMPORT, DERIVED, SNAPSHOT_DERIVED, UNAVAILABLE }
     public enum Quality { AVAILABLE, INSUFFICIENT_DATA, INCOMPLETE, UNAVAILABLE }
     public record Period(Instant from, Instant to, String basis) {}
     public record Metric<T>(T value, Origin origin, Quality quality, Period period, int warsConsidered,
                             boolean insufficientSample, boolean incompletePeriod, List<String> dataUsed, String reason) {}
     public record WarStats(Long warId, Integer seasonId, Integer sectionIndex, Instant publishedAt,
                            Metric<Integer> points, Metric<Integer> decksUsed, Metric<String> participation, Metric<Integer> rank) {}
-    public record DonationPeriod(LocalDate week, Metric<Long> observedDonations, int snapshots, int detectedResets) {}
+    public record DonationPeriod(LocalDate week, Metric<Long> observedDonations, int snapshots, int detectedResets, Metric<Integer> lastCounter, Instant counterCapturedAt) {}
     public record PlayerStats(String tag, String name, String role, boolean currentMember,
                               Map<String, Metric<?>> metrics, List<WarStats> wars, List<DonationPeriod> donations,
                               Metric<String> participation, Metric<String> historicalContext,

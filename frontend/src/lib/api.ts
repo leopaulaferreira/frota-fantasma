@@ -32,6 +32,8 @@ export interface Player {
     observedDonations: Metric;
     snapshots: number;
     detectedResets: number;
+    lastCounter?: Metric;
+    counterCapturedAt?: string;
   }[];
   participation: Metric;
   historicalContext: Metric;
@@ -124,10 +126,11 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
       });
     const token = await csrf;
     headers[token.headerName] = token.token;
-    headers["Content-Type"] =
-      body instanceof URLSearchParams
-        ? "application/x-www-form-urlencoded"
-        : "application/json";
+    if (!(body instanceof FormData))
+      headers["Content-Type"] =
+        body instanceof URLSearchParams
+          ? "application/x-www-form-urlencoded"
+          : "application/json";
   }
   const r = await fetch("/api" + path, {
     credentials: "same-origin",
@@ -136,9 +139,11 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
     body:
       body === undefined
         ? undefined
-        : body instanceof URLSearchParams
-          ? body.toString()
-          : JSON.stringify(body),
+        : body instanceof FormData
+          ? body
+          : body instanceof URLSearchParams
+            ? body.toString()
+            : JSON.stringify(body),
   });
   if (path === "/auth/login" || path === "/auth/logout" || r.status === 403)
     clearCsrf();
