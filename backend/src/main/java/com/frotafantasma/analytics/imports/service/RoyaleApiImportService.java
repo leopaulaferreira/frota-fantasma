@@ -22,8 +22,9 @@ public class RoyaleApiImportService {
     private final ClashRoyaleProperties config;
     private final ObjectMapper json;
     private final Clock clock;
-    public RoyaleApiImportService(JdbcTemplate sql, ClashRoyaleProperties config, ObjectMapper json, Clock clock) {
-        this.sql = sql; this.config = config; this.json = json; this.clock = clock;
+    private final HistoricalBackfillService backfill;
+    public RoyaleApiImportService(JdbcTemplate sql, ClashRoyaleProperties config, ObjectMapper json, Clock clock, HistoricalBackfillService backfill) {
+        this.sql = sql; this.config = config; this.json = json; this.clock = clock; this.backfill=backfill;
     }
     @Transactional(readOnly = true)
     public Preview preview(Parsed file) {
@@ -88,7 +89,7 @@ public class RoyaleApiImportService {
                 (rs, n) -> {
                     var b = decode(rs.getString(1));
                     return new Batch(b.id(),b.source(),b.filename(),b.importedAt(),b.importedBy(),b.checksum(),b.rowsReceived(),
-                        b.rowsImported(),b.rowsSkipped(),b.rowsConflicted(),b.rowsInvalid(),b.rowsUnmatched(),rs.getString(2),b.analysis());
+                        b.rowsImported(),b.rowsSkipped(),b.rowsConflicted(),b.rowsInvalid(),b.rowsUnmatched(),rs.getString(2),b.analysis(),backfill.summary(b.id()));
                 }, config.clanTag(), size, (long) page * size);
         return new PageResponse<>(items, page, size, count, (int) ((count + size - 1) / size));
     }

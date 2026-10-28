@@ -13,6 +13,10 @@ public final class ImportDtos {
     public record PreviewResponse(Preview analysis, String previewToken) {}
     public record Batch(UUID id, String source, String filename, Instant importedAt, String importedBy,
             String checksum, int rowsReceived, int rowsImported, int rowsSkipped,
-            int rowsConflicted, int rowsInvalid, int rowsUnmatched, String status, Preview analysis) {}
+            int rowsConflicted, int rowsInvalid, int rowsUnmatched, String status, Preview analysis, BackfillDtos.Summary incorporation) {
+        public Batch(UUID id,String source,String filename,Instant importedAt,String importedBy,String checksum,int rowsReceived,int rowsImported,int rowsSkipped,int rowsConflicted,int rowsInvalid,int rowsUnmatched,String status,Preview analysis) {
+            this(id,source,filename,importedAt,importedBy,checksum,rowsReceived,rowsImported,rowsSkipped,rowsConflicted,rowsInvalid,rowsUnmatched,status,analysis,null);
+        }
+    }
     public record Result(Batch batch, boolean alreadyProcessed) {}
 }
