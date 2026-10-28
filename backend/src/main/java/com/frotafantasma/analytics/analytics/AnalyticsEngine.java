@@ -289,7 +289,7 @@ public final class AnalyticsEngine {
         var offline = current.stream().filter(p -> !p.metrics().get("offlineDays").incompletePeriod() && number(p, "offlineDays", -1) >= rules.offlineDays()).toList();
         long activityKnown = current.stream().filter(p -> p.metrics().get("offlineDays").value() != null && !p.metrics().get("offlineDays").incompletePeriod()).count();
         result.put("membersOffline", metric(activityKnown == 0 ? null : offline.size(), Origin.DERIVED, calendar, 0, activityKnown == 0, activityKnown < current.size(),
-                offline.stream().flatMap(p -> p.metrics().get("offlineDays").dataUsed().stream()).toList(), "Conta somente lastSeen oficial com captura recente e pelo menos " + rules.offlineDays() + " dias offline."));
+                offline.stream().flatMap(p -> p.metrics().get("offlineDays").dataUsed().stream()).toList(), "Conta somente lastSeen registrado na fonte indicada, com captura recente e pelo menos " + rules.offlineDays() + " dias offline."));
         for (String status : List.of("OBSERVAR", "REVISAR")) {
             var matching = current.stream().filter(p -> status.equals(p.operationalStatus().value())).toList();
             result.put(status.equals("OBSERVAR") ? "membersToObserve" : "membersToReview", metric(rosterKnown ? matching.size() : null, Origin.SNAPSHOT_DERIVED, window, Math.min(4, wars.size()), wars.size() < rules.minimumWars(), stale,
