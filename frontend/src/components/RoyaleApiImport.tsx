@@ -2,6 +2,7 @@ import {
   ImportIdentification,
   identificationStatus,
 } from "./ImportIdentification";
+import { ImportBackfill } from "./ImportBackfill";
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, dateTime } from "../lib/api";
@@ -43,6 +44,15 @@ interface Batch {
   rowsUnmatched: number;
   status: string;
   analysis: Analysis;
+  incorporation?: {
+    status: string;
+    rowsNew: number;
+    rowsDuplicated: number;
+    rowsConflicted: number;
+    rowsIgnored: number;
+    influencesAnalytics: boolean;
+    activeRecords: number;
+  } | null;
 }
 interface Result {
   batch: Batch;
@@ -185,6 +195,7 @@ export function RoyaleApiImport() {
               "Inválidos",
               "Pendentes na entrada",
               "Identificação atual",
+              "Histórico / Analytics",
               "Ações",
             ]}
           >
@@ -205,10 +216,45 @@ export function RoyaleApiImport() {
                 <td>{batch.rowsUnmatched}</td>
                 <td>{identificationStatus(batch.status)}</td>
                 <td>
+                  {batch.incorporation ? (
+                    <>
+                      <strong>
+                        {batch.incorporation.status === "PARTIAL"
+                          ? "Incorporação com pendências"
+                          : "Incorporado"}
+                      </strong>
+                      <p>
+                        {batch.incorporation.rowsNew} novos ·{" "}
+                        {batch.incorporation.rowsDuplicated} duplicados ·{" "}
+                        {batch.incorporation.rowsConflicted} conflitos ·{" "}
+                        {batch.incorporation.rowsIgnored} ignorados
+                      </p>
+                      <p>
+                        Analytics:{" "}
+                        {batch.incorporation.influencesAnalytics
+                          ? "Sim"
+                          : "Não"}{" "}
+                        · {batch.incorporation.activeRecords} registros
+                        utilizados
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      Arquivo importado · não incorporado<p>Analytics: Não</p>
+                    </>
+                  )}
+                </td>
+                <td>
                   <ImportIdentification
                     batchId={batch.id}
                     status={batch.status}
                   />
+                  {batch.status === "IDENTIFIED" && (
+                    <ImportBackfill
+                      batchId={batch.id}
+                      applied={!!batch.incorporation}
+                    />
+                  )}
                 </td>
               </tr>
             ))}

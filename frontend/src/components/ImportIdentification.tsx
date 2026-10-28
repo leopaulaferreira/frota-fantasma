@@ -124,8 +124,8 @@ function IdentificationContent({
   return (
     <>
       <p className="callout">
-        Confirmar associação não sobrescreve dados oficiais. Mesmo identificado,
-        este lote permanece fora do analytics até a Fase 3.
+        Confirmar associação não sobrescreve dados oficiais. Somente a
+        incorporação confirmada pode incluir registros no analytics.
       </p>
       {feedback && <p role="status">{feedback}</p>}
       <QueryState query={query}>

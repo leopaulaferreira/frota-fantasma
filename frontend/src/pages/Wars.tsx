@@ -19,6 +19,7 @@ import {
   MetricView,
 } from "../components/ui";
 interface War {
+  source?: string;
   id: number;
   seasonId: number;
   sectionIndex: number;
@@ -32,6 +33,8 @@ interface War {
   capturedAt: string;
 }
 interface Participant {
+  source?: string;
+  capturedAt?: string;
   playerTag: string;
   name: string;
   contribution: number | null;
@@ -71,7 +74,12 @@ export function Wars() {
                     <b>
                       Temporada {w.seasonId} · seção {w.sectionIndex}
                     </b>
-                    <small>Publicada em {date(w.publishedAt)}</small>
+                    <small>
+                      Publicada em {date(w.publishedAt)}
+                      {w.source === "ROYALEAPI_IMPORT"
+                        ? " · Backfill RoyaleAPI"
+                        : ""}
+                    </small>
                   </Link>
                 ))}
               </nav>
@@ -98,8 +106,11 @@ function WarDetail({ id }: { id: string }) {
               Temporada {q.data.war.seasonId} · seção {q.data.war.sectionIndex}
             </h2>
             <p>
-              Publicação: {date(q.data.war.publishedAt)} · Captura:{" "}
-              {date(q.data.war.capturedAt)}
+              Publicação: {date(q.data.war.publishedAt)} ·{" "}
+              {q.data.war.source === "ROYALEAPI_IMPORT"
+                ? "Registro local do backfill"
+                : "Captura oficial"}
+              : {date(q.data.war.capturedAt)}
             </p>
             <p className="muted">
               Período oficial: {date(q.data.war.startDate)} →{" "}
@@ -132,9 +143,9 @@ function WarDetail({ id }: { id: string }) {
           </div>
           <h2>Ranking da guerra</h2>
           <p className="muted">
-            Pontuação oficial em ordem decrescente. Empates compartilham
-            posição; pontuação desconhecida permanece sem classificação. Inclui
-            ex-membros registrados.
+            Pontuação do histórico preferencial em ordem decrescente. Empates
+            compartilham posição; pontuação desconhecida permanece sem
+            classificação. Inclui ex-membros registrados.
           </p>
           <Table headers={["Posição", "Membro", "Pontos", "Decks", "Detalhes"]}>
             {rankRows(q.data.participants).map((p) => (
@@ -144,7 +155,12 @@ function WarDetail({ id }: { id: string }) {
                   <Link to={"/membros/" + encodeURIComponent(p.playerTag)}>
                     {p.name}
                   </Link>
-                  <small>{p.playerTag}</small>
+                  <small>
+                    {p.playerTag}
+                    {p.source === "ROYALEAPI_IMPORT"
+                      ? " · Backfill RoyaleAPI"
+                      : ""}
+                  </small>
                 </td>
                 <td>{format(p.contribution)}</td>
                 <td>{format(p.decksUsed)}</td>
@@ -233,8 +249,10 @@ function WarEvidence({
           </header>
           <div className="metric-dialog-body">
             <p>
-              Dados da API oficial, preservados na captura desta guerra. Campos
-              não informados não significam zero nem falha do jogador.
+              {p.source === "ROYALEAPI_IMPORT"
+                ? "Dados de backfill RoyaleAPI confirmado; o CSV pode representar um período incompleto."
+                : "Dados da API oficial, preservados na captura desta guerra."}{" "}
+              Campos não informados não significam zero nem falha do jogador.
             </p>
             <dl className="metric-context">
               <div>
@@ -254,8 +272,12 @@ function WarEvidence({
                 <dd>{dateTime(war.publishedAt)}</dd>
               </div>
               <div>
-                <dt>Captura do registro</dt>
-                <dd>{dateTime(war.capturedAt)}</dd>
+                <dt>
+                  {p.source === "ROYALEAPI_IMPORT"
+                    ? "Registro local da importação (não é data da batalha)"
+                    : "Captura do registro"}
+                </dt>
+                <dd>{dateTime(p.capturedAt || war.capturedAt)}</dd>
               </div>
               {fields.map(([key, title]) => (
                 <div key={key}>
@@ -281,7 +303,7 @@ function WarEvidence({
               </p>
               <dl>
                 <dt>Origem dos valores de guerra</dt>
-                <dd>DIRECT_API</dd>
+                <dd>{p.source || "DIRECT_API"}</dd>
                 <dt>Identificador local da guerra</dt>
                 <dd>{war.id}</dd>
                 {Object.entries(p).map(([key, value]) => (

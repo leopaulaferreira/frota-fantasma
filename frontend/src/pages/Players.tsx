@@ -517,7 +517,7 @@ export function PlayerProfile() {
                         "Captura",
                         "Troféus",
                         "Contador de doações",
-                        "Última atividade oficial",
+                        "Última atividade registrada",
                         "Cargo",
                       ]}
                     >

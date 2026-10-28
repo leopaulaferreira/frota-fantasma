@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 export interface Metric {
   value: unknown;
   origin: string;
+  sources?: string[];
   quality: string;
   period: { from: string | null; to: string | null; basis: string };
   warsConsidered: number;
