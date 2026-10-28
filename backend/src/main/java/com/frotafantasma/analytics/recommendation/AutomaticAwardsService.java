@@ -45,7 +45,7 @@ public class AutomaticAwardsService {
         if (existing.isPresent()) return existing;
         var clan = clans.findByTag(api.clanTag());
         if (clan.isEmpty()) return Optional.empty();
-        var history = wars.findByClanIdOrderByPublishedAtDescIdDesc(clan.get().getId());
+        var history = wars.findByClanIdOrderByPublishedAtDescIdDesc(clan.get().getId()).stream().filter(w->"DIRECT_API".equals(w.getSource())).toList();
         Instant close = week.atTime(6,0).atZone(ZONE).toInstant();
         // The official war log, not merely the wall clock, must confirm this closing.
         if (history.isEmpty() || history.getFirst().getPublishedAt().isBefore(close)

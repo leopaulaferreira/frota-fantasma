@@ -119,12 +119,12 @@ public class HistoryStore {
             War war = wars.save(new War(old == null ? null : old.getId(), clan.getId(), entry.seasonId(), entry.sectionIndex(),
                     publishedAt(entry.createdDate()), null, null, standing.rank(), source.clanScore(), source.fame(),
                     standing.trophyChange(), capturedAt, payload));
-            participants.deleteByWarId(war.getId());
+            participants.deleteByWarIdAndSource(war.getId(),"DIRECT_API");
             participants.flush();
             for (RiverParticipantDto member : source.participants()) {
                 Player player = players.findByPlayerTag(member.tag()).orElseGet(() ->
                         players.save(new Player(null, member.tag(), member.name(), null, null, null, false, null)));
-                participants.save(new WarParticipant(null, war.getId(), player.getId(), member.name(), member.fame(),
+                participants.save(new WarParticipant(participants.findByWarIdAndPlayerId(war.getId(),player.getId()).map(WarParticipant::getId).orElse(null), war.getId(), player.getId(), member.name(), member.fame(),
                         member.decksUsed(), member.decksUsedToday(), member.boatAttacks(), member.repairPoints(),
                         null, null, null, capturedAt));
             }

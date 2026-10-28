@@ -23,18 +23,18 @@ public final class HistoryMapper {
     }
     public static MembershipResponse membership(ClanMembershipSnapshot m) {
         return new MembershipResponse(m.getId(), m.getRunId(), m.getCapturedAt(), m.getName(), m.getRole(), m.getTrophies(),
-                m.getClanRank(), m.getPreviousClanRank(), m.getDonations(), m.getDonationsReceived(), m.getApiLastSeen());
+                m.getClanRank(), m.getPreviousClanRank(), m.getDonations(), m.getDonationsReceived(), m.getApiLastSeen(),m.getSource(),m.getBatchId(),m.getResolutionId());
     }
     public static EventResponse event(MembershipEvent e, String tag) {
         return new EventResponse(e.getId(), tag, e.getType(), e.getPreviousRole(), e.getCurrentRole(), e.getObservedAt(), e.getRunId());
     }
     public static WarSummary war(War w) {
         return new WarSummary(w.getId(), w.getSeasonId(), w.getSectionIndex(), w.getPublishedAt(), w.getStartDate(),
-                w.getEndDate(), w.getClanPlacement(), w.getClanScore(), w.getFame(), w.getClanTrophyChange(), w.getCapturedAt());
+                w.getEndDate(), w.getClanPlacement(), w.getClanScore(), w.getFame(), w.getClanTrophyChange(), w.getCapturedAt(),w.getSource(),w.getBatchId(),w.getResolutionId());
     }
     public static ParticipantResponse participant(WarParticipant p, String tag) {
         return new ParticipantResponse(tag, p.getName(), p.getContribution(), p.getDecksUsed(), p.getDecksUsedToday(),
-                p.getBoatAttacks(), p.getRepairPoints(), p.getBattlesPlayed(), p.getWins(), p.getLosses(), p.getCapturedAt());
+                p.getBoatAttacks(), p.getRepairPoints(), p.getBattlesPlayed(), p.getWins(), p.getLosses(), p.getCapturedAt(),p.getSource(),p.getBatchId(),p.getResolutionId());
     }
     public static RiverSummary river(RiverRaceSnapshot r) {
         return new RiverSummary(r.getId(), r.getRunId(), r.getCapturedAt(), r.getSectionIndex(), r.getPeriodIndex(), r.getPeriodType(), r.getState());

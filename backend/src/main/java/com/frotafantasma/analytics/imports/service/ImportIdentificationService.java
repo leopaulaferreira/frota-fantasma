@@ -69,8 +69,8 @@ public class ImportIdentificationService {
         targets.addAll(sql.query("""
             select w.*, coalesce((select jsonb_agg(jsonb_build_object('tag',p.player_tag,'fame',wp.contribution,
               'decksUsed',wp.decks_used,'boatAttacks',wp.boat_attacks,'repairPoints',wp.repair_points))
-              from war_participant wp join player p on p.id=wp.player_id where wp.war_id=w.id),'[]'::jsonb) as participants
-            from war w join clan c on c.id=w.clan_id where c.tag=? order by w.id
+              from war_participant wp join player p on p.id=wp.player_id where wp.war_id=w.id and wp.source='DIRECT_API'),'[]'::jsonb) as participants
+            from war w join clan c on c.id=w.clan_id where c.tag=? and w.source='DIRECT_API' order by w.id
             """,(rs,n)->new Target("WAR",rs.getLong("id"),rs.getObject("season_id",Integer.class),rs.getObject("section_index",Integer.class),
                     null,null,rs.getTimestamp("published_at").toInstant(),config.clanTag(),participants(tree(rs.getString("participants")))),config.clanTag()));
         targets.addAll(sql.query("""

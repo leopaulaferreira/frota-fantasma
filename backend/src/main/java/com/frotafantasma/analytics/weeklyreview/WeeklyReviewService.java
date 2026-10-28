@@ -42,7 +42,7 @@ public class WeeklyReviewService {
                 select p.player_tag,h.name,h.role,h.api_last_seen,
                     (select e.observed_at from membership_event e where e.player_id=h.player_id and e.clan_id=h.clan_id
                      and e.type in ('JOIN','BASELINE') and e.observed_at<=h.captured_at order by e.observed_at desc,e.id desc limit 1)
-                from clan_membership_history h join player p on p.id=h.player_id join clan c on c.id=h.clan_id
+                from (select * from clan_membership_history where source='DIRECT_API') h join player p on p.id=h.player_id join clan c on c.id=h.clan_id
                 where c.tag=? and h.run_id=? order by p.player_tag
                 """, (r,n) -> new Member(r.getString(1),r.getString(2),r.getString(3),instant(r.getTimestamp(4)),instant(r.getTimestamp(5))), api.clanTag(),roster.run());
         var race = sql.query("""

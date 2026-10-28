@@ -9,6 +9,8 @@ public interface WarParticipantRepository extends JpaRepository<WarParticipant, 
     java.util.List<WarParticipant> findByWarIdIn(java.util.Collection<Long> warIds);
     java.util.List<WarParticipant> findByWarIdOrderByContributionDesc(Long warId);
     void deleteByWarId(Long warId);
+    void deleteByWarIdAndSource(Long warId,String source);
+    java.util.Optional<WarParticipant> findByWarIdAndPlayerId(Long warId,Long playerId);
     @org.springframework.data.jpa.repository.Query("select p from WarParticipant p join War w on p.warId = w.id where p.playerId = :playerId order by w.publishedAt desc, p.id desc")
     Page<WarParticipant> findHistoryByPlayerId(@org.springframework.data.repository.query.Param("playerId") Long playerId, Pageable pageable);
 }

@@ -6,7 +6,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "clan_membership_history")
-public class ClanMembershipSnapshot {
+public class ClanMembershipSnapshot extends HistoricalSource {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

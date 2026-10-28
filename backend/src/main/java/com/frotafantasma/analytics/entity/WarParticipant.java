@@ -6,7 +6,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "war_participant")
-public class WarParticipant {
+public class WarParticipant extends HistoricalSource {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

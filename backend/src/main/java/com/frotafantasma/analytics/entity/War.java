@@ -9,7 +9,7 @@ import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "war")
-public class War {
+public class War extends HistoricalSource {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

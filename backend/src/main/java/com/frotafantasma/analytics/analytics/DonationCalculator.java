@@ -34,11 +34,11 @@ public final class DonationCalculator {
                     && first.getDonations() < precedingWeek.getDonations()
                     && sameEpisode(events, precedingWeek.getCapturedAt(), first.getCapturedAt())) {
                 resets++;
-                evidence.add("boundarySnapshot:" + precedingWeek.getId() + ":donations=" + precedingWeek.getDonations() + "; reset observado, sem creditar diferença entre semanas");
+                evidence.add("boundarySnapshot:" + precedingWeek.getId() + ";" + precedingWeek.provenance() + ":donations=" + precedingWeek.getDonations() + "; reset observado, sem creditar diferença entre semanas");
             }
             ClanMembershipSnapshot previous = null;
             for (var row : rows) {
-                evidence.add("membership:" + row.getId() + "@" + row.getCapturedAt() + ":donations=" + row.getDonations());
+                evidence.add("membership:" + row.getId() + "@" + row.getCapturedAt() + ";" + row.provenance() + ":donations=" + row.getDonations());
                 if (previous != null && valid(previous.getDonations()) && valid(row.getDonations())) {
                     Instant from = previous.getCapturedAt();
                     if (sameEpisode(events, from, row.getCapturedAt()) && row.getCapturedAt().isAfter(from)) {
@@ -57,11 +57,11 @@ public final class DonationCalculator {
                     + "Lacunas e resets ocultos impedem garantir o total exato; período incompleto.";
             var last = rows.getLast();
             Integer counter = valid(last.getDonations()) ? last.getDonations() : null;
-            var lastCounter = new Metric<>(counter, Origin.DIRECT_API,
-                    counter == null ? Quality.INSUFFICIENT_DATA : Quality.AVAILABLE,
+            var lastCounter = new Metric<>(counter, Origin.valueOf(last.getSource()),
+                    counter == null ? Quality.INSUFFICIENT_DATA : last.getBatchId()!=null?Quality.INCOMPLETE:Quality.AVAILABLE,
                     new Period(last.getCapturedAt(), last.getCapturedAt(), "MEMBERSHIP_SNAPSHOT"), 0,
-                    counter == null, false,
-                    List.of("membership:" + last.getId() + "@" + last.getCapturedAt() + ":donations=" + last.getDonations()),
+                    counter == null, last.getBatchId()!=null,
+                    List.of("membership:" + last.getId() + "@" + last.getCapturedAt() + ";" + last.provenance() + ":donations=" + last.getDonations()),
                     "Último contador de doações coletado nesta semana. É o número informado pelo jogo naquele instante; não comprova o total da semana nem o horário do reset.");
             result.add(new DonationPeriod(entry.getKey(), new Metric<>(comparisons == 0 ? null : total,
                     Origin.SNAPSHOT_DERIVED, comparisons == 0 ? Quality.INSUFFICIENT_DATA : Quality.INCOMPLETE,

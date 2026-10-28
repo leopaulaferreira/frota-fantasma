@@ -21,14 +21,14 @@ public final class HistoryDtos {
     public record PlayerResponse(Long id, String playerTag, String name, Instant firstSeenAt, Instant lastSeenAt,
             boolean active, String currentRole) {}
     public record MembershipResponse(Long id, UUID runId, Instant capturedAt, String name, String role,
-            Integer trophies, Integer clanRank, Integer previousClanRank, Integer donations, Integer donationsReceived, Instant apiLastSeen) {}
+            Integer trophies, Integer clanRank, Integer previousClanRank, Integer donations, Integer donationsReceived, Instant apiLastSeen, String source, UUID batchId, Long resolutionId) {}
     public record EventResponse(Long id, String playerTag, String type, String previousRole, String currentRole,
             Instant observedAt, UUID runId) {}
     public record WarSummary(Long id, Integer seasonId, Integer sectionIndex, Instant publishedAt, Instant startDate,
-            Instant endDate, Integer clanPlacement, Integer clanScore, Integer fame, Integer clanTrophyChange, Instant capturedAt) {}
+            Instant endDate, Integer clanPlacement, Integer clanScore, Integer fame, Integer clanTrophyChange, Instant capturedAt, String source, UUID batchId, Long resolutionId) {}
     public record ParticipantResponse(String playerTag, String name, Integer contribution, Integer decksUsed,
             Integer decksUsedToday, Integer boatAttacks, Integer repairPoints, Integer battlesPlayed,
-            Integer wins, Integer losses, Instant capturedAt) {}
+            Integer wins, Integer losses, Instant capturedAt, String source, UUID batchId, Long resolutionId) {}
     public record WarDetail(WarSummary war, List<ParticipantResponse> participants) {}
     public record PlayerWarResponse(WarSummary war, ParticipantResponse participation) {}
     public record RiverSummary(Long id, UUID runId, Instant capturedAt, Integer sectionIndex, Integer periodIndex,

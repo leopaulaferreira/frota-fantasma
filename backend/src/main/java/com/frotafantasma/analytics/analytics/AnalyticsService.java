@@ -27,13 +27,14 @@ public class AnalyticsService {
     private final RecommendationRulesService ruleService;
     private final RecommendationRepository recommendations;
     private final Clock clock;
+    private final com.frotafantasma.analytics.service.HistoricalReadService history;
 
     public AnalyticsService(ClanDataRepository clans, PlayerRepository players, WarRepository wars,
             WarParticipantRepository participants, MembershipHistoryRepository snapshots,
-            MembershipEventRepository events, ClanHistoryRepository clanSnapshots, ClashRoyaleProperties api, RecommendationRulesService ruleService, RecommendationRepository recommendations, Clock clock) {
+            MembershipEventRepository events, ClanHistoryRepository clanSnapshots, ClashRoyaleProperties api, RecommendationRulesService ruleService, RecommendationRepository recommendations, Clock clock, com.frotafantasma.analytics.service.HistoricalReadService history) {
         this.clans = clans; this.players = players; this.wars = wars; this.participants = participants;
         this.snapshots = snapshots; this.events = events; this.api = api; this.ruleService = ruleService; this.recommendations = recommendations; this.clock = clock;
-        this.clanSnapshots = clanSnapshots;
+        this.clanSnapshots = clanSnapshots; this.history=history;
     }
 
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
@@ -51,7 +52,7 @@ public class AnalyticsService {
         var report = calculate(week, version);
         var clan = clans.findByTag(api.clanTag()).orElseThrow();
         return new AnalyticsEngine(version.settings().analytics(), version.settings().immortalAllowPartial())
-                .closingAwards(report, wars.findByClanIdOrderByPublishedAtDescIdDesc(clan.getId()));
+                .closingAwards(report, history.wars(clan.getId()));
     }
 
     private AnalyticsDtos.Report calculate(LocalDate requestedWeek, RuleVersion version) {
@@ -64,10 +65,9 @@ public class AnalyticsService {
         }
         var clan = clans.findByTag(api.clanTag()).orElse(null);
         if (clan == null) return enrich(new AnalyticsEngine(rules).analyze(new AnalyticsEngine.Data(List.of(), List.of(), List.of(), List.of(), List.of()), now, week), version);
-        var warData = wars.findByClanIdOrderByPublishedAtDescIdDesc(clan.getId());
-        var participantData = warData.isEmpty() ? List.<com.frotafantasma.analytics.entity.WarParticipant>of()
-                : participants.findByWarIdIn(warData.stream().map(w -> w.getId()).toList());
-        var snapshotData = snapshots.findByClanIdOrderByCapturedAtAscIdAsc(clan.getId());
+        var warData = history.wars(clan.getId());
+        var participantData = history.participants(clan.getId());
+        var snapshotData = history.members(clan.getId());
         var eventData = events.findByClanIdOrderByObservedAtAscIdAsc(clan.getId());
         Set<Long> playerIds = new HashSet<>();
         snapshotData.forEach(s -> playerIds.add(s.getPlayerId()));

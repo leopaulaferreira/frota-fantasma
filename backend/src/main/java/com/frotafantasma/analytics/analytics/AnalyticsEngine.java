@@ -139,7 +139,7 @@ public final class AnalyticsEngine {
         metrics.put("partialStandardWars", metric(deckCount == 0 ? null : partial, Origin.DERIVED, period, deckCount, insufficient, incomplete, evidence, "Conta 1 a 15 decks observados; participação parcial em relação ao padrão, sem assumir elegibilidade integral."));
         metrics.put("zeroParticipationWars", metric(rows.isEmpty() ? null : zero, Origin.DERIVED, period, rows.size(), insufficient, incomplete, evidence, "Conta apenas fame=0 E decksUsed=0 explícitos; jogador ausente do payload permanece desconhecido."));
         metrics.put("recentParticipation", metric(rows.isEmpty() ? null : participated + "/" + recent.size(), Origin.DERIVED, period, recent.size(), insufficient, incomplete || unknown > 0, evidence, "Numerador: fame>0 ou decksUsed>0; denominador: últimas guerras disponíveis do clã (máximo quatro), não semanas inventadas. Desconhecidas=" + unknown));
-        metrics.put("analyzedWars", metric(recent.size(), Origin.DERIVED, period, recent.size(), insufficient, false, recent.stream().map(w -> "war:" + w.getId()).toList(), "Guerras únicas por temporada/seção; cada guerra é um período semanal oficial, sem fabricar datas de início/fim."));
+        metrics.put("analyzedWars", metric(recent.size(), Origin.DERIVED, period, recent.size(), insufficient, false, recent.stream().map(w -> "war:" + w.getId() + ";" + w.provenance()).toList(), "Guerras únicas por temporada/seção; cada guerra é um período semanal oficial, sem fabricar datas de início/fim."));
         Period lifetime = warPeriod(wars);
         var scores = allRows.stream().filter(p -> valid(p.getContribution())).mapToInt(WarParticipant::getContribution).summaryStatistics();
         var allEvidence = evidence(allRows);
@@ -154,16 +154,16 @@ public final class AnalyticsEngine {
         }
         metrics.put("recentTrendPoints", metric(trend, Origin.DERIVED, period, pointCount, trend == null, incomplete, evidence, "Média das duas guerras mais recentes menos média das duas anteriores; exige quatro pontuações conhecidas."));
         Period observed = latest == null ? new Period(null, cutoff, "MEMBER_SNAPSHOT") : new Period(latest.getCapturedAt(), latest.getCapturedAt(), "MEMBER_SNAPSHOT");
-        var memberEvidence = latest == null ? List.<String>of() : List.of("membership:" + latest.getId() + "@" + latest.getCapturedAt(),
+        var memberEvidence = latest == null ? List.<String>of() : List.of("membership:" + latest.getId() + "@" + latest.getCapturedAt() + ";" + latest.provenance(),
                 "trophies=" + latest.getTrophies(), "api.lastSeen=" + latest.getApiLastSeen(), "donations=" + latest.getDonations());
-        metrics.put("trophies", metric(latest == null ? null : latest.getTrophies(), Origin.DIRECT_API, observed, 0, latest == null, !fresh, memberEvidence, "Troféus no último snapshot de membros; não extrapola após a coleta."));
+        metrics.put("trophies", metric(latest == null ? null : latest.getTrophies(), origin(latest), observed, 0, latest == null, !fresh, memberEvidence, "Troféus no último snapshot de membros; não extrapola após a coleta."));
         Instant lastSeen = latest == null ? null : latest.getApiLastSeen();
         boolean activityValid = lastSeen != null && !lastSeen.isAfter(latest.getCapturedAt());
-        metrics.put("lastKnownActivity", metric(activityValid ? lastSeen : null, Origin.DIRECT_API, observed, 0, !activityValid, !fresh, memberEvidence, "lastSeen real de /members; distinto de player.lastSeenAt, que é observação local. Timestamp futuro não é usado."));
+        metrics.put("lastKnownActivity", metric(activityValid ? lastSeen : null, origin(latest), observed, 0, !activityValid, !fresh, memberEvidence, "lastSeen registrado na fonte indicada; distinto de player.lastSeenAt, que é observação local. Timestamp futuro não é usado."));
         Long offline = activityValid ? Duration.between(lastSeen, latest.getCapturedAt()).toDays() : null;
-        metrics.put("offlineDays", metric(offline, Origin.DERIVED, observed, 0, offline == null, !fresh, memberEvidence, "Dias completos entre lastSeen da API e captura (não o relógio atual); coleta desatualizada não produz alerta de inatividade."));
+        metrics.put("offlineDays", metric(offline, Origin.DERIVED, observed, 0, offline == null, !fresh, memberEvidence, "Dias completos entre lastSeen registrado e captura (não o relógio atual); coleta desatualizada não produz alerta de inatividade."));
         Long tenure = active && joined != null ? Math.max(0, Duration.between(joined.getObservedAt(), latest.getCapturedAt()).toDays()) : null;
-        var tenureEvidence = joined == null ? memberEvidence : List.of("membershipEvent:" + joined.getId() + ":" + joined.getType() + "@" + joined.getObservedAt(), "observedThrough=" + latest.getCapturedAt());
+        var tenureEvidence = joined == null ? memberEvidence : List.of("membershipEvent:" + joined.getId() + ":" + joined.getType() + "@" + joined.getObservedAt(), "observedThrough=" + latest.getCapturedAt() + ";" + latest.provenance());
         metrics.put("observedTenureDays", metric(tenure, Origin.SNAPSHOT_DERIVED, new Period(joined == null ? null : joined.getObservedAt(), latest == null ? null : latest.getCapturedAt(), "CURRENT_MEMBERSHIP_OBSERVED"), 0,
                 tenure == null, true, tenureEvidence, "Tempo aproximado do episódio atual desde último JOIN/BASELINE. BASELINE não é ingresso real; reingresso reinicia a estimativa, e lacunas podem esconder saídas."));
         var donationPeriods = DonationCalculator.calculate(snapshots, events, rules.timezone(), cutoff);
@@ -238,14 +238,14 @@ public final class AnalyticsEngine {
 
     private WarStats war(War war, WarParticipant row, WarRanking ranking) {
         Integer rank = row == null || ranking == null ? null : ranking.positions().get(row.getPlayerId());
-        Period period = new Period(war.getStartDate(), war.getEndDate(), "OFFICIAL_WAR:" + war.getSeasonId() + ":" + war.getSectionIndex() + ";publishedAt=" + war.getPublishedAt());
+        Period period = new Period(war.getStartDate(), war.getEndDate(), "WAR_IDENTITY:" + war.getSeasonId() + ":" + war.getSectionIndex() + ";publishedAt=" + war.getPublishedAt());
         var evidence = row == null ? List.of("war:" + war.getId() + ":participant absent") : evidence(List.of(row));
         String state = row == null ? null : zero(row) ? "ZERO_OBSERVADO" : Objects.equals(row.getDecksUsed(), 16) ? "COMPLETA_PADRAO"
                 : row.getDecksUsed() != null && row.getDecksUsed() > 0 && row.getDecksUsed() < 16 ? "PARCIAL_PADRAO"
                 : participated(row) ? "PARTICIPOU" : null;
         return new WarStats(war.getId(), war.getSeasonId(), war.getSectionIndex(), war.getPublishedAt(),
-                metric(row == null || !valid(row.getContribution()) ? null : row.getContribution(), Origin.DIRECT_API, period, row == null ? 0 : 1, row == null, false, evidence, "fame oficial; início/fim não inferidos de createdDate."),
-                metric(row == null || !valid(row.getDecksUsed()) ? null : row.getDecksUsed(), Origin.DIRECT_API, period, row == null ? 0 : 1, row == null, false, evidence, "decksUsed oficial; não equivale a decks disponíveis."),
+                metric(row == null || !valid(row.getContribution()) ? null : row.getContribution(), origin(row), period, row == null ? 0 : 1, row == null, false, evidence, "fame no histórico preferencial; início/fim não inferidos de createdDate."),
+                metric(row == null || !valid(row.getDecksUsed()) ? null : row.getDecksUsed(), origin(row), period, row == null ? 0 : 1, row == null, false, evidence, "decksUsed no histórico preferencial; não equivale a decks disponíveis."),
                 metric(state, Origin.DERIVED, period, row == null ? 0 : 1, state == null, state == null, evidence, "Registro ausente é desconhecido, nunca ausência ou zero fabricado."),
                 metric(rank, Origin.DERIVED, period, rank == null ? 0 : 1, rank == null, false, ranking == null ? evidence : ranking.evidence(),
                         "Posição por fame entre todos os participantes registrados do clã nesta guerra, incluindo ex-membros. Empates compartilham posição (1, 1, 3); pontuação desconhecida não é classificada."));
@@ -357,6 +357,7 @@ public final class AnalyticsEngine {
         var result = new ArrayList<WeekEvolution>();
         Double previousAverage = null;
         LocalDate previousWeek = null;
+        List<String> previousEvidence=List.of();
         for (LocalDate week : weeks) {
             var period = calendar(week);
             var wars = data.wars().stream().filter(w -> !w.getPublishedAt().isBefore(period.from()) && w.getPublishedAt().isBefore(period.to()) && w.getPublishedAt().isBefore(cutoff)).toList();
@@ -387,8 +388,9 @@ public final class AnalyticsEngine {
             }
             metrics.put("averagePointsChange", metric(avg == null || previousAverage == null || !week.minusWeeks(1).equals(previousWeek) ? null : avg - previousAverage,
                     Origin.DERIVED, new Period(week.minusWeeks(1).atStartOfDay(rules.timezone()).toInstant(), period.to(), "PUBLICATION_WEEKS"), wars.size(), previousAverage == null, true,
-                    List.of("previousAverage=" + previousAverage, "currentAverage=" + avg), "Diferença contra semana imediatamente anterior disponível; composição dos participantes pode mudar, não prova melhora individual."));
+                    java.util.stream.Stream.concat(previousEvidence.stream(),evidence(rows).stream()).toList(), "Diferença contra semana imediatamente anterior disponível; composição dos participantes pode mudar, não prova melhora individual."));
             result.add(new WeekEvolution(week, metrics));
+            previousEvidence=evidence(rows);
             previousAverage = avg; previousWeek = week;
         }
         return List.copyOf(result);
@@ -403,13 +405,18 @@ public final class AnalyticsEngine {
     }
     private Period calendar(LocalDate week) { return new Period(week.atStartOfDay(rules.timezone()).toInstant(), week.plusWeeks(1).atStartOfDay(rules.timezone()).toInstant(), "CALENDAR_WEEK_" + rules.timezone()); }
     private Period warPeriod(List<War> wars) { return new Period(wars.isEmpty() ? null : wars.getLast().getPublishedAt(), wars.isEmpty() ? null : wars.getFirst().getPublishedAt(), "PUBLICATION_TIMESTAMPS_NOT_BATTLE_BOUNDARIES"); }
-    private List<String> evidence(List<WarParticipant> rows) { return rows.stream().map(p -> "war:" + p.getWarId() + "/participant:" + p.getId() + ":fame=" + p.getContribution() + ",decksUsed=" + p.getDecksUsed()).toList(); }
+    private List<String> evidence(List<WarParticipant> rows) { return rows.stream().map(p -> "war:" + p.getWarId() + "/participant:" + p.getId() + ":fame=" + p.getContribution() + ",decksUsed=" + p.getDecksUsed() + ";" + p.provenance()).toList(); }
+    private Origin origin(HistoricalSource row) { return row==null?Origin.UNAVAILABLE:Origin.valueOf(row.getSource()); }
     private boolean participated(WarParticipant p) { return p.getContribution() != null && p.getContribution() > 0 || p.getDecksUsed() != null && p.getDecksUsed() > 0; }
     private boolean zero(WarParticipant p) { return Objects.equals(p.getContribution(), 0) && Objects.equals(p.getDecksUsed(), 0); }
     private static boolean valid(Integer value) { return value != null && value >= 0; }
     private static double number(PlayerStats p, String key, double fallback) { return p.metrics().get(key).value() instanceof Number n ? n.doubleValue() : fallback; }
     private static Metric<?> unavailable(Period period, int wars, String reason) { return new Metric<>(null, Origin.UNAVAILABLE, Quality.UNAVAILABLE, period, wars, true, true, List.of(), reason); }
     static <T> Metric<T> metric(T value, Origin origin, Period period, int wars, boolean insufficient, boolean incomplete, List<String> evidence, String reason) {
+        if(evidence.stream().anyMatch(e->e.contains("source=ROYALEAPI_IMPORT"))) {
+            incomplete=true;
+            reason += " Contém backfill RoyaleAPI confirmado; a completude do período não é comprovada pelo CSV. Consulte as fontes e referências nas evidências.";
+        }
         return new Metric<>(value, origin, value == null || insufficient ? Quality.INSUFFICIENT_DATA : incomplete ? Quality.INCOMPLETE : Quality.AVAILABLE,
                 period, wars, insufficient || value == null, incomplete, List.copyOf(evidence), (value == null ? "Dados insuficientes. " : "") + reason);
     }
