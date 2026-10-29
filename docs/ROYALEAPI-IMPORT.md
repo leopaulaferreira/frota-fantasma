@@ -1,4 +1,4 @@
-# Importação manual RoyaleAPI: quarentena e identificação
+# Importação manual RoyaleAPI: quarentena, identificação e incorporação
 
 ## Estado da implementação
 
@@ -51,9 +51,12 @@ identificação confiável. `clan_finish_time` também não identifica temporada
 - Guerra existente: `war(clan_id, season_id, section_index)`.
 - Participação existente: `war_participant(war_id, player_id)`.
 - Jogador: `player.player_tag`, normalizando somente o prefixo `#` ausente.
-- Captura de membros: `clan_membership_history`, vinculada a uma coleta oficial.
+- Captura de membros: `clan_membership_history`, vinculada a uma coleta oficial
+  ou, no backfill, ao lote e à resolução que confirmam clã e data de captura.
 
-Jogadores desconhecidos ficam pendentes; não são criados nem associados ao elenco.
+Na importação inicial, jogadores desconhecidos ficam pendentes; não são criados
+nem associados ao elenco. A incorporação confirmada pode criar um jogador histórico
+inativo com a tag real do CSV, sem inventar associação ao elenco atual.
 Uma pontuação isolada não autoriza atribuir uma linha a uma guerra. A Fase 2
 compara o conjunto de participantes e exige confirmação explícita do alvo.
 Na análise inicial, novos/duplicados/conflitos ficam em zero **não classificados**, acompanhados
