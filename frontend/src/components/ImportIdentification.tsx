@@ -193,10 +193,7 @@ function ResolutionForm({
     onMutate: () => setBusy(true),
     onSuccess: async (result) => {
       saved(result);
-      await client.invalidateQueries({
-        predicate: (q) =>
-          String(q.queryKey[0]).startsWith("/imports/royaleapi"),
-      });
+      await client.invalidateQueries();
     },
     onSettled: () => setBusy(false),
   });

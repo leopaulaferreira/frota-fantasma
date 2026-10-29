@@ -163,7 +163,7 @@ public final class AnalyticsEngine {
         Long offline = activityValid ? Duration.between(lastSeen, latest.getCapturedAt()).toDays() : null;
         metrics.put("offlineDays", metric(offline, Origin.DERIVED, observed, 0, offline == null, !fresh, memberEvidence, "Dias completos entre lastSeen registrado e captura (não o relógio atual); coleta desatualizada não produz alerta de inatividade."));
         Long tenure = active && joined != null ? Math.max(0, Duration.between(joined.getObservedAt(), latest.getCapturedAt()).toDays()) : null;
-        var tenureEvidence = joined == null ? memberEvidence : List.of("membershipEvent:" + joined.getId() + ":" + joined.getType() + "@" + joined.getObservedAt(), "observedThrough=" + latest.getCapturedAt() + ";" + latest.provenance());
+        var tenureEvidence = joined == null ? memberEvidence : List.of("membershipEvent:" + joined.getId() + ":" + joined.getType() + "@" + joined.getObservedAt() + ";source=DIRECT_API", "observedThrough=" + latest.getCapturedAt() + ";" + latest.provenance());
         metrics.put("observedTenureDays", metric(tenure, Origin.SNAPSHOT_DERIVED, new Period(joined == null ? null : joined.getObservedAt(), latest == null ? null : latest.getCapturedAt(), "CURRENT_MEMBERSHIP_OBSERVED"), 0,
                 tenure == null, true, tenureEvidence, "Tempo aproximado do episódio atual desde último JOIN/BASELINE. BASELINE não é ingresso real; reingresso reinicia a estimativa, e lacunas podem esconder saídas."));
         var donationPeriods = DonationCalculator.calculate(snapshots, events, rules.timezone(), cutoff);
@@ -264,7 +264,7 @@ public final class AnalyticsEngine {
         for (String type : List.of("JOIN", "LEAVE")) {
             var matching = events.stream().filter(e -> type.equals(e.getType()) && !e.getObservedAt().isBefore(calendar.from()) && e.getObservedAt().isBefore(cutoff)).toList();
             result.put(type.equals("JOIN") ? "newMembers" : "departures", metric(rosterKnown ? matching.size() : null, Origin.SNAPSHOT_DERIVED, calendar, 0, !rosterKnown, true,
-                    matching.stream().map(e -> "membershipEvent:" + e.getId()).toList(), "Eventos " + type + " observados no período; BASELINE não conta como entrada. Lacunas podem ocultar eventos."));
+                    matching.stream().map(e -> "membershipEvent:" + e.getId() + ";source=DIRECT_API").toList(), "Eventos " + type + " observados no período; BASELINE não conta como entrada. Lacunas podem ocultar eventos."));
         }
         result.put("observedWeeklyDonations", aggregate(current, "weeklyDonations", calendar, "Soma de limites inferiores observados dos membros atuais; não substitui total exato do clã."));
         Period window = warPeriod(wars.stream().limit(4).toList());
@@ -384,7 +384,7 @@ public final class AnalyticsEngine {
                 var matching = data.events().stream().filter(e -> type.equals(e.getType()) && !e.getObservedAt().isBefore(period.from())
                         && e.getObservedAt().isBefore(period.to()) && e.getObservedAt().isBefore(cutoff)).toList();
                 metrics.put(type.equals("JOIN") ? "newMembers" : "departures", metric(donationRows.isEmpty() ? null : matching.size(), Origin.SNAPSHOT_DERIVED,
-                        period, 0, donationRows.isEmpty(), true, matching.stream().map(e -> "membershipEvent:" + e.getId()).toList(), "Eventos " + type + " observados; BASELINE excluída e lacunas sinalizadas."));
+                        period, 0, donationRows.isEmpty(), true, matching.stream().map(e -> "membershipEvent:" + e.getId() + ";source=DIRECT_API").toList(), "Eventos " + type + " observados; BASELINE excluída e lacunas sinalizadas."));
             }
             metrics.put("averagePointsChange", metric(avg == null || previousAverage == null || !week.minusWeeks(1).equals(previousWeek) ? null : avg - previousAverage,
                     Origin.DERIVED, new Period(week.minusWeeks(1).atStartOfDay(rules.timezone()).toInstant(), period.to(), "PUBLICATION_WEEKS"), wars.size(), previousAverage == null, true,

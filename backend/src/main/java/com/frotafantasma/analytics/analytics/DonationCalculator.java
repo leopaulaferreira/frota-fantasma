@@ -56,6 +56,10 @@ public final class DonationCalculator {
                     + "Não soma o primeiro contador nem diferenças entre semanas ou reingressos. "
                     + "Lacunas e resets ocultos impedem garantir o total exato; período incompleto.";
             var last = rows.getLast();
+            Instant episodeFrom=precedingWeek==null?first.getCapturedAt():precedingWeek.getCapturedAt();
+            events.stream().filter(e->("JOIN".equals(e.getType()) || "LEAVE".equals(e.getType()))
+                    && !e.getObservedAt().isBefore(episodeFrom) && !e.getObservedAt().isAfter(last.getCapturedAt()))
+                    .forEach(e->evidence.add("membershipEvent:"+e.getId()+":"+e.getType()+"@"+e.getObservedAt()+";source=DIRECT_API"));
             Integer counter = valid(last.getDonations()) ? last.getDonations() : null;
             var lastCounter = new Metric<>(counter, Origin.valueOf(last.getSource()),
                     counter == null ? Quality.INSUFFICIENT_DATA : last.getBatchId()!=null?Quality.INCOMPLETE:Quality.AVAILABLE,
