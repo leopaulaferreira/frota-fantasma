@@ -3,20 +3,14 @@ import { useAdmin } from "../lib/auth";
 import { LeaderPriorities } from "../components/LeaderPriorities";
 import { FleetBanner, AwardCard } from "../components/royale";
 import { Link } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
 import { useApi, date, type Report } from "../lib/api";
-import { Heading, QueryState, Metrics, Empty } from "../components/ui";
+import { QueryState, Metrics, Empty } from "../components/ui";
 export function Overview() {
   const admin = useAdmin();
   const q = useApi<Report>("/analytics");
   const r = q.data;
   return (
     <>
-      <Heading eyebrow="VISÃO DO CLÃ" title="O rumo da Frota">
-        <Link className="button" to="/guerras">
-          Explorar guerras <ArrowUpRight size={16} />
-        </Link>
-      </Heading>
       <FleetBanner week={r?.week} />
       <QueryState query={q}>
         {r && (

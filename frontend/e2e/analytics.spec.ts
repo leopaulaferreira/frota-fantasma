@@ -167,7 +167,7 @@ test("dashboard e investigação completa de membro", async ({ page }, info) => 
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "O rumo da Frota" }),
+    page.getByRole("heading", { name: "Uma tripulação. Um legado." }),
   ).toBeVisible();
   await expect
     .poll(() =>
@@ -359,7 +359,7 @@ test("login, logout e sessão expirada", async ({ page }) => {
   await page.getByLabel("Senha", { exact: true }).fill("senha-de-teste");
   await page.getByRole("button", { name: "Entrar na Frota" }).click();
   await expect(
-    page.getByRole("heading", { name: "O rumo da Frota" }),
+    page.getByRole("heading", { name: "Uma tripulação. Um legado." }),
   ).toBeVisible();
   authenticated = false;
   await page.route("**/api/operations", (route) =>
@@ -574,7 +574,7 @@ test("consulta não exibe notas nem prioridades privadas", async ({ page }) => {
   let privateRequests=0;
   page.on("request",r=>{if(r.url().includes("/api/leadership/")) privateRequests++;});
   await page.goto("/");
-  await expect(page.getByRole("heading",{name:"O rumo da Frota"})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Uma tripulação. Um legado."})).toBeVisible();
   await expect(page.getByRole("heading",{name:"Prioridades do líder"})).toHaveCount(0);
   await page.goto("/membros/"+encodeURIComponent(players[0].tag)+"?tab=notas");
   await expect(page.getByRole("heading",{name:players[0].name,exact:true})).toBeVisible();

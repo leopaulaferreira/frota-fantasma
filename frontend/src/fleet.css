@@ -180,14 +180,14 @@ h2 {
   padding: 24px 30px;
   width: 65%;
 }
-.fleet-banner h2 {
+.fleet-banner h1 {
   font-size: clamp(30px, 3vw, 43px);
   margin: 12px 0;
 }
-.fleet-banner h2 br {
+.fleet-banner h1 br {
   display: none;
 }
-.fleet-banner h2 span {
+.fleet-banner h1 span {
   display: block;
 }
 .fleet-banner p {
@@ -545,7 +545,7 @@ tr:hover td {
     padding: 20px;
     width: 100%;
   }
-  .fleet-banner h2 {
+  .fleet-banner h1 {
     font-size: 30px;
     max-width: 240px;
   }

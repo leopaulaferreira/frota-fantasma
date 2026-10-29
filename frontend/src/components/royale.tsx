@@ -13,11 +13,11 @@ export function FleetBanner({ week }: { week?: string }) {
         <div className="eyebrow">
           <span className="live-dot" /> FROTA FANTASMA · CENTRAL DO CLÃ
         </div>
-        <h2>
+        <h1>
           Uma tripulação.
           <br />
           <span>Um legado.</span>
-        </h2>
+        </h1>
         <p>
           Seu clã, seu comando. Reconheça quem faz a diferença e escolha o
           próximo rumo da Frota.
