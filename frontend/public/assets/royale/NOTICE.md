@@ -26,6 +26,18 @@ visual não representa identificação oficial do clã nem dados fornecidos pela
 
 Cópias sem alterações, usadas como decoração do tema. Os personagens não representam cartas usadas por jogadores, avatares pessoais, premiações oficiais ou arena atual do clã.
 
+## Artes dos cabeçalhos — 29 de outubro de 2026
+
+Cópias sem alterações do mesmo commit acima, servidas localmente:
+
+- `archer-queen.png`: [chr_champions/champion_hires_archer_queen.png](https://github.com/RoyaleAPI/cr-api-assets/blob/b4530a1043b213ee2baf9c50a3d0d7fae22c2313/chr_champions/champion_hires_archer_queen.png).
+- `golden-knight.png`: [chr_champions/champion_hires_golden_knight.png](https://github.com/RoyaleAPI/cr-api-assets/blob/b4530a1043b213ee2baf9c50a3d0d7fae22c2313/chr_champions/champion_hires_golden_knight.png).
+- `mighty-miner.png`: [chr_champions/champion_hires_mighty_miner_dl.png](https://github.com/RoyaleAPI/cr-api-assets/blob/b4530a1043b213ee2baf9c50a3d0d7fae22c2313/chr_champions/champion_hires_mighty_miner_dl.png).
+
+Os cabeçalhos usam uma área ilustrada maior, com enquadramento responsivo via CSS,
+sem modificar os arquivos originais. As imagens são decorativas; não representam
+cartas ou desempenho dos membros.
+
 ## Direitos e condições
 
 O arquivo [LICENSE do repositório](https://github.com/RoyaleAPI/cr-api-assets/blob/b4530a1043b213ee2baf9c50a3d0d7fae22c2313/LICENSE)

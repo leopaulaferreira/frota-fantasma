@@ -24,16 +24,16 @@ export function Heading({
   const section = path.split("/")[1];
   const portraits: Record<string, string> = {
     "": "clan-emblem",
-    membros: "fisherman",
+    membros: "archer-queen",
     guerras: "skeleton-king",
     premiacoes: "royal-ghost",
-    anciao: "crown-emblem",
+    anciao: "golden-knight",
     recomendacoes: "royal-ghost",
-    comparar: "war-emblem",
-    doacoes: "cards-token",
+    comparar: "golden-knight",
+    doacoes: "mighty-miner",
     expulsoes: "skeleton-king",
-    regras: "crown-emblem",
-    operacoes: "royal-arena",
+    regras: "archer-queen",
+    operacoes: "mighty-miner",
   };
   const portrait = portraits[section] || "clan-emblem";
   return (
@@ -43,11 +43,13 @@ export function Heading({
           <div className="eyebrow">{eyebrow || "CENTRAL DE COMANDO"}</div>
           <h1>{title}</h1>
         </div>
-        <img
-          className="heading-art"
-          src={"/assets/royale/" + portrait + ".png"}
-          alt=""
-        />
+        <div className="heading-illustration" aria-hidden="true">
+          <img
+            className="heading-art"
+            src={"/assets/royale/" + portrait + ".png"}
+            alt=""
+          />
+        </div>
       </div>
       {children && (
         <div className="heading-actions" aria-label="Ações da página">
