@@ -40,6 +40,18 @@ com BOM opcional, CRLF/LF, campos entre aspas e aspas duplicadas. Não há um fo
 alternativo inventado com colunas que não foram observadas. Novos exports exigem
 inspeção de amostras e extensão explícita do adapter.
 
+### Histórico de várias semanas ainda não suportado
+
+O arquivo `clan-RQJGC9GV-2026-10-29-03-10-93.csv`, inspecionado posteriormente,
+tem 163 linhas de jogadores e 52 colunas: 12 campos de identificação/totais e
+dez grupos `s_<temporada>-<seção>_{fame,repair_points,contribution,decks_used}`.
+É um terceiro formato, diferente do CSV de uma corrida. O parser reconhece sua
+assinatura para explicar a incompatibilidade, mas rejeita o arquivo sem gravação.
+O fluxo atual resolve um único contexto por lote; aceitar esse histórico requer
+resolução e reconciliação separadas por semana, sem inventar datas de publicação.
+Não remova colunas nem reutilize totais acumulados como pontuação de uma guerra.
+Os limites dos formatos suportados permanecem inalterados.
+
 O formato de corrida não informa `season_id`/`section_index`, nem prova encerramento
 oficial; `state=full` não é tratado como prova de resultado final. O formato de membros
 não informa clã nem instante da captura. `lastSeen` é atividade do jogador, não

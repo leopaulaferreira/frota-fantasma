@@ -41,4 +41,24 @@ class RoyaleApiCsvParserTest {
         assertThatThrownBy(() -> parser.parse(new MockMultipartFile("file", "bad.csv", "text/csv", new byte[]{(byte)0xff}))).hasMessageContaining("UTF-8");
         assertThatThrownBy(() -> parser.parse(file("a\0b"))).hasMessageContaining("binário");
     }
+    @Test void observedMultiWeekHistoryExplainsUnsupportedFormatInsteadOfColumnLimit() {
+        String prefix = "clan_tag,clan_name,player_name,player_tag,player_participation_ratio,player_contribution_count,player_participating_count,player_total_fame,player_total_repair_points,player_total_contribution,player_total_decks_used,player_is_current_member";
+        var header = new StringBuilder(prefix);
+        for (String week : java.util.List.of("137-3", "137-2", "137-1", "136-4", "136-3", "136-2", "136-1", "135-5", "135-4", "135-3")) {
+            for (String field : java.util.List.of("fame", "repair_points", "contribution", "decks_used")) header.append(",s_").append(week).append('_').append(field);
+        }
+        for (String newline : java.util.List.of("\n", "\r\n")) {
+            assertThatThrownBy(() -> parser.parse(file(header + newline + "0,".repeat(51) + "0" + newline)))
+                    .hasMessageContaining("histórico de várias semanas").hasMessageContaining("Nenhum dado foi importado")
+                    .hasMessageNotContaining("excessiva");
+        }
+        assertThatThrownBy(() -> parser.parse(file(prefix + ",s_137-3_fame\n" + "0,".repeat(12) + "0")))
+                .hasMessageContaining("histórico de várias semanas");
+    }
+    @Test void columnLimitAlsoAppliesToLastRecordWithoutNewline() {
+        for (String ending : java.util.List.of("", "\n")) {
+            assertThatThrownBy(() -> parser.parse(file(RoyaleApiCsvParser.MEMBERS + "\n" + "0,".repeat(30) + "0" + ending)))
+                    .hasMessageContaining("limite dos formatos suportados é 30");
+        }
+    }
 }

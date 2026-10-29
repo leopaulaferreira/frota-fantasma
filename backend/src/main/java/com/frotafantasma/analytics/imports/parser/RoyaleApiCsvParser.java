@@ -18,6 +18,7 @@ public class RoyaleApiCsvParser {
     public static final int MAX_BYTES = 512 * 1024, MAX_ROWS = 2000;
     public static final String MEMBERS = "tag,name,role,lastSeen,expLevel,trophies,arena_id,arena_name,arena_rawName,clanRank,previousClanRank,donations,donationsReceived,clanChestPoints";
     public static final String RIVER = "state,clan_tag,clan_name,clan_badge_id,clan_fame,clan_repair_points,clan_finish_time,player_name,player_tag,player_fame,player_repair_points,player_contribution,player_boat_attacks,player_decks_used,player_decks_used_today";
+    private static final List<String> WAR_HISTORY_PREFIX = List.of(("clan_tag,clan_name,player_name,player_tag,player_participation_ratio,player_contribution_count,player_participating_count,player_total_fame,player_total_repair_points,player_total_contribution,player_total_decks_used,player_is_current_member").split(","));
     public record Row(int line, String playerTag, Map<String,String> values, List<String> errors) {}
     public record Parsed(String filename, String checksum, String format, List<Row> rows) {}
     public Parsed parse(MultipartFile file) {
@@ -42,7 +43,10 @@ public class RoyaleApiCsvParser {
         if (records.size() < 2) throw bad("O CSV não contém registros.");
         List<String> header = records.getFirst();
         String format = header.equals(List.of(MEMBERS.split(","))) ? "MEMBERS" : header.equals(List.of(RIVER.split(","))) ? "RIVER" : null;
-        if (format == null) throw bad("Cabeçalho desconhecido. São aceitos somente os formatos de membros e corrida RoyaleAPI verificados.");
+        if (format == null) {
+            if (isWarHistoryHeader(header)) throw unsupportedWarHistory();
+            throw bad("Cabeçalho desconhecido. São aceitos somente os formatos de membros e corrida RoyaleAPI verificados.");
+        }
         var rows = new ArrayList<Row>();
         for (int i = 1; i < records.size(); i++) {
             var cells = records.get(i);
@@ -93,7 +97,7 @@ public class RoyaleApiCsvParser {
                 quoted = true;
             } else if (c == ',' || c == '\n' || c == '\r') {
                 row.add(cell.toString()); cell.setLength(0); closed = false;
-                if (row.size() > 30) throw bad("Quantidade de colunas excessiva.");
+                checkColumns(row, result.isEmpty());
                 if (c != ',') {
                     if (c == '\r' && i + 1 < text.length() && text.charAt(i + 1) == '\n') i++;
                     result.add(List.copyOf(row)); row.clear();
@@ -106,9 +110,29 @@ public class RoyaleApiCsvParser {
             if (cell.length() > 4096) throw bad("Campo excede o limite de 4.096 caracteres.");
         }
         if (quoted) throw bad("Aspas não fechadas no CSV.");
-        if (closed || cell.length() > 0 || !row.isEmpty()) { row.add(cell.toString()); result.add(List.copyOf(row)); }
+        if (closed || cell.length() > 0 || !row.isEmpty()) {
+            row.add(cell.toString());
+            checkColumns(row, result.isEmpty());
+            result.add(List.copyOf(row));
+        }
         if (result.size() > MAX_ROWS + 1) throw bad("Limite de 2.000 registros excedido.");
         return result;
+    }
+    private static boolean isWarHistoryHeader(List<String> header) {
+        return header.size() > WAR_HISTORY_PREFIX.size()
+                && header.subList(0, WAR_HISTORY_PREFIX.size()).equals(WAR_HISTORY_PREFIX)
+                && header.subList(WAR_HISTORY_PREFIX.size(), header.size()).stream()
+                    .allMatch(column -> column.matches("s_[0-9]+-[0-9]+_(fame|repair_points|contribution|decks_used)"));
+    }
+    private static void checkColumns(List<String> row, boolean header) {
+        if (row.size() <= 30) return;
+        if (header && isWarHistoryHeader(row)) throw unsupportedWarHistory();
+        throw bad("Quantidade de colunas excessiva. O limite dos formatos suportados é 30 colunas.");
+    }
+    private static ResponseStatusException unsupportedWarHistory() {
+        return bad("Este CSV contém histórico de várias semanas de guerra (colunas s_temporada-seção). "
+                + "Esse formato do RoyaleAPI ainda não é suportado: a identificação atual associa cada lote a uma única corrida. "
+                + "Nenhum dado foi importado. Use um CSV de membros ou de uma corrida; não remova colunas para tentar adaptar este histórico.");
     }
     private static ResponseStatusException bad(String message) { return new ResponseStatusException(HttpStatus.BAD_REQUEST, message); }
     private static ResponseStatusException large() { return new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "O CSV deve ter no máximo 512 KiB."); }
