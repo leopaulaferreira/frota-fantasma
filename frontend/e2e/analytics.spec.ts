@@ -528,7 +528,7 @@ test("mural mostra fechamento automático e títulos publicados", async ({ page 
   const final = page.getByRole("heading", { name: "Títulos formalizados" });
   const projection = page.getByRole("heading", { name: "Projeção da semana" });
   await expect(final).toBeVisible();
-  expect((await final.boundingBox())!.y).toBeLessThan((await projection.boundingBox())!.y);
+  expect((await projection.boundingBox())!.y).toBeLessThan((await final.boundingBox())!.y);
   await expect(page.getByRole("link", { name: "Avaliação original →" })).toBeVisible();
 });
 

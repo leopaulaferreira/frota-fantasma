@@ -313,6 +313,28 @@ export function Awards() {
         Um título por jogador em cada semana. Projeções e títulos formalizados
         ficam separados.
       </p>
+      <h2>Projeção da semana</h2>
+      <QueryState query={q}>
+        <div className="awards">
+          {q.data?.highlights.map((h) => (
+            <AwardCard
+              key={h.title}
+              highlight={h}
+              players={q.data.players}
+              week={q.data.week}
+            />
+          ))}
+        </div>
+      </QueryState>
+      <div className="callout">
+        <Link to="/recomendacoes?tipo=candidatos">
+          Avaliar candidatos a Ancião →
+        </Link>
+        <p>
+          Consulte critérios, pendências e acompanhamentos na área de
+          desenvolvimento da tripulação.
+        </p>
+      </div>
       {automation.data && (
         <div className="callout">
           <b>
@@ -365,28 +387,6 @@ export function Awards() {
           </div>
         )}
       />
-      <h2>Projeção da semana</h2>
-      <QueryState query={q}>
-        <div className="awards">
-          {q.data?.highlights.map((h) => (
-            <AwardCard
-              key={h.title}
-              highlight={h}
-              players={q.data.players}
-              week={q.data.week}
-            />
-          ))}
-        </div>
-      </QueryState>
-      <div className="callout">
-        <Link to="/recomendacoes?tipo=candidatos">
-          Avaliar candidatos a Ancião →
-        </Link>
-        <p>
-          Consulte critérios, pendências e acompanhamentos na área de
-          desenvolvimento da tripulação.
-        </p>
-      </div>
     </>
   );
 }
