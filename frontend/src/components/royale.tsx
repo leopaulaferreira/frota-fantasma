@@ -38,6 +38,8 @@ export function FleetBanner({ week }: { week?: string }) {
       </div>
       <div className="fleet-banner-art" aria-hidden="true">
         <div className="crest-ring" />
+        <img className="banner-king" src={art("skeleton-king")} alt="" />
+        <span className="banner-art-caption">#RQJGC9GV · A FROTA NÃO AFUNDA</span>
 
         <img
           className="banner-ghost"

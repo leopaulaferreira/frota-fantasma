@@ -7,6 +7,7 @@ import {
   Route,
   Link,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import {
   QueryClient,
@@ -53,6 +54,10 @@ const nav = [
   ["/operacoes", "Operações", Activity],
 ] as const;
 function App() {
+  const { pathname } = useLocation();
+  const section = pathname === "/doacoes"
+    ? "Doações"
+    : nav.find(([path]) => path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/"))?.[1] ?? "Central de comando";
   const account = useAccount();
   const admin = useAdmin();
   const logout = useMutation({
@@ -89,7 +94,7 @@ function App() {
           <div className="identity-rule" />
         </div>
 
-        <nav>
+        <nav aria-label="Navegação principal">
           {[
             { label: "A bordo", items: nav.slice(0, 4) },
             { label: "Decisões do líder", items: nav.slice(4, 7) },
@@ -120,10 +125,10 @@ function App() {
       </aside>
       <div className="workspace">
         <header className="topbar">
-          <span>
-            <span className="command-mark">⌖</span> CENTRAL DE COMANDO{" "}
-            <span className="muted">/ Frota Fantasma</span>
-          </span>
+          <div className="section-context">
+            <span className="section-context-label">FROTA FANTASMA</span>
+            <strong>{section}</strong>
+          </div>
           <div className="account-menu">
             <span>
               {account?.username} · {admin ? "Líder" : "Consulta"}
