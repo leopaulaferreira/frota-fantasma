@@ -872,3 +872,88 @@ tr:hover td {
     transform: none;
   }
 }
+
+/* Spectral gallery: light follows the pointer while data stays still. */
+.art-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 300px 240px at var(--light-x, 75%) var(--light-y, 50%), #8df4d91c, transparent 80%);
+}
+.award-stage .art-light {
+  background: radial-gradient(circle 160px at var(--light-x, 50%) var(--light-y, 50%), #f9df9b20, transparent 80%);
+}
+.metric:not(.compact) {
+  background: linear-gradient(145deg, #19323d, #10212d);
+  border: 1px solid #36505c;
+  border-radius: 12px;
+  box-shadow: inset 0 1px #d5fff30a, 0 6px 18px #0002;
+}
+.metric:not(.compact):hover {
+  border-color: #64877f;
+}
+.metric-icon {
+  filter: drop-shadow(0 3px 4px #0006);
+}
+.metric strong,
+.facts strong {
+  font-variant-numeric: tabular-nums;
+}
+.panel {
+  border-color: #304754;
+  box-shadow: inset 0 1px #d5fff308, 0 8px 24px #0002;
+}
+.table-scroll {
+  border-radius: 12px;
+  border-color: #304754;
+}
+th {
+  background: #182d3b;
+  color: #c0d2da;
+}
+.sidebar {
+  box-shadow: 8px 0 40px #0002;
+}
+.sidebar nav a.active {
+  background: linear-gradient(100deg, #28544d, #152d36);
+  text-shadow: 0 0 18px #86eac440;
+}
+.topbar {
+  box-shadow: 0 4px 20px #0002;
+}
+.award-content h3 {
+  color: #f1d49b;
+  letter-spacing: -0.3px;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .banner-ghost,
+  .banner-king,
+  .award-character {
+    translate: var(--art-x, 0px) var(--art-y, 0px);
+    transition: translate 220ms ease-out;
+  }
+  .crest-ring {
+    translate: calc(var(--art-x, 0px) * -0.35) calc(var(--art-y, 0px) * -0.35);
+    transition: translate 300ms ease-out;
+  }
+  .heading-art {
+    transition: translate 300ms ease, filter 300ms ease;
+  }
+  .illustrated-heading:hover .heading-art {
+    translate: 0 -5px;
+    filter: drop-shadow(0 12px 20px #68dfb633);
+  }
+  .metric:not(.compact),
+  .sidebar nav a,
+  .primary {
+    transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+  }
+  .primary:hover {
+    box-shadow: 0 4px 20px #e8bd6430, inset 0 1px #fff6;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .art-light {
+    display: none;
+  }
+}

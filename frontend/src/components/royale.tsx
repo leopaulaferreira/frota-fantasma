@@ -1,3 +1,4 @@
+import type { PointerEvent } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { date, type Highlight, type Player } from "../lib/api";
@@ -6,9 +7,33 @@ import { MetricView } from "./ui";
 
 export const art = (name: string) => "/assets/royale/" + name + ".png";
 
+// Move decorative layers only; text and controls remain stationary.
+function followArt(event: PointerEvent<HTMLElement>) {
+  if (event.pointerType !== "mouse" || !window.matchMedia("(hover: hover) and (prefers-reduced-motion: no-preference)").matches) return;
+  const bounds = event.currentTarget.getBoundingClientRect();
+  const x = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
+  const y = Math.max(0, Math.min(1, (event.clientY - bounds.top) / bounds.height));
+  const style = event.currentTarget.style;
+  style.setProperty("--art-x", `${(x - 0.5) * 16}px`);
+  style.setProperty("--art-y", `${(y - 0.5) * 12}px`);
+  style.setProperty("--light-x", `${x * 100}%`);
+  style.setProperty("--light-y", `${y * 100}%`);
+}
+function resetArt(event: PointerEvent<HTMLElement>) {
+  for (const key of ["--art-x", "--art-y", "--light-x", "--light-y"]) {
+    event.currentTarget.style.removeProperty(key);
+  }
+}
+const artInteraction = {
+  onPointerMove: followArt,
+  onPointerLeave: resetArt,
+  onPointerCancel: resetArt,
+};
+
 export function FleetBanner({ week }: { week?: string }) {
   return (
-    <section className="fleet-banner">
+    <section className="fleet-banner" {...artInteraction}>
+      <div className="art-light" aria-hidden="true" />
       <div className="fleet-banner-copy">
         <div className="eyebrow">
           <span className="live-dot" /> FROTA FANTASMA · CENTRAL DO CLÃ
@@ -96,8 +121,9 @@ export function AwardCard({
   const visual = awardArt[h.title] || awardArt.CAPITAO_DA_GUERRA;
   const winner = players.find((p) => p.tag === h.playerTag);
   return (
-    <article className={"royale-award award-" + visual.number}>
+    <article className={"royale-award award-" + visual.number} {...artInteraction}>
       <div className="award-stage" aria-hidden="true">
+        <div className="art-light" />
         <span className="award-number">{visual.number}</span>
         <img className="award-character" src={art(visual.character)} alt="" />
         <img className="award-badge" src={art(visual.badge)} alt="" />

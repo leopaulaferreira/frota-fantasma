@@ -184,6 +184,18 @@ test("dashboard e investigação completa de membro", async ({ page }, info) => 
         ),
     )
     .toBe(true);
+  if (info.project.name === "desktop") {
+    const banner = page.locator(".fleet-banner");
+    await banner.hover({ position: { x: 60, y: 60 } });
+    await expect.poll(() => banner.evaluate(el => el.style.getPropertyValue("--art-x"))).not.toBe("");
+    await page.mouse.move(0, 0);
+    await expect.poll(() => banner.evaluate(el => el.style.getPropertyValue("--art-x"))).toBe("");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await banner.hover({ position: { x: 100, y: 100 } });
+    await expect.poll(() => banner.evaluate(el => el.style.getPropertyValue("--art-x"))).toBe("");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.mouse.move(0, 0);
+  }
   await page.screenshot({
     path: "test-results/dashboard-" + info.project.name + ".png",
     fullPage: true,
