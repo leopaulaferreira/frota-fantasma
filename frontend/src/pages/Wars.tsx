@@ -1,4 +1,4 @@
-import { useId, useRef } from "react";
+import { useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -322,6 +322,9 @@ function WarEvidence({
   );
 }
 function CurrentWar() {
+  const members = useApi<{ tag: string }[]>("/clan/members");
+  const [showAll, setShowAll] = useState(false);
+  const currentTags = Array.isArray(members.data) ? new Set(members.data.map((m) => m.tag)) : null;
   const q = useApi<{
     snapshot: { capturedAt: string; state: string; periodType: string };
     race: {
@@ -357,6 +360,15 @@ function CurrentWar() {
               arquivo quando publicada pela API.
             </p>
           </div>
+          <p className="muted">
+            Empates compartilham posição. Jogadores zerados aparecem como “Sem pontos”.
+            A lista de membros usa a última coleta completa do clã.
+          </p>
+          <label className="war-members-filter">
+            <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
+            Incluir participantes fora da lista atual do clã
+          </label>
+          {!currentTags && <p role="status">Lista atual de membros indisponível; exibindo todos os participantes sem confirmar vínculo.</p>}
           <Table
             headers={[
               "Posição",
@@ -367,19 +379,19 @@ function CurrentWar() {
             ]}
           >
             {rankRows(
-              (q.data.race.clan?.participants ?? []).map((p) => ({
+              (q.data.race.clan?.participants ?? []).filter((p) => showAll || !currentTags || currentTags.has(p.tag)).map((p) => ({
                 ...p,
                 contribution: p.fame,
                 playerTag: p.tag,
               })),
             ).map((p) => (
               <tr key={p.tag}>
-                <td className="rank">{p.rank === null ? "—" : p.rank + "º"}</td>
+                <td className="rank">{p.fame === 0 ? "Sem pontos" : p.rank === null ? "—" : p.rank + "º"}</td>
                 <td>
                   <Link to={"/membros/" + encodeURIComponent(p.tag)}>
                     {p.name}
                   </Link>
-                  <small>{p.tag}</small>
+                  <small>{p.tag}{currentTags && !currentTags.has(p.tag) ? " · Fora da lista atual do clã" : ""}</small>
                 </td>
                 <td>{format(p.fame)}</td>
                 <td>{format(p.decksUsed)}</td>

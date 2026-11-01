@@ -503,6 +503,7 @@ test("candidaturas mantêm membros acessíveis e simulam referência sem alterar
 });
 
 test("corrida atual ordena pontos do maior ao menor", async ({ page }) => {
+  await page.route("**/api/clan/members", route => route.fulfill({ json: ["#A", "#B", "#C", "#D", "#E"].map(tag => ({ tag })) }));
   await page.route("**/api/wars/current", route => route.fulfill({ json: {
     snapshot: { capturedAt: report.generatedAt, state: "warDay", periodType: "warDay" },
     race: { clan: { name: "Frota", participants: [
@@ -516,8 +517,14 @@ test("corrida atual ordena pontos do maior ao menor", async ({ page }) => {
   await page.goto("/guerras");
   const rows = page.locator("tbody tr");
   await expect(rows).toHaveCount(5);
-  await expect(rows.locator("td:first-child")).toHaveText(["1º", "1º", "3º", "4º", "—"]);
+  await expect(rows.locator("td:first-child")).toHaveText(["1º", "1º", "3º", "Sem pontos", "—"]);
   await expect(rows.locator("td:nth-child(2) a")).toHaveText(["Líder", "Empatado", "Intermediário", "Zero", "Desconhecido"]);
+  await page.route("**/api/clan/members", route => route.fulfill({ json: [{ tag: "#B" }] }));
+  await page.reload();
+  await expect(rows).toHaveCount(1);
+  await page.getByLabel("Incluir participantes fora da lista atual do clã").check();
+  await expect(rows).toHaveCount(5);
+  await expect(rows.filter({ hasText: "Zero" })).toContainText("Fora da lista atual do clã");
 });
 
 
