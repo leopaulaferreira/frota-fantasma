@@ -72,6 +72,7 @@ public final class AnalyticsEngine {
                     .orElseGet(() -> metric(null, Origin.SNAPSHOT_DERIVED, calendar(donationWeek), 0, true, true,
                             List.of(), "Sem snapshots comparáveis na semana de doações encerrada."));
             metrics.put("weeklyDonations", donations);
+            metrics.put("guardianDonations", guardianDonations(p.donations(), donationWeek));
             return new PlayerStats(p.tag(), p.name(), p.role(), p.currentMember(), metrics, p.wars(), p.donations(),
                     p.participation(), p.historicalContext(), p.operationalStatus(), p.elderCandidate());
         }).toList();
@@ -82,7 +83,7 @@ public final class AnalyticsEngine {
             var result = h.result();
             Period period = winner.map(p -> switch (h.title()) {
                 case "CAPITAO_DA_GUERRA" -> p.wars().getFirst().points().period();
-                case "GUARDIAO_DA_FROTA" -> p.metrics().get("weeklyDonations").period();
+                case "GUARDIAO_DA_FROTA" -> p.metrics().get("guardianDonations").period();
                 default -> p.metrics().get("recentAverage").period();
             }).orElse(result.period());
             String reason = result.reason().replace("Alocação provisória exclusiva", "Alocação exclusiva").replace("título provisório porque há lacunas de coleta",
@@ -170,6 +171,7 @@ public final class AnalyticsEngine {
         var donations = donationPeriods.stream().filter(d -> d.week().equals(week)).findFirst().map(DonationPeriod::observedDonations)
                 .orElseGet(() -> metric(null, Origin.SNAPSHOT_DERIVED, calendar(week), 0, true, true, List.of(), "Dados insuficientes: são necessários ao menos dois snapshots comparáveis no período."));
         metrics.put("weeklyDonations", donations);
+        metrics.put("guardianDonations", guardianDonations(donationPeriods, week.minusWeeks(1)));
         int below = (int) rows.stream().filter(p -> valid(p.getContribution()) && p.getContribution() < rules.pointsTarget()).count();
         metrics.put("warsBelowTarget", metric(pointCount == 0 ? null : below, Origin.DERIVED, period, pointCount, insufficient, incomplete, evidence, "Pontuações explícitas abaixo da meta configurada de " + rules.pointsTarget() + ". Uma guerra isolada não comprova baixa participação."));
         String participation = insufficient ? "DADOS_INSUFICIENTES" : zero >= 2 ? "AUSENCIA_RECORRENTE_OBSERVADA"
@@ -298,6 +300,13 @@ public final class AnalyticsEngine {
         return result;
     }
 
+    private Metric<?> guardianDonations(List<DonationPeriod> periods, LocalDate week) {
+        return periods.stream().filter(d -> d.week().equals(week)).map(DonationPeriod::peakCounter).filter(Objects::nonNull).findFirst()
+                .orElseGet(() -> new Metric<Integer>(null, Origin.SNAPSHOT_DERIVED, Quality.INSUFFICIENT_DATA,
+                    new Period(week.atStartOfDay(rules.timezone()).toInstant(), week.plusWeeks(1).atStartOfDay(rules.timezone()).toInstant(), "WEEKLY_PEAK_COUNTER_"+rules.timezone()),
+                    0, true, true, List.of(), "Sem contador oficial coletado na semana encerrada; não usar doações da semana atual."));
+    }
+
     private List<Highlight> highlights(List<PlayerStats> players, List<War> wars, LocalDate week, Period period) {
         Set<String> assigned = new HashSet<>();
         var current = players.stream().filter(PlayerStats::currentMember).toList();
@@ -307,10 +316,10 @@ public final class AnalyticsEngine {
                 .sorted(Comparator.<PlayerStats>comparingInt(p -> p.wars().getFirst().points().value()).reversed().thenComparing(PlayerStats::tag)).toList();
         award(awards, assigned, "CAPITAO_DA_GUERRA", captains, period, p -> p.wars().getFirst().points(),
                 p -> "Maior pontuação da última guerra publicada nesta semana; pontos=" + p.wars().getFirst().points().value() + ", decks=" + p.wars().getFirst().decksUsed().value());
-        var guardians = current.stream().filter(p -> number(p, "weeklyDonations", 0) > 0)
-                .sorted(Comparator.<PlayerStats>comparingDouble(p -> number(p, "weeklyDonations", 0)).reversed().thenComparing(PlayerStats::tag)).toList();
-        award(awards, assigned, "GUARDIAO_DA_FROTA", guardians, period, p -> p.metrics().get("weeklyDonations"),
-                p -> "Maior limite inferior de doações observado no período; título provisório porque há lacunas de coleta.");
+        var guardians = current.stream().filter(p -> number(p, "guardianDonations", 0) > 0)
+                .sorted(Comparator.<PlayerStats>comparingDouble(p -> number(p, "guardianDonations", 0)).reversed().thenComparing(PlayerStats::tag)).toList();
+        award(awards, assigned, "GUARDIAO_DA_FROTA", guardians, period, p -> p.metrics().get("guardianDonations"),
+                p -> "Maior contador oficial coletado na semana encerrada, antes do reset; não é soma de diferenças. Lacunas podem ocultar um pico maior.");
         var immortals = current.stream().filter(p -> number(p, "analyzedWars", 0) >= rules.immortalMinimumWars()
                         && (immortalAllowPartial ? p.wars().stream().limit(4).filter(w -> w.decksUsed().value()!=null && w.decksUsed().value()>0).count() >= rules.immortalMinimumWars()
                             : number(p, "completeStandardWars", 0) >= rules.immortalMinimumWars())
@@ -326,11 +335,14 @@ public final class AnalyticsEngine {
         return List.copyOf(awards);
     }
 
+    private Period playersGuardianPeriod(Period period) {
+        return new Period(period.from().minus(java.time.Duration.ofDays(7)), period.from(), "WEEKLY_PEAK_COUNTER_"+rules.timezone());
+    }
     private void award(List<Highlight> results, Set<String> assigned, String title, List<PlayerStats> candidates, Period period,
                        Function<PlayerStats, Metric<?>> metric, Function<PlayerStats, String> reason) {
         var winner = candidates.stream().filter(p -> !assigned.contains(p.tag())).findFirst().orElse(null);
         if (winner == null) {
-            results.add(new Highlight(title, null, metric(null, Origin.DERIVED, period, 0, true, true, List.of(), "Dados insuficientes ou nenhum candidato elegível ainda sem título nesta semana.")));
+            results.add(new Highlight(title, null, metric(null, Origin.DERIVED, "GUARDIAO_DA_FROTA".equals(title) ? playersGuardianPeriod(period) : period, 0, true, true, List.of(), "Dados insuficientes ou nenhum candidato elegível ainda sem título nesta semana.")));
         } else {
             assigned.add(winner.tag());
             Metric<?> source = metric.apply(winner);
@@ -341,7 +353,7 @@ public final class AnalyticsEngine {
             }
             used.add("rankedCandidates=" + candidates.stream().map(PlayerStats::tag).toList());
             Origin origin = "CAPITAO_DA_GUERRA".equals(title) ? Origin.DERIVED : Origin.SNAPSHOT_DERIVED;
-            results.add(new Highlight(title, winner.tag(), metric(source.value(), origin, period, source.warsConsidered(), "ALMA_IMORTAL".equals(title) ? source.warsConsidered() < rules.immortalMinimumWars() : source.insufficientSample(), true,
+            results.add(new Highlight(title, winner.tag(), metric(source.value(), origin, "GUARDIAO_DA_FROTA".equals(title) ? source.period() : period, source.warsConsidered(), "ALMA_IMORTAL".equals(title) ? source.warsConsidered() < rules.immortalMinimumWars() : source.insufficientSample(), true,
                     used, reason.apply(winner) + " Alocação provisória exclusiva por semana: Capitão → Guardião → Alma; empate final por tag. Candidato já premiado é pulado.")));
         }
     }

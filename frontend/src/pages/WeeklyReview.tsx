@@ -1,5 +1,5 @@
 import { WeeklyDecision } from "../components/WeeklyDecision";
-import { useRef, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useAdmin } from "../lib/auth";
@@ -14,6 +14,8 @@ import {
   type ReviewDecision,
   saoPauloTime,
   offlineDuration,
+  reviewOrder,
+  participationGroups,
 } from "../lib/weeklyReview";
 import { Heading, QueryState, Empty } from "../components/ui";
 import { NoteText } from "../components/LeaderNotes";
@@ -30,10 +32,16 @@ export function WeeklyReview() {
 }
 function PrivateWeeklyReview() {
   const [week, setWeek] = useState("");
-  const [filter, setFilter] = useState("REVIEW");
+  const [filter, setFilter] = useState("");
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [sort, setSort] = useState("priority");
+  const [descending, setDescending] = useState(false);
   const [search, setSearch] = useState("");
   const [justified, setJustified] = useState(false);
   const [progress, setProgress] = useState("");
+  const [criterion, setCriterion] = useState("");
+  const [donationTarget, setDonationTarget] = useState("");
+  const [offlineTarget, setOfflineTarget] = useState("5");
   const [notice, setNotice] = useState("");
   const q = useApi<WeeklyReviewReport>(
     "/leadership/weekly-review" +
@@ -42,6 +50,47 @@ function PrivateWeeklyReview() {
   );
   const notes = useApi<ActiveNotes>("/leadership/notes/active", 60000);
   const r = q.data;
+  const matchesRule = (p: WeeklyReviewMember) => {
+    switch (criterion) {
+      case "points":
+        return p.belowPoints;
+      case "zero":
+        return !!r?.membersFresh && p.points === 0;
+      case "decks":
+        return !!r?.membersFresh && p.decksUsed === 0;
+      case "two":
+        return !!p.participation?.twoZero;
+      case "twoBelow":
+        return !!p.participation?.twoBelow;
+      case "zeroDonations":
+        return !!p.participation?.twoZeroDonations;
+      case "new":
+        return !!p.participation?.newcomer;
+      case "wait":
+        return history(p.tag)[0]?.action === "WAIT";
+      case "reviewed":
+        return !!decisions.data && !decisionPending(history(p.tag)[0]);
+      case "dismissed":
+        return history(p.tag)[0]?.action === "DISMISS";
+      case "offline":
+        return (
+          !!r?.membersFresh &&
+          offlineTarget !== "" &&
+          Number(offlineTarget) >= 0 &&
+          p.offlineSeconds !== null &&
+          p.offlineSeconds > Number(offlineTarget) * 86400
+        );
+      case "donations":
+        return (
+          donationTarget !== "" &&
+          Number(donationTarget) >= 0 &&
+          p.donations != null &&
+          p.donations < Number(donationTarget)
+        );
+      default:
+        return true;
+    }
+  };
   const decisions = useQuery({
     queryKey: ["weekly-review-decisions", r?.week],
     queryFn: () =>
@@ -66,16 +115,53 @@ function PrivateWeeklyReview() {
       (n) => n.playerTag === tag && n.status === "ACTIVE",
     ) || [];
   const rows =
-    r?.members.filter(
-      (p) =>
-        matchesProgress(p.tag) &&
-        (!filter || p.status === filter) &&
-        (p.name + p.tag)
-          .toLocaleLowerCase("pt-BR")
-          .includes(search.trim().toLocaleLowerCase("pt-BR")) &&
-        (!justified ||
-          activeNotes(p.tag).some((n) => n.kind === "JUSTIFICATION")),
-    ) || [];
+    r?.members
+      .filter(
+        (p) =>
+          matchesProgress(p.tag) &&
+          (!filter || p.participation?.group === filter) &&
+          matchesRule(p) &&
+          (p.name + p.tag)
+            .toLocaleLowerCase("pt-BR")
+            .includes(search.trim().toLocaleLowerCase("pt-BR")) &&
+          (!justified ||
+            activeNotes(p.tag).some((n) => n.kind === "JUSTIFICATION")),
+      )
+      .sort((a, b) => {
+        const value = (p: WeeklyReviewMember): number | string | null => {
+          switch (sort) {
+            case "name":
+              return p.name;
+            case "previous":
+              return p.participation?.wars[0]?.points ?? null;
+            case "points":
+              return p.points;
+            case "decks":
+              return p.decksUsed;
+            case "donations":
+              return p.participation?.donationWeeks[1]?.observed ?? null;
+            case "tenure":
+              return p.participation?.tenureDays ?? null;
+            case "offline":
+              return p.offlineSeconds;
+            case "group":
+              return p.participation?.group ?? null;
+            default:
+              return null;
+          }
+        };
+        if (sort === "priority") return reviewOrder(a, b);
+        const x = value(a),
+          y = value(b);
+        if (x === null || y === null)
+          return x === y ? a.tag.localeCompare(b.tag) : x === null ? 1 : -1;
+        return (
+          (typeof x === "string" && typeof y === "string"
+            ? x.localeCompare(y)
+            : Number(x) - Number(y)) * (descending ? -1 : 1) ||
+          a.tag.localeCompare(b.tag)
+        );
+      }) || [];
   return (
     <>
       <Heading eyebrow="FAXINA NO CONVÉS" title="Expulsões semanais">
@@ -84,9 +170,10 @@ function PrivateWeeklyReview() {
         </Link>
       </Heading>
       <p className="lede">
-        Lista de revisão: menos de 1.600 pontos na corrida da semana ou mais de
-        5 dias offline. A decisão é sua, após conferir o contexto e as
-        justificativas de cada tripulante.
+        Revise a participação com resultados oficiais, captura da corrida,
+        doações, vínculo com o clã e atividade. Selecione um critério para
+        identificar reincidência ou sinais recentes. A decisão é sua, após
+        conferir o contexto e as justificativas de cada tripulante.
       </p>
       <div className="toolbar">
         <label>
@@ -99,7 +186,7 @@ function PrivateWeeklyReview() {
               setNotice("");
               setProgress("");
               setWeek(e.target.value);
-              setFilter("REVIEW");
+              setFilter("");
             }}
           />
         </label>
@@ -108,7 +195,7 @@ function PrivateWeeklyReview() {
             setNotice("");
             setProgress("");
             setWeek("");
-            setFilter("REVIEW");
+            setFilter("");
           }}
         >
           Revisão mais recente
@@ -155,8 +242,10 @@ function PrivateWeeklyReview() {
                 <p>
                   Quem fez exatamente 1.600 pontos ou está há exatamente 5 dias
                   offline não aciona o respectivo critério. A inatividade é
-                  medida na captura. A ordem prioriza quem acionou as duas
-                  regras, depois a menor pontuação.
+                  medida na captura. A lista começa pelos zerados, depois pelos
+                  membros abaixo da meta em ordem crescente de decks usados. Os
+                  demais aparecem em seguida. Dados desconhecidos não equivalem
+                  a zero.
                 </p>
               </details>
             </div>
@@ -185,7 +274,7 @@ function PrivateWeeklyReview() {
               className="prospect-summary"
               aria-label="Resumo da revisão semanal"
             >
-              {Object.entries(reviewStatuses).map(([key, label]) => (
+              {Object.entries(participationGroups).map(([key, label]) => (
                 <button
                   key={key}
                   className={filter === key ? "selected" : ""}
@@ -193,7 +282,10 @@ function PrivateWeeklyReview() {
                   onClick={() => setFilter(key)}
                 >
                   <strong>
-                    {r.members.filter((p) => p.status === key).length}
+                    {
+                      r.members.filter((p) => p.participation?.group === key)
+                        .length
+                    }
                   </strong>
                   {label}
                 </button>
@@ -252,7 +344,7 @@ function PrivateWeeklyReview() {
                 onChange={(e) => setFilter(e.target.value)}
               >
                 <option value="">Todos os membros do recorte</option>
-                {Object.entries(reviewStatuses).map(([key, label]) => (
+                {Object.entries(participationGroups).map(([key, label]) => (
                   <option key={key} value={key}>
                     {label}
                   </option>
@@ -269,6 +361,7 @@ function PrivateWeeklyReview() {
               </label>
               <button
                 onClick={() => {
+                  setCriterion("");
                   setSearch("");
                   setFilter("");
                   setJustified(false);
@@ -278,6 +371,82 @@ function PrivateWeeklyReview() {
                 Mostrar todos
               </button>
             </div>
+            <div className="toolbar" aria-label="Filtros por regra">
+              <label>
+                Critério de revisão
+                <select
+                  value={criterion}
+                  onChange={(e) => {
+                    setCriterion(e.target.value);
+                    setFilter("");
+                  }}
+                >
+                  <option value="">Todos os critérios</option>
+                  <option value="points">Abaixo da meta de pontos</option>
+                  <option value="zero">Zero pontos</option>
+                  <option value="decks">Nenhum deck usado nesta semana</option>
+                  <option value="twoBelow">Duas guerras abaixo da meta</option>
+                  <option value="two">Duas guerras com zero ataques</option>
+                  <option value="zeroDonations">
+                    Zero doações nas últimas duas semanas completas
+                  </option>
+                  <option value="new">
+                    Novatos (menos de 14 dias observados)
+                  </option>
+                  <option value="wait">Aguardando justificativa</option>
+                  <option value="reviewed">Revisados</option>
+                  <option value="dismissed">Dispensados</option>
+                  <option value="offline">Dias offline acima do limite</option>
+                  <option value="donations">Doações abaixo da meta</option>
+                </select>
+              </label>
+              {criterion === "offline" && (
+                <label>
+                  Limite de dias offline
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={offlineTarget}
+                    onChange={(e) => setOfflineTarget(e.target.value)}
+                  />
+                </label>
+              )}
+              {criterion === "donations" && (
+                <label>
+                  Meta semanal de doações
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="Informe a meta"
+                    value={donationTarget}
+                    onChange={(e) => setDonationTarget(e.target.value)}
+                  />
+                </label>
+              )}
+            </div>
+            {criterion === "donations" && (
+              <p className="muted">
+                Contador de doações na captura do elenco, não o total
+                reconstruído por diferenças. Informe a meta; dados desconhecidos
+                não entram como zero.
+              </p>
+            )}
+            {(criterion === "two" || criterion === "twoBelow") && (
+              <p className="muted">
+                Filtro das duas últimas guerras oficiais disponíveis no recorte.
+                Ausência de participante, entrada durante a guerra e reingresso
+                não contam como falta.
+              </p>
+            )}
+            {criterion === "zeroDonations" && (
+              <p className="muted">
+                Exige duas semanas completas com contadores zero, sem reset ou
+                reingresso e cobertura de no máximo uma hora entre capturas.
+                Lacunas não contam como zero.
+              </p>
+            )}
             {notes.error && (
               <p role="alert" className="error">
                 Não foi possível consultar as justificativas.{" "}
@@ -290,21 +459,145 @@ function PrivateWeeklyReview() {
               {rows.length} membros nesta seleção · {r.members.length} no elenco
               do recorte · todas as funções incluídas.
             </p>
-            <div className="prospect-list">
-              {rows.map((p, i) => (
-                <ReviewMember
-                  key={r.week + p.tag}
-                  player={p}
-                  position={i + 1}
-                  report={r}
-                  notes={activeNotes(p.tag)}
-                  notesAvailable={!!notes.data}
-                  decisions={history(p.tag)}
-                  decisionsAvailable={!!decisions.data}
-                  onSaved={setNotice}
-                />
-              ))}
+            <div className="table-scroll review-table">
+              <table>
+                <thead>
+                  <tr>
+                    {[
+                      ["name", "Jogador"],
+                      ["previous", "Guerra anterior"],
+                      ["points", "Guerra atual"],
+                      ["decks", "Decks"],
+                      ["donations", "Doações"],
+                      ["tenure", "Tempo no clã"],
+                      ["offline", "Dias offline"],
+                      ["group", "Situação"],
+                    ].map(([key, label]) => (
+                      <th
+                        key={key}
+                        aria-sort={
+                          sort === key
+                            ? descending
+                              ? "descending"
+                              : "ascending"
+                            : "none"
+                        }
+                      >
+                        <button
+                          onClick={() => {
+                            setSort(key);
+                            setDescending(sort === key ? !descending : false);
+                          }}
+                        >
+                          {label}
+                          {sort === key ? (descending ? " ↓" : " ↑") : " ↕"}
+                        </button>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((p, i) => (
+                    <Fragment key={r.week + p.tag}>
+                      <tr>
+                        <td>
+                          <button
+                            aria-expanded={expanded === p.tag}
+                            aria-controls={"review-" + i}
+                            onClick={() =>
+                              setExpanded(expanded === p.tag ? null : p.tag)
+                            }
+                          >
+                            {i + 1}. {p.name}
+                          </button>
+                          <small>{p.tag}</small>
+                        </td>
+                        <td>
+                          {format(p.participation?.wars[0]?.points ?? null)}
+                          <small>
+                            Oficial ·{" "}
+                            {p.participation?.wars[0]
+                              ? date(p.participation.wars[0].publishedAt)
+                              : "Sem histórico"}
+                          </small>
+                        </td>
+                        <td>
+                          {format(p.points)}
+                          <small>Captura parcial</small>
+                        </td>
+                        <td>
+                          {format(p.decksUsed)}
+                          <small>
+                            Anterior:{" "}
+                            {format(p.participation?.wars[0]?.decks ?? null)}
+                          </small>
+                        </td>
+                        <td>
+                          {format(
+                            p.participation?.donationWeeks[1]?.observed ?? null,
+                          )}
+                          <small>
+                            Semana anterior ·{" "}
+                            {p.participation?.donationWeeks[1]?.complete
+                              ? "cobertura observada"
+                              : "cobertura insuficiente"}
+                          </small>
+                        </td>
+                        <td>
+                          {p.participation?.tenureDays == null
+                            ? "Desconhecido"
+                            : p.participation.tenureDays + " dias"}
+                          <small>
+                            {p.participation?.rejoined
+                              ? "Reingresso"
+                              : p.participation?.newcomer
+                                ? "Novato · " + p.participation.tenureBasis
+                                : p.participation?.tenureBasis}
+                          </small>
+                        </td>
+                        <td>{offlineDuration(p.offlineSeconds)}</td>
+                        <td>
+                          {p.participation
+                            ? participationGroups[p.participation.group]
+                            : "Dados insuficientes"}
+                          <small>
+                            {!decisions.data
+                              ? "Decisão indisponível"
+                              : history(p.tag)[0]
+                                ? decisionLabels[history(p.tag)[0].action]
+                                : "Pendente"}
+                          </small>
+                        </td>
+                      </tr>
+                      {expanded === p.tag && (
+                        <tr id={"review-" + i}>
+                          <td colSpan={8}>
+                            <ReviewMember
+                              player={p}
+                              position={i + 1}
+                              report={r}
+                              notes={activeNotes(p.tag)}
+                              notesAvailable={!!notes.data}
+                              decisions={history(p.tag)}
+                              decisionsAvailable={!!decisions.data}
+                              onSaved={setNotice}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
             </div>
+            <button
+              onClick={() => {
+                setSort("priority");
+                setDescending(false);
+              }}
+            >
+              Restaurar ordem: zerados e decks crescentes
+            </button>
             {!rows.length && (
               <Empty>
                 {!r.members.length
@@ -347,7 +640,7 @@ function ReviewMember({
     p.offlineExceeded ? "Mais de 5 dias offline" : "",
   ].filter(Boolean);
   return (
-    <details className="prospect-card weekly-review-member">
+    <details open className="prospect-card weekly-review-member">
       <summary className="prospect-row-summary">
         <span className="prospect-position">{position}º</span>
         <span className="prospect-row-copy">
@@ -358,7 +651,9 @@ function ReviewMember({
             >
               {justifications.length
                 ? "Tem justificativa"
-                : reviewStatuses[p.status]}
+                : p.participation
+                  ? participationGroups[p.participation.group]
+                  : reviewStatuses[p.status]}
             </span>
           </span>
           <span className="prospect-row-stats">
@@ -371,7 +666,9 @@ function ReviewMember({
             {p.points === null
               ? "Pontos desconhecidos"
               : `${format(p.points)} pontos`}{" "}
-            · Offline: {offlineDuration(p.offlineSeconds)}
+            · Decks: {format(p.decksUsed)} · Doações:{" "}
+            {format(p.donations ?? null)}· Offline:{" "}
+            {offlineDuration(p.offlineSeconds)}
             {reasons.length ? " · " + reasons.join(" e ") : ""}
           </span>
         </span>
@@ -384,7 +681,12 @@ function ReviewMember({
           {p.name} · {p.tag}
         </h3>
         <p>
-          <strong>{reviewStatuses[p.status]}</strong> · Cargo no recorte:{" "}
+          <strong>
+            {p.participation
+              ? participationGroups[p.participation.group]
+              : reviewStatuses[p.status]}
+          </strong>{" "}
+          · Cargo no recorte:{" "}
           {(
             {
               member: "Membro",
@@ -415,6 +717,12 @@ function ReviewMember({
             </strong>
           </div>
           <div>
+            <small>Doações na captura do elenco</small>
+            <strong>
+              {p.donations == null ? "Desconhecidas" : format(p.donations)}
+            </strong>
+          </div>
+          <div>
             <small>Tempo offline na captura</small>
             <b>{offlineDuration(p.offlineSeconds)}</b>
           </div>
@@ -441,6 +749,112 @@ function ReviewMember({
           . A primeira observação não comprova ingresso real. Confira se o
           membro entrou durante a guerra ou avisou uma ausência.
         </p>
+        {p.participation && (
+          <section className="review-evidence">
+            <h3>Participação e reincidência</h3>
+            <ul>
+              {p.participation.reasons.map((reason) => (
+                <li key={reason}>{reason}</li>
+              ))}
+            </ul>
+            <p>
+              Média: {format(p.participation.averageFour)} ·{" "}
+              {p.participation.warsConsidered}/4 guerras com pontos ·{" "}
+              {p.participation.belowTarget} abaixo de 1.600 ·{" "}
+              {p.participation.consecutiveZeroAttacks} seguidas sem ataques.{" "}
+              {p.participation.trend}.
+            </p>
+            <h3>Histórico oficial disponível até o recorte</h3>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Publicação</th>
+                    <th>Pontos</th>
+                    <th>Decks</th>
+                    <th>Contexto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {p.participation.wars.map((w) => (
+                    <tr key={w.id}>
+                      <td>
+                        {date(w.publishedAt)}
+                        <small>Oficial</small>
+                      </td>
+                      <td>{format(w.points)}</td>
+                      <td>{format(w.decks)}</td>
+                      <td>
+                        {w.reason}
+                        <small>Capturado: {saoPauloTime(w.capturedAt)}</small>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <h3>Histórico de doações</h3>
+            <p>
+              Quatro semanas completas: {format(p.participation.totalFourWeeks)}{" "}
+              observadas ·{" "}
+              {p.participation.donationCoverageComplete
+                ? "Cobertura observacional completa"
+                : "Cobertura incompleta; não representa total exato"}{" "}
+              · {p.participation.zeroDonationWeeks} semanas com zero confirmado
+              pelas capturas.
+            </p>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Semana</th>
+                    <th>Observadas</th>
+                    <th>Último contador</th>
+                    <th>Cobertura</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {p.participation.donationWeeks.map((d) => (
+                    <tr key={d.week}>
+                      <td>{date(d.week)}</td>
+                      <td>{format(d.observed)}</td>
+                      <td>{format(d.lastCounter)}</td>
+                      <td>
+                        {d.samples} capturas · {d.resets} resets ·{" "}
+                        {d.zeroConfirmed
+                          ? "Zero confirmado nas capturas"
+                          : d.complete
+                            ? "Cobertura observada"
+                            : "Dados parciais/insuficientes"}
+                        <small>{d.reason}</small>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <h3>Entrada, saída e reingressos</h3>
+            <p>
+              {p.participation.tenureBasis}. Tempo observado não comprova data
+              real de entrada nem todos os ataques disponíveis.
+            </p>
+            <ul>
+              {p.participation.events.map((e, i) => (
+                <li key={i}>
+                  {(
+                    {
+                      JOIN: "Entrada",
+                      LEAVE: "Saída",
+                      BASELINE: "Primeira observação",
+                      ROLE_CHANGE: "Mudança de cargo",
+                    } as Record<string, string>
+                  )[e.type] || e.type}{" "}
+                  · {saoPauloTime(e.at)}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         {decisionsAvailable ? (
           <WeeklyDecision
             tag={p.tag}

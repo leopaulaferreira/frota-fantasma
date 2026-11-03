@@ -339,3 +339,6 @@ oficial posterior pode tornar importados inativos sem apagar a auditoria. Métri
 mostram fontes combinadas; a página Guerras identifica backfill no arquivo, ranking
 e evidências, sem rotular valores importados como exclusivamente oficiais. Perfil e
 Comparar recebem o mesmo histórico do analytics, sem novos cálculos no frontend.
+
+A central de guerras oferece filtros compartilháveis na URL, comparação lado a
+lado e evolução individual. Contratos, critérios e limites em [WARS.md](WARS.md).

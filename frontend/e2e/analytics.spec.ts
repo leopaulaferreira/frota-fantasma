@@ -254,12 +254,11 @@ test("guerras anteriores, paginação e comparação alinhada", async ({
 }) => {
   await page.goto("/guerras/1");
   await expect(
-    page.getByRole("heading", { name: "Ranking da guerra" }),
+    page.getByRole("heading", { name: "Guerras da Frota" }),
   ).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.getByRole("button", { name: "Próxima página" }).click();
-  await page.getByRole("link", { name: /Temporada 137 · seção -2/ }).click();
-  await expect(page).toHaveURL(/guerras\/6$/);
+  await page.getByLabel("Guerra selecionada").selectOption("6");
+  await expect(page).toHaveURL(/guerras\/6/);
   await page.goto("/comparar?tags=%23P01");
   await page.getByLabel("Adicionar membro").selectOption("#P03");
   await expect(
@@ -479,7 +478,8 @@ test("explicação abre em janela sem esticar a tabela e preserva os dados técn
 test("evidências da guerra abrem sem esticar o ranking", async ({ page }) => {
   await page.goto("/guerras/1");
   const trigger = page.getByRole("button", { name: "Evidências", exact: true }).first();
-  const row = page.locator("tbody tr").first();
+  const row = page.locator(".war-player-table > table > tbody > tr").first();
+  await expect(row).toBeVisible();
   const before = await row.boundingBox();
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: /Evidências de/ });
@@ -527,16 +527,17 @@ test("corrida atual ordena pontos do maior ao menor", async ({ page }) => {
     ] } },
   } }));
   await page.goto("/guerras");
-  const rows = page.locator("tbody tr");
+  const rows = page.locator(".war-player-table > table > tbody > tr");
   await expect(rows).toHaveCount(5);
-  await expect(rows.locator("td:first-child")).toHaveText(["1º", "1º", "3º", "Sem pontos", "—"]);
-  await expect(rows.locator("td:nth-child(2) a")).toHaveText(["Líder", "Empatado", "Intermediário", "Zero", "Desconhecido"]);
+  await expect(rows.locator("td:nth-child(2)")).toHaveText(["2.400", "2.400", "1.600", "0", "Dados insuficientes"]);
+  await expect(rows.locator("td:first-child a")).toHaveText(["Líder", "Empatado", "Intermediário", "Zero", "Desconhecido"]);
   await page.route("**/api/clan/members", route => route.fulfill({ json: [{ tag: "#B" }] }));
   await page.reload();
+  await page.getByLabel("Vínculo",{exact:true}).selectOption("current");
   await expect(rows).toHaveCount(1);
-  await page.getByLabel("Incluir participantes fora da lista atual do clã").check();
+  await page.getByLabel("Vínculo",{exact:true}).selectOption("");
   await expect(rows).toHaveCount(5);
-  await expect(rows.filter({ hasText: "Zero" })).toContainText("Fora da lista atual do clã");
+  await expect(rows.filter({ hasText: "Zero" })).toContainText("Ex-membro");
 });
 
 

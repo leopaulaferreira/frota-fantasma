@@ -957,3 +957,17 @@ th {
     display: none;
   }
 }
+
+.review-table table { min-width: 1000px; }
+.review-table th button { padding: 6px 0; border: 0; background: transparent; font-size: 11px; text-align: left; }
+.review-table td { padding: 12px 10px; vertical-align: top; }
+.review-table td:first-child button { text-align: left; justify-content: flex-start; }
+.review-evidence { margin-block: 20px; }
+.review-evidence td { white-space: normal; }
+
+.war-player-table > table { min-width: 1050px; }
+.war-player-table > table > tbody > tr > td { padding: 12px 10px; }
+.war-player-table > table > tbody > tr > td:first-child { min-width: 150px; }
+.war-player-table th button { padding: 6px; font-size: 11px; }
+.war-player-table td > a { display: inline-block; }
+.war-player-table pre { white-space: pre-wrap; }

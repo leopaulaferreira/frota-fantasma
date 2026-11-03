@@ -13,6 +13,13 @@ class WeeklyReviewEngineTest {
     final Instant at = Instant.parse("2026-10-19T00:59:00Z"); // Sunday 21:59 São Paulo
     Member member(String tag, long offlineSeconds) { return new Member(tag,tag,"member",at.minusSeconds(offlineSeconds),at.minus(Duration.ofDays(3))); }
     Race race(String payload) throws Exception { return new Race(at,1L,"warDay",json.readTree(payload)); }
+    @Test void donationsRequireFreshCompleteRosterAndPreserveUnknown() throws Exception {
+        var p = new Member("#P", "P", "member", at, null, 0);
+        assertThat(analyze(week,at,true,at,1,List.of(p),null).members().getFirst().donations()).isZero();
+        assertThat(analyze(week,at,true,at.minusSeconds(3601),1,List.of(p),null).members().getFirst().donations()).isNull();
+        assertThat(analyze(week,at,true,at,2,List.of(p),null).members().getFirst().donations()).isNull();
+        assertThat(analyze(week,at,true,at,1,List.of(member("#P",0)),null).members().getFirst().donations()).isNull();
+    }
     @Test void exactBoundariesAndEitherReasonApplyToEveryRole() throws Exception {
         var members=List.of(member("#EXACT",5*86400),member("#LOW",0),new Member("#LEADER","Líder","leader",at.minusSeconds(5*86400+1),null));
         var report=analyze(week,at,true,at,3,members,race("""

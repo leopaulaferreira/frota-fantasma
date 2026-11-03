@@ -67,9 +67,17 @@ public final class DonationCalculator {
                     counter == null, last.getBatchId()!=null,
                     List.of("membership:" + last.getId() + "@" + last.getCapturedAt() + ";" + last.provenance() + ":donations=" + last.getDonations()),
                     "Último contador de doações coletado nesta semana. É o número informado pelo jogo naquele instante; não comprova o total da semana nem o horário do reset.");
+            var peak = rows.stream().filter(r -> valid(r.getDonations()) && "DIRECT_API".equals(r.getSource()))
+                    .max(Comparator.comparing(ClanMembershipSnapshot::getDonations)
+                            .thenComparing(ClanMembershipSnapshot::getCapturedAt)).orElse(null);
+            var peakCounter = new Metric<Integer>(peak == null ? null : peak.getDonations(), Origin.SNAPSHOT_DERIVED,
+                    peak == null ? Quality.INSUFFICIENT_DATA : Quality.INCOMPLETE,
+                    new Period(start, end, "WEEKLY_PEAK_COUNTER_" + zone), 0, peak == null, true,
+                    peak == null ? List.of() : List.of("membership:" + peak.getId() + "@" + peak.getCapturedAt() + ";" + peak.provenance() + ":donations=" + peak.getDonations()),
+                    "Maior contador oficial coletado na semana, preservado mesmo após reset. Não é soma de diferenças nem contador atual; lacunas podem ocultar um pico maior. Não soma segmentos de reset ou reingresso.");
             result.add(new DonationPeriod(entry.getKey(), new Metric<>(comparisons == 0 ? null : total,
                     Origin.SNAPSHOT_DERIVED, comparisons == 0 ? Quality.INSUFFICIENT_DATA : Quality.INCOMPLETE,
-                    new Period(start, end, "CALENDAR_WEEK_" + zone), 0, comparisons == 0, true, evidence, reason), rows.size(), resets, lastCounter, last.getCapturedAt()));
+                    new Period(start, end, "CALENDAR_WEEK_" + zone), 0, comparisons == 0, true, evidence, reason), rows.size(), resets, lastCounter, last.getCapturedAt(), peakCounter));
             precedingWeek = rows.getLast();
         }
         return List.copyOf(result);

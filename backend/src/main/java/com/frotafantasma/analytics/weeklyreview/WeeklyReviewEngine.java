@@ -11,11 +11,24 @@ public final class WeeklyReviewEngine {
     public static final int POINTS_TARGET = 1600;
     public static final int OFFLINE_DAYS = 5;
     public static final Duration MAX_AGE = Duration.ofHours(1);
-    public record Member(String tag, String name, String role, Instant lastSeen, Instant observedSince) {}
+    public record Member(String tag, String name, String role, Instant lastSeen, Instant observedSince, Integer donations) {
+        public Member(String tag, String name, String role, Instant lastSeen, Instant observedSince) {
+            this(tag, name, role, lastSeen, observedSince, null);
+        }
+    }
     public record Race(Instant capturedAt, Long snapshotId, String periodType, JsonNode payload) {}
     public record Row(String tag, String name, String role, Integer points, Integer decksUsed, Instant lastSeen,
                       Long offlineSeconds, Instant observedSince, boolean belowPoints, boolean offlineExceeded,
-                      String status, List<String> missingEvidence) {}
+                      String status, List<String> missingEvidence, Integer donations, WeeklyParticipation.Context participation) {
+        public Row(String tag, String name, String role, Integer points, Integer decksUsed, Instant lastSeen,
+                   Long offlineSeconds, Instant observedSince, boolean belowPoints, boolean offlineExceeded,
+                   String status, List<String> missingEvidence, Integer donations) {
+            this(tag,name,role,points,decksUsed,lastSeen,offlineSeconds,observedSince,belowPoints,offlineExceeded,status,missingEvidence,donations,null);
+        }
+        public Row withParticipation(WeeklyParticipation.Context context) {
+            return new Row(tag,name,role,points,decksUsed,lastSeen,offlineSeconds,observedSince,belowPoints,offlineExceeded,status,missingEvidence,donations,context);
+        }
+    }
     public record Report(LocalDate week, Instant generatedAt, Instant cutoff, Instant deadline, String timezone,
                          String phase, int pointsTarget, int offlineDays, boolean collectionEnabled,
                          Instant membersCapturedAt, Instant riverCapturedAt, Long riverSnapshotId,
@@ -40,7 +53,7 @@ public final class WeeklyReviewEngine {
         boolean membersFresh = fresh(membersAt, cutoff) && rosterComplete;
         Instant warWeekStart = week.plusDays(3).atStartOfDay(ZONE).toInstant();
         boolean riverFresh = race != null && fresh(race.capturedAt(), cutoff)
-                && !race.capturedAt().isBefore(warWeekStart) && "warDay".equalsIgnoreCase(race.periodType());
+                && !race.capturedAt().isBefore(warWeekStart) && ("warDay".equalsIgnoreCase(race.periodType()) || "colosseum".equalsIgnoreCase(race.periodType()));
         var participants = new HashMap<String, JsonNode>();
         if (race != null && race.payload() != null) {
             for (var p : race.payload().path("clan").path("participants")) participants.put(p.path("tag").asText(), p);
@@ -60,7 +73,7 @@ public final class WeeklyReviewEngine {
             else if (points == null) missing.add("Pontuação não informada para este membro; ausência de registro não equivale a zero.");
             if (!activityValid) missing.add("Última atividade oficial ausente ou inválida.");
             rows.add(new Row(member.tag(), member.name(), member.role(), points, decks, member.lastSeen(), offline,
-                    member.observedSince(), below, inactive, below || inactive ? "REVIEW" : missing.isEmpty() ? "CLEAR" : "UNKNOWN", List.copyOf(missing)));
+                    member.observedSince(), below, inactive, below || inactive ? "REVIEW" : missing.isEmpty() ? "CLEAR" : "UNKNOWN", List.copyOf(missing), membersFresh && member.donations() != null && member.donations() >= 0 ? member.donations() : null));
         }
         rows.sort(Comparator.comparingInt((Row r) -> switch (r.status()) { case "REVIEW" -> 0; case "UNKNOWN" -> 1; default -> 2; })
                 .thenComparing(Comparator.comparingInt((Row r) -> (r.belowPoints() ? 1 : 0) + (r.offlineExceeded() ? 1 : 0)).reversed())

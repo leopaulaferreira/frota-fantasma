@@ -22,7 +22,7 @@ public final class AnalyticsDtos {
     }
     public record WarStats(Long warId, Integer seasonId, Integer sectionIndex, Instant publishedAt,
                            Metric<Integer> points, Metric<Integer> decksUsed, Metric<String> participation, Metric<Integer> rank) {}
-    public record DonationPeriod(LocalDate week, Metric<Long> observedDonations, int snapshots, int detectedResets, Metric<Integer> lastCounter, Instant counterCapturedAt) {}
+    public record DonationPeriod(LocalDate week, Metric<Long> observedDonations, int snapshots, int detectedResets, Metric<Integer> lastCounter, Instant counterCapturedAt, Metric<Integer> peakCounter) {}
     public record PlayerStats(String tag, String name, String role, boolean currentMember,
                               Map<String, Metric<?>> metrics, List<WarStats> wars, List<DonationPeriod> donations,
                               Metric<String> participation, Metric<String> historicalContext,

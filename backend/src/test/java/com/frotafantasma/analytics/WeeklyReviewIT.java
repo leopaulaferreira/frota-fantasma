@@ -53,6 +53,36 @@ class WeeklyReviewIT {
         for(int i=1;i<=count;i++)sql.update("insert into clan_membership_history(player_id,clan_id,run_id,name,role,captured_at,api_last_seen) values(?,1,?,?,'member',?,?)",i,id,"Membro "+i,Timestamp.from(at),Timestamp.from(at.minusSeconds(30)));
     }
     void race(Instant at,int points){sql.update("insert into river_race_snapshot(clan_id,run_id,period_type,captured_at,payload) values(1,?,'warDay',?,?::jsonb)",run(at),Timestamp.from(at),"{\"clan\":{\"participants\":[{\"tag\":\"#P01\",\"fame\":"+points+"}]}}");}
+    @Test void colosseumIsWarAndLaterTrainingDoesNotHideItsCapture() {
+        sql.update("update river_race_snapshot set period_type='colosseum' where captured_at=?",Timestamp.from(BEFORE));
+        sql.update("insert into river_race_snapshot(clan_id,run_id,period_type,captured_at,payload) values(1,?,'training',?,'{}'::jsonb)",run(BEFORE.plusSeconds(20)),Timestamp.from(BEFORE.plusSeconds(20)));
+        var r=service.report(null);
+        assertThat(r.riverFresh()).isTrue();
+        assertThat(r.riverCapturedAt()).isEqualTo(BEFORE);
+        assertThat(r.members().getFirst().points()).isEqualTo(1599);
+        assertThat(r.members().getFirst().belowPoints()).isTrue();
+        assertThat(r.members().getFirst().participation()).isNotNull();
+    }
+    @Test void nextWeekDoesNotReusePreviousWarAsZero() {
+        var r=service.report(LocalDate.parse("2026-10-19"));
+        assertThat(r.riverFresh()).isFalse();
+        assertThat(r.members()).allSatisfy(m->assertThat(m.points()).isNull());
+    }
+    @Test void historicalEvidenceUsesOnlyOfficialRecordsKnownByCutoff() {
+        sql.update("insert into membership_event(player_id,clan_id,run_id,type,observed_at) values(1,1,?,'BASELINE',?)",run(BEFORE.minusSeconds(86400*60)),Timestamp.from(BEFORE.minusSeconds(86400*60)));
+        for(int i=1;i<=2;i++) {
+            var published=BEFORE.minusSeconds(86400L*7*i);
+            sql.update("insert into war(id,clan_id,season_id,section_index,published_at,captured_at,payload) values(?,1,1,?,?,?,'{}')",i,i,Timestamp.from(published),Timestamp.from(published.plusSeconds(60)));
+            sql.update("insert into war_participant(war_id,player_id,contribution,decks_used,captured_at) values(?,1,0,0,?)",i,Timestamp.from(published.plusSeconds(60)));
+        }
+        var context=service.report(null).members().getFirst().participation();
+        assertThat(context.wars()).hasSize(2);assertThat(context.twoZero()).isTrue();assertThat(context.twoBelow()).isTrue();
+        assertThat(context.group()).isEqualTo("PRIORITY");
+        // An official record captured after the review cannot be backdated into its evidence.
+        sql.update("insert into war(id,clan_id,season_id,section_index,published_at,captured_at,payload) values(3,1,1,3,?,?,'{}')",Timestamp.from(BEFORE.minusSeconds(60)),Timestamp.from(NOW));
+        assertThat(service.report(null).members().getFirst().participation()).isEqualTo(context);
+        assertThat(sql.queryForObject("select count(*) from war",Long.class)).isEqualTo(3);
+    }
     @Test void usesRosterAndRaceAtCutoffAndPreservesHistoryAfterNewCollections(){
         var r=service.report(null);
         assertThat(r.week()).isEqualTo(LocalDate.parse("2026-10-12"));assertThat(r.phase()).isEqualTo("CLOSED");

@@ -143,7 +143,8 @@ export function AwardCard({
         ) : (
           <p className="muted">Aguardando candidato elegível</p>
         )}
-        <MetricView compact name={visual.label} metric={h.result} />
+        {h.title === "GUARDIAO_DA_FROTA" && h.result.period.basis.startsWith("WEEKLY_PEAK_COUNTER") && <p className="muted">Doações · semana encerrada de {date(h.result.period.from)}</p>}
+        <MetricView compact name={h.title === "GUARDIAO_DA_FROTA" && h.result.period.basis.startsWith("WEEKLY_PEAK_COUNTER") ? "Maior contador semanal coletado" : visual.label} metric={h.result} />
         {h.title === "CAPITAO_DA_GUERRA" && winner?.wars[0] && (
           <MetricView
             compact

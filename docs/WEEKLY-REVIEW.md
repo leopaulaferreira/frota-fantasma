@@ -1,133 +1,159 @@
-# Revisão semanal de expulsões
+# Revisão semanal de participação e expulsões
 
-A página `/expulsoes`, logo abaixo de **Premiações**, é exclusiva de ADMIN.
-Ela responde à revisão de domingo do líder, independentemente do status
-operacional calculado a partir de várias guerras. Nenhum cargo ou vínculo com
-o clã é alterado pelo sistema.
+A página `/expulsoes` é exclusiva da liderança (ADMIN). Reúne evidências para
+revisão individual. Nenhuma classificação ou decisão executa expulsão no jogo.
 
-## Regras e fonte
+## Problema encontrado e correção
 
-Um membro entra em **Avaliar individualmente** ao satisfazer pelo menos uma regra:
+O relatório aceitava apenas `periodType=warDay`. As capturas locais da semana de
+26/10/2026 traziam `colosseum`, inclusive a captura de 01/11 às 21h55 em São Paulo.
+Apesar de recente e com participantes, ela era descartada por `riverFresh`.
+Isso removia os sinais de pontos e deixava principalmente os alertas offline.
 
-- `fame < 1600` na captura da corrida daquela semana;
-- intervalo entre `api_last_seen` e a captura de membros **maior que 5 dias**.
+A seleção agora busca a última captura de `warDay` **ou** `colosseum`, desde
+quinta-feira da semana selecionada até o recorte. Uma captura posterior de
+`training` não encobre a captura de guerra válida. A validade de uma hora,
+a integridade do elenco e o limite de domingo continuam aplicados. Sem fonte
+válida, participante ausente ou número explícito válido, o valor é desconhecido.
+Não se reutiliza corrida anterior como pontuação da semana nem se inventa zero.
 
-1.600 pontos exatos e 5 dias exatos não acionam os respectivos critérios.
-Todos os cargos do elenco observado participam da revisão. As referências
-1.600/5 correspondem à regra semanal solicitada e são independentes das regras
-de promoção e do status operacional.
+## Recorte histórico
 
-A pontuação vem do `clan.participants` da corrida atual persistida, em dia de
-guerra (`periodType=warDay`), capturada desde quinta-feira da semana no fuso
-America/Sao_Paulo. Não se usa média de quatro guerras, corrida da semana passada
-ou resultado oficial anterior como substituto. Participante ausente, pontuação
-nula/negativa ou não numérica são desconhecidos; zero explícito é um valor válido.
+O recorte é domingo às **22h em America/Sao_Paulo**. Antes dele, a prévia usa o
+instante atual; depois, usa somente registros coletados até esse limite.
+De segunda a quarta, a seleção padrão abre a semana anterior. De quinta a
+domingo, abre a semana em andamento. Uma data explícita deve ser segunda-feira.
 
-As duas fontes precisam ter no máximo uma hora de idade em relação ao recorte.
-O elenco deve corresponder integralmente à última captura de `clan_history` e
-seu `run_id`; ex-membros de capturas anteriores não são incorporados à lista.
-Sem elenco confiável, não se conclui descumprimento. Uma fonte de guerra
-indisponível não impede um alerta de inatividade comprovado, e vice-versa.
-Última atividade futura ou ausente não gera alerta de inatividade.
+O elenco vem da última captura completa de `clan_history` e seu `run_id`,
+com membros oficiais correspondentes. `membersFresh` e `riverFresh` exigem
+fontes de até uma hora. A falta de corrida não impede um alerta offline
+comprovado, e vice-versa. Atividade futura ou ausente não comprova inatividade.
 
-## Domingo às 22h
+Histórico oficial, participantes, eventos e doações também respeitam o recorte.
+Uma guerra publicada ou capturada posteriormente não altera a evidência daquele
+recorte. Se um registro oficial foi atualizado depois do recorte e sua versão
+anterior não está disponível, ele não é reconstruído artificialmente.
+Consultas são somente leitura, com transação REPEATABLE_READ. Não há migração,
+reescrita de guerras, alterações em importações ou sobrescrita de decisões.
 
-O recorte é domingo às **22:00 em America/Sao_Paulo**. Antes dele, a prévia usa as
-capturas disponíveis até agora. Depois, a consulta usa somente capturas feitas
-até o recorte. São Paulo pode ainda estar no domingo quando UTC já está na
-segunda; a seleção e o agendamento usam explicitamente o fuso local.
+## Guerras, permanência e classificação
 
-O histórico já existente de capturas sustenta esse recorte; não é necessária
-nova tabela ou cópia do relatório. O GET é somente leitura e usa transação
-REPEATABLE_READ para combinar as fontes. Pontuações e elenco coletados após
-22h não alteram o recorte anterior. Isto não significa que a API já publicou o
-resultado oficial final da guerra.
+A tabela mostra a última guerra oficial conhecida e a captura parcial da corrida
+selecionada. Ao expandir, exibe todas as guerras oficiais disponíveis no recorte,
+com pontos, decks, publicação, captura, fonte e elegibilidade. Importações não
+alimentam os sinais de dispensa desta revisão; continuam disponíveis nas áreas
+de histórico. Dados oficiais não são sobrescritos por importações.
 
-Com `COLLECTION_ENABLED=true`, além das coletas normais, o scheduler tenta
-coletar membros e corrida a cada cinco minutos no domingo entre 18h e 21h55,
-e às 21h59. Chaves de deduplicação incluem clã, fonte e minuto; falha de uma
-fonte não impede a tentativa da outra. Não há chamadas externas em GETs.
+O vínculo atual é determinado pelo último evento JOIN, BASELINE ou LEAVE até o
+recorte. BASELINE significa “observado desde”, não data real de entrada. Um JOIN
+após LEAVE identifica reingresso. Menos de 14 dias observados identifica novato;
+isso não prova que um membro de baseline entrou recentemente no jogo.
 
-O processo precisa estar em execução, com internet e token válido. Falhas de
-API ou máquina desligada aparecem como ausência/idade das fontes; o sistema
-não inventa uma coleta das 22h. Na reabertura, o recorte pode ser reconstruído
-com as capturas históricas disponíveis, sempre com sua qualidade explícita.
+Uma guerra só conta como falta se o vínculo atual for observado antes do seu
+início oficial. Quando a API não fornece datas de início/fim, a revisão exige,
+conservadoramente, vínculo observado pelo menos sete dias antes da publicação.
+Essa janela é uma regra de elegibilidade, não uma data oficial inventada.
+Guerras anteriores ao vínculo atual ou disputadas durante ingresso não geram
+faltas. Não se presume disponibilidade integral de ataques para recém-chegados.
 
-A página consulta a API interna a cada minuto enquanto aberta. O botão global
-**Atualizar dados** aciona a coleta manual; **Recarregar lista** consulta os dados
-já persistidos. Depois do recorte, uma nova coleta não retroage ao domingo.
+- **Média:** até quatro guerras oficiais elegíveis com pontos disponíveis;
+  exibe o tamanho da amostra. Não inclui a corrida parcial.
+- **Abaixo da meta:** número dessas guerras com pontos estritamente menores
+  que 1.600. A igualdade não aciona o sinal.
+- **Duas guerras abaixo:** as duas últimas guerras oficiais conhecidas devem
+  ser elegíveis e ter pontuação explícita abaixo de 1.600. Não pula lacunas.
+- **Zero ataques consecutivos:** decks explicitamente iguais a zero nas guerras
+  oficiais consecutivas mais recentes. Falta de participante, decks ausentes
+  vínculo inelegível ou intervalo superior a oito dias entre publicações
+  interrompem a sequência (não se pula uma semana ausente). Zero pontos não prova zero ataques.
+- **Tendência:** comparação de decks das duas últimas guerras oficiais elegíveis.
+  Sem ambos os valores, a tendência é insuficiente.
 
-## Consulta e justificativas
+Grupos principais:
 
-`GET /api/leadership/weekly-review?week=YYYY-MM-DD` recebe a segunda-feira de uma
-semana atual ou passada. Sem parâmetro, de segunda a quarta abre a semana
-anterior; de quinta a domingo abre a semana em andamento. O endpoint segue a
-proteção ADMIN existente de `/api/leadership/**`.
+1. **Revisão prioritária:** duas últimas guerras abaixo da meta, duas ou mais
+   guerras seguidas com zero decks, ou duas semanas completas com zero doações
+   confirmado pelas capturas.
+2. **Acompanhar:** sinal isolado de baixa pontuação, queda de decks ou mais de
+   cinco dias offline. Também inclui membros com evidência suficiente sem
+   reincidência, explicitamente sem recomendação de dispensa.
+3. **Dados insuficientes:** sem evidência confiável para recomendar decisão,
+   ou elenco sem validade no recorte. Falta de dados não indica falta do membro.
 
-- **Avaliar individualmente:** pelo menos um critério confirmado; outras
-  evidências ainda podem estar pendentes.
-- **Conferir dados:** nenhuma infração confirmada, mas há informação insuficiente.
-- **Sem sinal pelas regras:** as duas verificações têm evidência suficiente e
-  não acionam os critérios.
+Os campos legados REVIEW/UNKNOWN/CLEAR continuam representando apenas os sinais
+de pontos/offline do recorte, para compatibilidade e auditoria. O campo
+`participation.group` é a classificação histórica exibida na tabela.
 
-A lista é única, compacta, numerada e expansível. Ordenação: revisão, dados
-pendentes, sem sinal; dentro de revisão, primeiro as duas regras acionadas,
-depois menor pontuação, maior tempo offline e tag para desempate. Busca,
-situação e presença de justificativa vigente podem ser filtradas.
+## Doações e cobertura
 
-Notas vigentes são apresentadas como **contexto atual**, inclusive na consulta
-a recortes anteriores. O formulário registra uma nota `JUSTIFICATION`, com
-referência à semana, autor da sessão, validade opcional e chave de idempotência.
-A nota não remove o membro da revisão nem muda sua pontuação. O líder pode
-registrar que decidiu manter o membro, combinar uma próxima revisão e consultar
-ou encerrar as notas no perfil. As regras de privacidade e CSRF das notas são
-preservadas. Não se infere que ausência de nota significa ausência de aviso.
+O detalhe traz a semana selecionada (parcial) e as quatro semanas de calendário
+anteriores, com valores observados, último contador, número de capturas, resets
+e qualidade. A tabela resume a semana completa anterior. O acumulado das quatro
+semanas completas é um **limite inferior observado**, nunca um total exato.
+Se qualquer semana não tiver comparações válidas, o acumulado é desconhecido.
+
+As diferenças são calculadas apenas entre capturas oficiais dentro da mesma
+semana, sem cruzar eventos de entrada/saída. O primeiro contador não é somado.
+Queda de contador inicia novo segmento e soma o valor após reset. Não se soma
+uma diferença entre semanas. Contadores ausentes ou negativos são desconhecidos.
+
+“Zero confirmado pelas capturas” exige semana encerrada, vínculo anterior,
+contadores todos explicitamente zero, nenhuma entrada/saída ou reset, ao menos
+duas capturas e cobertura com lacunas de no máximo uma hora, inclusive nas
+bordas da semana. É confirmação observacional: não prova o que ocorreu entre
+capturas. Uma diferença zero com cobertura incompleta não aciona o filtro.
+O filtro de duas semanas considera as duas semanas completas anteriores à
+selecionada, e não a semana parcial em andamento.
+
+## Tabela e filtros
+
+Colunas: Jogador, Guerra anterior, Guerra atual, Decks, Doações, Tempo no clã,
+Dias offline e Situação. Os cabeçalhos alternam ordenação crescente/decrescente;
+valores desconhecidos ficam no fim. A numeração acompanha a seleção visível.
+A ordem inicial põe zerados primeiro, depois membros abaixo da meta por decks
+crescentes (1, 2, 3, 4…), pontos e tag. Um botão restaura essa ordem.
+
+Filtros: duas guerras abaixo da meta; duas guerras sem ataques; zero doações nas
+duas semanas completas; offline acima do limite (padrão cinco dias); novatos;
+aguardando justificativa; revisados; dispensados. Também há filtros da captura
+atual, meta ajustável de doações, grupo, nome/tag, andamento e notas vigentes.
+Selecionar um critério limpa o filtro de grupo para não ocultar candidatos de
+outras classificações. Os demais filtros são combinados. “Mostrar todos” limpa
+a seleção. Nenhum filtro altera regras persistidas ou executa ação no jogo.
+
+Ao expandir um jogador, ficam disponíveis os motivos, as fontes, as lacunas,
+o histórico oficial, as doações, os eventos e as decisões/notas existentes.
+
+## Decisões, notas e auditoria
+
+Decisões: Manter, Conversar, Dispensar, Aguardar justificativa e Reabrir avaliação.
+Manter/Conversar/Dispensar são revisados; Aguardar/Reabrir/sem decisão são pendentes.
+O filtro “Aguardando justificativa” usa a decisão WAIT. Notas justificativas são
+outro filtro: presença de nota não significa que a avaliação foi encerrada.
+
+Motivo, autor autenticado, horário e evidências são preservados por clã, jogador
+e semana. A versão esperada evita sobrescrita concorrente; `requestKey` assegura
+idempotência. Os detalhes históricos agora também acompanham o membro no JSON
+de evidência de novas decisões. Registros existentes permanecem intactos.
+Falha ao carregar decisões bloqueia escrita e não inventa estado pendente.
+Notas atuais são identificadas como contexto vigente, mesmo em semanas antigas.
+
+- `GET /api/leadership/weekly-review?week=YYYY-MM-DD`: recorte e contexto histórico.
+- `GET /api/leadership/weekly-review/decisions?week=YYYY-MM-DD`: versões decrescentes.
+- `POST /api/leadership/weekly-review/decisions/{tag}`: decisão com ADMIN e CSRF.
+
+A consulta da tela se renova a cada minuto. “Recarregar lista” relê o banco;
+“Atualizar dados” coleta da API. Coletas após o recorte não retroagem ao domingo.
+Os jobs de domingo tentam coletas a cada cinco minutos entre 18h e 21h55 e às
+21h59. A aplicação precisa estar ligada; não existe recuperação fictícia de
+capturas enquanto desligada.
 
 ## Validação
 
-Testes unitários verificam limites exatos, valores ausentes/zero, capturas
-antigas, atividade inválida, fuso e agenda de domingo. `WeeklyReviewIT` usa
-PostgreSQL descartável para verificar o recorte entre capturas anteriores e
-posteriores às 22h, elenco correto, leitura sem escrita, datas inválidas e
-permissões ADMIN. Playwright valida navegação, filtros, justificativas,
-indicadores de coleta e bloqueio de contas de consulta em desktop e mobile.
-
-## Decisão individual e andamento
-
-Ao expandir um membro, a liderança pode registrar **Manter nesta semana**,
-**Conversar com o membro**, **Dispensar do clã**, **Aguardar justificativa** ou
-**Reabrir avaliação**, sempre com motivo. Manter, Conversar e Dispensar contam
-como avaliados; sem decisão, Aguardar e Reabrir contam como pendentes. Conversar
-significa que essa foi a decisão registrada, não que a conversa já ocorreu.
-O filtro de andamento combina com os filtros de regras, nome e justificativa.
-Os contadores de andamento se referem ao elenco inteiro do recorte.
-
-As decisões são próprias de cada clã, membro e semana. Abrir outra semana não
-carrega a decisão da anterior. Cada alteração preserva as versões anteriores,
-com autor autenticado, horário e motivo. O histórico fica dentro do membro na
-semana consultada. Os sinais das regras e as justificativas continuam visíveis.
-**Dispensar não expulsa o jogador:** a remoção é feita manualmente no jogo.
-
-A migration V7 cria `weekly_review_decision`, com histórico imutável e índice
-por clã/semana/membro. Cada registro guarda também as evidências do membro e
-os horários das fontes consultadas no momento da decisão. Essas evidências são
-preservadas no banco; o histórico visual mostra decisão, motivo, autor e data.
-Nenhuma migration anterior foi alterada.
-
-- `GET /api/leadership/weekly-review/decisions?week=YYYY-MM-DD`: revisões em
-  ordem decrescente; o primeiro registro de cada membro é a decisão vigente.
-- `POST /api/leadership/weekly-review/decisions/{tag}`: `week`, `action`,
-  `reason`, `requestKey` (UUID) e `expectedRevision` (zero na primeira decisão).
-- Semana deve ser uma segunda-feira atual ou passada; membro deve pertencer
-  ao elenco daquele recorte. Motivo obrigatório, até 2.000 caracteres.
-- ADMIN e CSRF são exigidos. Autor vem da sessão, nunca do formulário.
-- Repetição idêntica da chave retorna a revisão original. Reutilização da chave
-  para outro conteúdo ou revisão desatualizada retorna 409, sem sobrescrever.
-- Atualizações concorrentes são serializadas por clã e conferem a revisão
-  esperada. Falha ao carregar decisões não classifica membros como pendentes;
-  o formulário só é liberado quando o histórico está disponível.
-
-Testes em PostgreSQL descartável cobrem migration, imutabilidade, autorização,
-CSRF, validação, idempotência, revisão concorrente e evidências preservadas.
-Testes de navegador cobrem pendentes/avaliados, reabertura, troca de semana,
-recarregamento e falhas, no computador e no celular.
+Testes do engine cobrem limites, ausência/zero, fontes antigas, dados inválidos,
+fuso e virada semanal. Testes de participação cobrem reincidência, participante
+ausente, ingresso, reingresso, corrida parcial, resets e cobertura de doações.
+Integração com PostgreSQL cobre Coliseu, treino posterior, recorte, histórico
+oficial conhecido na data, permissões, decisões, imutabilidade e concorrência.
+Playwright cobre tabela, ordenação, filtros, detalhes, decisões, falhas,
+privacidade e ausência de transbordamento no desktop e celular.

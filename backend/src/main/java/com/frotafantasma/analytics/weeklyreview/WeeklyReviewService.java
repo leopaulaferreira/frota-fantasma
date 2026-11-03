@@ -22,9 +22,10 @@ public class WeeklyReviewService {
     private final ClashRoyaleProperties api;
     private final CollectionProperties collections;
     private final Clock clock;
+    private final WeeklyParticipation participation;
     private record Roster(UUID run, Instant capturedAt, Integer count) {}
-    public WeeklyReviewService(JdbcTemplate sql, ObjectMapper json, ClashRoyaleProperties api, CollectionProperties collections, Clock clock) {
-        this.sql = sql; this.json = json; this.api = api; this.collections = collections; this.clock = clock;
+    public WeeklyReviewService(JdbcTemplate sql, ObjectMapper json, ClashRoyaleProperties api, CollectionProperties collections, Clock clock, WeeklyParticipation participation) {
+        this.sql = sql; this.json = json; this.api = api; this.collections = collections; this.clock = clock; this.participation = participation;
     }
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public Report report(LocalDate requestedWeek) {
@@ -41,18 +42,19 @@ public class WeeklyReviewService {
         List<Member> members = roster == null ? List.of() : sql.query("""
                 select p.player_tag,h.name,h.role,h.api_last_seen,
                     (select e.observed_at from membership_event e where e.player_id=h.player_id and e.clan_id=h.clan_id
-                     and e.type in ('JOIN','BASELINE') and e.observed_at<=h.captured_at order by e.observed_at desc,e.id desc limit 1)
+                     and e.type in ('JOIN','BASELINE') and e.observed_at<=h.captured_at order by e.observed_at desc,e.id desc limit 1), h.donations
                 from (select * from clan_membership_history where source='DIRECT_API') h join player p on p.id=h.player_id join clan c on c.id=h.clan_id
                 where c.tag=? and h.run_id=? order by p.player_tag
-                """, (r,n) -> new Member(r.getString(1),r.getString(2),r.getString(3),instant(r.getTimestamp(4)),instant(r.getTimestamp(5))), api.clanTag(),roster.run());
+                """, (r,n) -> new Member(r.getString(1),r.getString(2),r.getString(3),instant(r.getTimestamp(4)),instant(r.getTimestamp(5)),r.getObject(6,Integer.class)), api.clanTag(),roster.run());
         var race = sql.query("""
                 select s.captured_at,s.id,s.period_type,s.payload from river_race_snapshot s join clan c on c.id=s.clan_id
-                where c.tag=? and s.captured_at<=? order by s.captured_at desc,s.id desc limit 1
+                where c.tag=? and s.captured_at<=? and s.captured_at>=?
+                  and lower(s.period_type) in ('warday','colosseum') order by s.captured_at desc,s.id desc limit 1
                 """, (r,n) -> {
                     try { return new Race(r.getTimestamp(1).toInstant(),r.getLong(2),r.getString(3),json.readTree(r.getString(4))); }
                     catch (JsonProcessingException e) { throw new IllegalStateException("Registro de corrida inválido.",e); }
-                },api.clanTag(),Timestamp.from(cutoff)).stream().findFirst().orElse(null);
-        return analyze(week,now,collections.enabled(),roster == null ? null : roster.capturedAt(),roster == null ? null : roster.count(),members,race);
+                },api.clanTag(),Timestamp.from(cutoff),Timestamp.from(week.plusDays(3).atStartOfDay(ZONE).toInstant())).stream().findFirst().orElse(null);
+        return participation.enrich(analyze(week,now,collections.enabled(),roster == null ? null : roster.capturedAt(),roster == null ? null : roster.count(),members,race));
     }
     private static Instant instant(Timestamp t) { return t == null ? null : t.toInstant(); }
 }
