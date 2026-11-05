@@ -16,6 +16,7 @@ class DonationCalculatorTest {
         var p=DonationCalculator.calculate(rows,List.of(),ZoneOffset.UTC,Instant.parse("2026-10-12T00:00:00Z")).getFirst();
         assertThat(p.observedDonations().value()).isEqualTo(105L);
         assertThat(p.detectedResets()).isEqualTo(1);
+        assertThat(p.peakCounter().value()).isEqualTo(180);
         assertThat(p.observedDonations().incompletePeriod()).isTrue();
     }
     @Test void trocaDeSemanaSemQuedaVisivelNaoAutorizaDiferencaEntrePeriodos() {
@@ -47,6 +48,8 @@ class DonationCalculatorTest {
         var rows=List.of(row(1,"2026-10-11T23:00:00Z",800),row(2,"2026-10-12T10:00:00Z",0));
         var periods=DonationCalculator.calculate(rows,List.of(),ZoneOffset.UTC,Instant.parse("2026-10-12T12:00:00Z"));
         assertThat(periods.getFirst().lastCounter().value()).isEqualTo(800);
+        assertThat(periods.getFirst().peakCounter().value()).isEqualTo(800);
+        assertThat(periods.getLast().peakCounter().value()).isZero();
         assertThat(periods.getFirst().counterCapturedAt()).isEqualTo(Instant.parse("2026-10-11T23:00:00Z"));
         assertThat(periods.getFirst().observedDonations().value()).isNull();
         assertThat(periods.getLast().lastCounter().value()).isZero();
@@ -60,4 +63,12 @@ class DonationCalculatorTest {
         assertThat(period.lastCounter().insufficientSample()).isTrue();
         assertThat(period.counterCapturedAt()).isEqualTo(Instant.parse("2026-10-05T11:00:00Z"));
     }
+    @Test void picoAusenteNaoViraZero() {
+        var period = DonationCalculator.calculate(
+                List.of(row(1,"2026-10-05T10:00:00Z",null), row(2,"2026-10-05T11:00:00Z",-1)),
+                List.of(), ZoneOffset.UTC, Instant.parse("2026-10-12T00:00:00Z")).getFirst();
+        assertThat(period.peakCounter().value()).isNull();
+        assertThat(period.peakCounter().insufficientSample()).isTrue();
+    }
+
 }

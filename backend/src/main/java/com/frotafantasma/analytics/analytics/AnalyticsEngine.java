@@ -335,14 +335,14 @@ public final class AnalyticsEngine {
         return List.copyOf(awards);
     }
 
-    private Period playersGuardianPeriod(Period period) {
-        return new Period(period.from().minus(java.time.Duration.ofDays(7)), period.from(), "WEEKLY_PEAK_COUNTER_"+rules.timezone());
+    private Period previousDonationWeek(Period period) {
+        return new Period(period.from().atZone(rules.timezone()).minusWeeks(1).toInstant(), period.from(), "WEEKLY_PEAK_COUNTER_"+rules.timezone());
     }
     private void award(List<Highlight> results, Set<String> assigned, String title, List<PlayerStats> candidates, Period period,
                        Function<PlayerStats, Metric<?>> metric, Function<PlayerStats, String> reason) {
         var winner = candidates.stream().filter(p -> !assigned.contains(p.tag())).findFirst().orElse(null);
         if (winner == null) {
-            results.add(new Highlight(title, null, metric(null, Origin.DERIVED, "GUARDIAO_DA_FROTA".equals(title) ? playersGuardianPeriod(period) : period, 0, true, true, List.of(), "Dados insuficientes ou nenhum candidato elegível ainda sem título nesta semana.")));
+            results.add(new Highlight(title, null, metric(null, Origin.DERIVED, "GUARDIAO_DA_FROTA".equals(title) ? previousDonationWeek(period) : period, 0, true, true, List.of(), "Dados insuficientes ou nenhum candidato elegível ainda sem título nesta semana.")));
         } else {
             assigned.add(winner.tag());
             Metric<?> source = metric.apply(winner);

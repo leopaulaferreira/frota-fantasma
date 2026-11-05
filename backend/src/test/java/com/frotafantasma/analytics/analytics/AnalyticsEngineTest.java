@@ -154,6 +154,7 @@ class AnalyticsEngineTest {
 
     @Test void titulosExclusivosPulamPremiadosEUsamDesempateDeterministico() {
         for (int id=1;id<=3;id++) player(id,new int[]{3200,3200,3200,3200},new int[]{16,16,16,16},200);
+        for (int id=1;id<=3;id++) snapshots.add(snapshot(100+id,id,NOW.minus(Duration.ofDays(1)),200,null));
         var awards=report().highlights();
         assertThat(awards).extracting(Highlight::playerTag).containsExactly("#P01","#P02","#P03");
         assertThat(awards).extracting(Highlight::playerTag).doesNotHaveDuplicates();
@@ -169,6 +170,7 @@ class AnalyticsEngineTest {
 
     @Test void almaParcialSomenteQuandoHabilitadaExplicitamente() {
         for (int id=1;id<=3;id++) player(id,new int[]{3000,3000,3000,3000},new int[]{15,15,15,15},200);
+        for (int id=1;id<=3;id++) snapshots.add(snapshot(100+id,id,NOW.minus(Duration.ofDays(1)),200,null));
         assertThat(report().highlights().get(2).playerTag()).isNull();
         var partial=new AnalyticsEngine(RULES,true).analyze(new AnalyticsEngine.Data(players,wars,participants,snapshots,events),NOW,WEEK);
         assertThat(partial.highlights().get(2).playerTag()).isEqualTo("#P03");
@@ -190,4 +192,30 @@ class AnalyticsEngineTest {
         assertThat(first().metrics().get("recentDecks").value()).isEqualTo(68L);
         assertThat(first().metrics().get("standardDeckTargetPercent").value()).isNull();
     }
+    @Test void guardiaoUsaPicoDaSemanaEncerradaMesmoAposReset() {
+        player(1, new int[]{3200}, new int[]{16}, 100);
+        player(2, new int[]{2000}, new int[]{16}, 1);
+        player(3, new int[]{1800}, new int[]{16}, 9000);
+        snapshots.add(snapshot(101, 2, Instant.parse("2026-10-10T12:00:00Z"), 800, null));
+        snapshots.add(snapshot(102, 2, Instant.parse("2026-10-11T12:00:00Z"), 0, null));
+        snapshots.add(snapshot(103, 3, Instant.parse("2026-10-11T12:00:00Z"), 500, null));
+        var guardian = report().highlights().get(1);
+        assertThat(guardian.playerTag()).isEqualTo("#P02");
+        assertThat(guardian.result().value()).isEqualTo(800);
+        assertThat(guardian.result().period().from()).isEqualTo(Instant.parse("2026-10-05T00:00:00Z"));
+        assertThat(guardian.result().period().to()).isEqualTo(Instant.parse("2026-10-12T00:00:00Z"));
+        assertThat(guardian.result().incompletePeriod()).isTrue();
+        assertThat(guardian.result().dataUsed()).anyMatch(e -> e.contains("membership:101@"));
+    }
+
+    @Test void doacoesAtuaisNaoSubstituemSemanaEncerradaAusente() {
+        player(1, new int[]{3200}, new int[]{16}, 100);
+        player(2, new int[]{2000}, new int[]{16}, 9000);
+        var guardian = report().highlights().get(1);
+        assertThat(guardian.playerTag()).isNull();
+        assertThat(guardian.result().value()).isNull();
+        assertThat(guardian.result().quality()).isEqualTo(Quality.INSUFFICIENT_DATA);
+        assertThat(guardian.result().period().from()).isEqualTo(Instant.parse("2026-10-05T00:00:00Z"));
+    }
+
 }
