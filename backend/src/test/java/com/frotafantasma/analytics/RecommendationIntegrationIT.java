@@ -55,6 +55,7 @@ class RecommendationIntegrationIT {
     @BeforeEach void seed() throws Exception {
         sql.execute("TRUNCATE recommendation_rule_version,clan,player,collection_run CASCADE");
         members(Instant.parse("2026-08-01T10:00:00Z"),0);
+        members(Instant.parse("2026-10-11T23:00:00Z"),300);
         members(Instant.parse("2026-10-12T10:00:00Z"),0);
         members(Instant.parse("2026-10-18T23:30:00Z"),200);
         for (int i=0;i<4;i++) {
@@ -193,6 +194,7 @@ class RecommendationIntegrationIT {
         assertThat(sql.queryForObject("select count(*) from weekly_award",Integer.class)).isEqualTo(3);
     }
     @Test void automaticClosingWaitsForOfficialWarAndPublishesExactlyOnce() throws Exception {
+        members(Instant.parse("2026-10-18T22:00:00Z"),800);
         assertThat(automatic.publish()).isEmpty(); // Only last week's log: never award the wrong war.
         members(NOW.minusSeconds(60), 0); // Reset must not replace the completed donation week.
         var entry=json.readValue("""
@@ -212,7 +214,7 @@ class RecommendationIntegrationIT {
             var captain=batch.awards().stream().filter(h->h.title().equals("CAPITAO_DA_GUERRA")).findFirst().orElseThrow();
             assertThat(captain.evidence().path("result").path("value").asInt()).isEqualTo(3300);
             var guardian=batch.awards().stream().filter(h->h.title().equals("GUARDIAO_DA_FROTA")).findFirst().orElseThrow();
-            assertThat(guardian.evidence().path("result").path("value").asInt()).isEqualTo(200);
+            assertThat(guardian.evidence().path("result").path("value").asInt()).isEqualTo(800);
             assertThat(guardian.evidence().path("result").path("period").path("from").asText()).startsWith("2026-10-12");
             assertThat(service.finalizeAwards(batch.evaluationId())).isEqualTo(batch);
         }
