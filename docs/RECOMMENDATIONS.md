@@ -138,3 +138,7 @@ A ordem Capitão → Guardião → Alma e os desempates da Fase 3 são preservad
 Locks transacionais PostgreSQL por clã serializam alterações de regras, registros e formalizações entre instâncias. Chaves únicas protegem idempotência e exclusividade dos títulos. FKs vinculam avaliação, versão, clã e semana. Triggers impedem UPDATE/DELETE de versões, avaliações, status e premiações; somente o ponteiro de versão ativa é atualizado.
 
 A suíte cobre pesos inválidos, normalização e limites do Score, dados insuficientes, snapshots incompletos, revisão concorrente, histórico imutável, alertas anteriores, idempotência, formalizações concorrentes, semanas abertas e ausência de candidatos. A API permanece no escopo local do Compose; autenticação/autorização para publicação externa continuam na etapa de deploy.
+
+### Fechamento de doações do Guardião
+
+O Guardião usa o maior contador oficial coletado na semana anterior à semana da premiação, tanto na projeção quanto no fechamento automático. O painel identifica a semana encerrada e o “Maior contador semanal coletado”. O valor não é o contador atual nem a soma das diferenças. Sem capturas válidas, não há candidato baseado em doações presumidas. Lacunas permanecem sinalizadas. Lotes já formalizados conservam seus valores, critérios e evidências originais; esta mudança não recalcula premiações gravadas.

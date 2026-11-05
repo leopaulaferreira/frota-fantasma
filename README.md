@@ -71,7 +71,7 @@ Destaque pela pontuação na guerra.
 <td align="center" width="33%">
 <img src="frontend/public/assets/royale/fisherman.png" height="140" alt="Pescador" /><br />
 <strong>Guardião da Frota</strong><br />
-Reconhecimento pelas doações observadas.
+Reconhecimento pelo maior contador de doações coletado na semana encerrada.
 </td>
 <td align="center" width="33%">
 <img src="frontend/public/assets/royale/royal-ghost.png" height="140" alt="Fantasma Real" /><br />

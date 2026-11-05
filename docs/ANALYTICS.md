@@ -64,7 +64,7 @@ Toda métrica contém `value`, `origin`, `quality`, `period`, `warsConsidered`, 
 | Evolução: `observedDonations`, `newMembers`, `departures` | SNAPSHOT_DERIVED | Snapshots/eventos da semana, incluindo ex-membros |
 | Capitão | DERIVED | Ordenação de pontuações da guerra |
 | Alma Imortal | SNAPSHOT_DERIVED | Ordenação de métricas de guerra e doações derivadas de snapshots como desempate |
-| Guardião da Frota | SNAPSHOT_DERIVED | Ordenação do limite inferior de doações observadas na semana |
+| Guardião da Frota | SNAPSHOT_DERIVED | Ordenação do maior contador oficial coletado na semana anterior encerrada |
 
 Não interpolar guerras ausentes, não buscar quatro participações antigas para esconder ausências recentes, não deduzir zero de um jogador ausente do payload. Se `decksUsed>16`, preservar o valor oficial e deixar a comparação com o padrão indisponível; nunca truncar silenciosamente para 100%.
 
@@ -96,7 +96,7 @@ Não se infere ausência de justificativa pessoal. O líder recebe a evidência 
 A alocação semanal usa **Capitão → Guardião → Alma**, removendo cada escolhido antes da categoria seguinte. Empates finais usam tag crescente para garantir determinismo. Apenas membros do elenco observado no corte são elegíveis. Sem candidato/dados, o título fica vazio com motivo. A mesma resposta nunca concede dois títulos ao mesmo jogador. As listas são recalculadas conforme chegam dados; não representam títulos concedidos definitivamente.
 
 - **Capitão:** maior pontuação positiva da última guerra publicada na semana selecionada; mostrar pontos e decks. Não reutiliza uma guerra antiga como título de semana nova.
-- **Guardião:** maior limite inferior positivo de doações na semana. Provisório: lacunas diferentes podem alterar o ranking real.
+- **Guardião:** maior contador positivo coletado pela API oficial na semana anterior à semana da premiação, no fuso configurado. Usa `guardianDonations`, derivado de `DonationPeriod.peakCounter`: preserva o máximo mesmo após reset e não soma segmentos de reingresso. Uma captura válida permite conhecer um pico observado; sem captura válida, o valor é desconhecido e não participa do ranking. A semana atual nunca substitui a encerrada. O período e a captura que sustentam o valor acompanham a evidência. Lacunas podem ocultar um pico maior, portanto a métrica permanece incompleta. `weeklyDonations` continua sendo a soma de diferenças observadas usada nas demais regras.
 - **Alma:** exige amostra mínima configurável de guerras completas no padrão de 16; dados de pontos/decks presentes na janela e nenhum zero explícito. Ordena por quantidade de completas, total de decks, média, doações e tag. Doações desconhecidas ficam atrás das conhecidas; não viram zero.
 - **Ancião:** somente `member`; participação positiva em todas as guerras da janela, amostra mínima, média >= meta, uso do padrão >= percentual configurado, tempo observado mínimo, doações observadas >= mínimo e status MANTER. Retorna avaliação e razões para candidatos e não elegíveis. Cumprir um limite inferior de doações já prova atingir o mínimo, mas não torna o período completo.
 
