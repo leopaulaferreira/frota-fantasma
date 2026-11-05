@@ -36,6 +36,7 @@ o contexto de cada decisão, sem depender apenas da memória ou de números isol
 | **Visão do clã** | Acompanhe o pulso da semana, os destaques e a evolução da Frota em um painel. |
 | **Tripulação e perfis** | Conheça a trajetória de cada membro: guerras, doações, atividade, cargos e anotações da liderança. |
 | **Guerras** | Consulte a corrida atual e resultados anteriores, com pontos, decks utilizados e participação registrada. |
+| **Comparativo de guerras** | Compare as últimas quatro guerras em uma tabela, filtre participação e consulte evidências sem transformar lacunas em faltas. |
 | **Comparar jogadores** | Veja membros lado a lado e compare desempenho no mesmo contexto histórico. |
 | **Candidatos a Ancião** | Encontre candidatos ordenados, confira critérios atendidos e abra as evidências antes de decidir. |
 | **Doações** | Consulte a semana atual e as cinco anteriores, preservando os números coletados mesmo após o reset do jogo. |
@@ -131,6 +132,7 @@ Configuração, instalação e comandos estão no **[Guia de execução](docs/GU
 | Quero saber mais sobre… | Onde encontrar |
 | --- | --- |
 | Instalar e executar a aplicação | [Guia de execução](docs/GUIA-DE-EXECUCAO.md) |
+| Comparar quatro guerras e participação | [Comparativo de guerras](docs/COMPARATIVO.md) |
 | Entender indicadores e critérios | [Métricas e análises](docs/ANALYTICS.md) |
 | Conhecer as telas e os fluxos | [Guia do painel](docs/FRONTEND.md) |
 | Revisar membros ao fim da semana | [Revisão semanal](docs/WEEKLY-REVIEW.md) |

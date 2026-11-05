@@ -342,3 +342,7 @@ Comparar recebem o mesmo histórico do analytics, sem novos cálculos no fronten
 
 A central de guerras oferece filtros compartilháveis na URL, comparação lado a
 lado e evolução individual. Contratos, critérios e limites em [WARS.md](WARS.md).
+
+## Comparativo de guerras
+
+O menu **Comparativo** abre `/comparativo`, com matriz das quatro últimas guerras oficiais encerradas, filtros combináveis na URL e diálogo individual com gráfico, doações e evidências. A rota `/comparar` permanece disponível para comparação de perfis. Consulte [critérios, utilização e validação](COMPARATIVO.md).
