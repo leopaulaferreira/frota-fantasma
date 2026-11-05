@@ -790,3 +790,30 @@ test("recomendações centraliza análises e preserva filtro, histórico e atalh
   await expect(filter).toHaveValue("candidatos");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test("Guardião identifica pico e semana encerrada sem relabelar evidências antigas", async ({ page }) => {
+  let closing = true;
+  await page.route(/\/api\/analytics(?:\?.*)?$/, async route => {
+    const data = structuredClone(report);
+    if (closing) {
+      data.highlights[1].result = metric(800, {
+        period: {
+          from: "2026-10-05T03:00:00Z",
+          to: "2026-10-12T03:00:00Z",
+          basis: "WEEKLY_PEAK_COUNTER_America/Sao_Paulo",
+        },
+        incompletePeriod: true,
+      });
+    }
+    await route.fulfill({ json: data });
+  });
+  await page.goto("/");
+  const guardian = page.locator(".royale-award").filter({ has: page.getByRole("heading", { name: "Guardião da Frota" }) });
+  await expect(guardian).toContainText("Maior contador semanal coletado");
+  await expect(guardian).toContainText("semana encerrada de 05/10/2026");
+  await expect(guardian).toContainText("800");
+  closing = false;
+  await page.reload();
+  await expect(guardian).toContainText("Doações observadas");
+  await expect(guardian).not.toContainText("semana encerrada");
+});

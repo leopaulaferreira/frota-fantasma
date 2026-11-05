@@ -120,6 +120,8 @@ export function AwardCard({
 }) {
   const visual = awardArt[h.title] || awardArt.CAPITAO_DA_GUERRA;
   const winner = players.find((p) => p.tag === h.playerTag);
+  const weeklyDonationPeak = h.title === "GUARDIAO_DA_FROTA"
+    && h.result.period.basis.startsWith("WEEKLY_PEAK_COUNTER");
   return (
     <article className={"royale-award award-" + visual.number} {...artInteraction}>
       <div className="award-stage" aria-hidden="true">
@@ -143,8 +145,8 @@ export function AwardCard({
         ) : (
           <p className="muted">Aguardando candidato elegível</p>
         )}
-        {h.title === "GUARDIAO_DA_FROTA" && h.result.period.basis.startsWith("WEEKLY_PEAK_COUNTER") && <p className="muted">Doações · semana encerrada de {date(h.result.period.from)}</p>}
-        <MetricView compact name={h.title === "GUARDIAO_DA_FROTA" && h.result.period.basis.startsWith("WEEKLY_PEAK_COUNTER") ? "Maior contador semanal coletado" : visual.label} metric={h.result} />
+        {weeklyDonationPeak && <p className="muted">Doações · semana encerrada de {date(h.result.period.from)}</p>}
+        <MetricView compact name={weeklyDonationPeak ? "Maior contador semanal coletado" : visual.label} metric={h.result} />
         {h.title === "CAPITAO_DA_GUERRA" && winner?.wars[0] && (
           <MetricView
             compact
