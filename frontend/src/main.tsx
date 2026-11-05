@@ -30,6 +30,7 @@ import { DonationHistory } from "./pages/DonationHistory";
 import { WeeklyReview } from "./pages/WeeklyReview";
 import { Overview } from "./pages/Overview";
 import { Members, PlayerProfile } from "./pages/Players";
+import { WarComparison } from "./pages/WarComparison";
 import { Wars } from "./pages/Wars";
 import { Compare } from "./pages/Compare";
 import { Recommendations, Awards } from "./pages/Recommendations";
@@ -46,6 +47,7 @@ const nav = [
   ["/", "Visão geral", LayoutDashboard],
   ["/membros", "Tripulação", Users],
   ["/guerras", "Guerras", Swords],
+  ["/comparativo", "Comparativo", GitCompareArrows],
   ["/comparar", "Comparar", GitCompareArrows],
   ["/recomendacoes", "Recomendações", ClipboardList],
   ["/premiacoes", "Premiações", Trophy],
@@ -96,9 +98,9 @@ function App() {
 
         <nav aria-label="Navegação principal">
           {[
-            { label: "A bordo", items: nav.slice(0, 4) },
-            { label: "Decisões do líder", items: nav.slice(4, 7) },
-            { label: "Administração", items: nav.slice(7) },
+            { label: "A bordo", items: nav.slice(0, 5) },
+            { label: "Decisões do líder", items: nav.slice(5, 8) },
+            { label: "Administração", items: nav.slice(8) },
           ].map((group) => (
             <div className="nav-group" key={group.label}>
               <span className="nav-caption">{group.label}</span>
@@ -177,6 +179,7 @@ function App() {
               path="/anciao"
               element={<Navigate to="/recomendacoes?tipo=candidatos" replace />}
             />
+            <Route path="/comparativo" element={<WarComparison />} />
             <Route path="/comparar" element={<Compare />} />
             <Route path="/recomendacoes" element={<Recommendations />} />
             <Route path="/recomendacoes/:id" element={<Recommendations />} />

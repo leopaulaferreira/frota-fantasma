@@ -971,3 +971,23 @@ th {
 .war-player-table th button { padding: 6px; font-size: 11px; }
 .war-player-table td > a { display: inline-block; }
 .war-player-table pre { white-space: pre-wrap; }
+
+/* A single comparison matrix; keep identity visible while scrolling. */
+.comparison-table table { min-width: 1050px; table-layout: fixed; width: 100%; }
+.comparison-table th { white-space: normal; }
+.comparison-table th:first-child { width: 155px; }
+.comparison-table th:nth-last-child(2) { width: 110px; }
+.comparison-table th:last-child { width: 145px; }
+.comparison-table th, .comparison-table td { overflow-wrap: anywhere; }
+.comparison-controls.panel { padding: 12px; }
+.comparison-controls .toolbar { margin: 0; }
+.comparison-table th:first-child { position: sticky; left: 0; z-index: 1; background: #14242a; min-width: 155px; }
+.comparison-table td { vertical-align: top; min-width: 145px; }
+.comparison-table .badge { white-space: normal; font-size: .7rem; }
+.comparison-table tbody tr { cursor: pointer; }
+.comparison-table tbody tr:hover td { background: rgba(140,235,213,.035); }
+.comparison-table caption { text-align: left; padding: .75rem 0; color: var(--muted); }
+.comparison-picker { max-height: 280px; overflow: auto; display: grid; gap: .65rem; padding: 1rem 0; }
+.comparison-facts { grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); }
+.comparison-dialog { width: min(900px,94vw); }
+.comparison-chart { width: 100%; max-width: 600px; color: #dfe9e9; }

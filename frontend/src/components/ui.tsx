@@ -30,6 +30,7 @@ export function Heading({
     anciao: "golden-knight",
     recomendacoes: "royal-ghost",
     comparar: "golden-knight",
+    comparativo: "skeleton-king",
     doacoes: "mighty-miner",
     expulsoes: "skeleton-king",
     regras: "archer-queen",
