@@ -80,7 +80,11 @@ export function comparisonRows(
           Date.parse(e.observedAt) <= Date.parse(at) &&
           ["JOIN", "BASELINE", "LEAVE"].includes(e.type),
       )
-      .sort((a, b) => Date.parse(a.observedAt) - Date.parse(b.observedAt));
+      .sort(
+        (a, b) =>
+          Date.parse(a.observedAt) - Date.parse(b.observedAt) ||
+          (a.id ?? 0) - (b.id ?? 0),
+      );
     const last = membership.at(-1);
     const anchor =
       !current && last?.type === "LEAVE"
@@ -93,23 +97,24 @@ export function comparisonRows(
       const required = eligible(tag, w.war, events, anchor);
       const points = known(record?.contribution),
         decks = known(record?.decksUsed);
-      const valid = official && required && points !== null;
+      // A recorded result remains usable even when full-war obligations are unknown.
+      const valid = official && points !== null;
       const beforeEpisode =
         last?.type === "JOIN" &&
         Date.parse(last.observedAt) >
           Date.parse(w.war.endDate || w.war.publishedAt);
       const reason = beforeEpisode
         ? "Anterior ao ingresso/reingresso observado"
-        : !required
-          ? "Vínculo integral não comprovado · novato ou outro episódio"
-          : !record
-            ? "Pontuação não coletada"
-            : !official
-              ? "Registro importado / parcial"
-              : points === null
-                ? "Pontuação não coletada"
-                : points >= 1600
-                  ? "Meta cumprida"
+        : !record
+          ? "Pontuação não coletada"
+          : !official
+            ? "Registro importado / parcial"
+            : points === null
+              ? "Pontuação não coletada"
+              : points >= 1600
+                ? "Meta cumprida"
+                : !required
+                  ? "Pontuação registrada · participação integral não comprovada"
                   : "Abaixo da meta";
       return {
         war: w.war,
@@ -118,22 +123,28 @@ export function comparisonRows(
         decks,
         valid,
         required,
+        beforeEpisode,
         official,
         reason,
       };
     });
     const scores = cells.filter((c) => c.valid).map((c) => c.points!);
     const fullFour =
-      cells.length === 4 && cells.every((c) => c.valid && c.decks === 16);
+      cells.length === 4 && cells.every((c) => c.official && c.decks === 16);
     const insufficient =
       cells.length < 4 || cells.some((c) => !c.valid || c.decks === null);
+    const firstIndex = archive.findIndex((w) => w.id === wars[0]?.war.id);
+    const gap =
+      wars.length >= 2
+        ? Date.parse(wars[0].war.publishedAt) -
+          Date.parse(wars[1].war.publishedAt)
+        : NaN;
     const adjacent =
+      firstIndex >= 0 &&
       wars.length >= 2 &&
-      Date.parse(wars[0].war.publishedAt) -
-        Date.parse(wars[1].war.publishedAt) <=
-        8 * 86400000 &&
-      archive.findIndex((w) => w.id === wars[1].war.id) ===
-        archive.findIndex((w) => w.id === wars[0].war.id) + 1;
+      gap > 0 &&
+      gap <= 8 * 86400000 &&
+      archive.findIndex((w) => w.id === wars[1].war.id) === firstIndex + 1;
     const twoBelow =
       adjacent &&
       cells.slice(0, 2).every((c) => c.valid) &&
@@ -158,11 +169,21 @@ export function comparisonRows(
       latest: cells[0]?.valid ? cells[0].points : null,
       situation: twoBelow
         ? "Revisão · duas abaixo da meta"
-        : insufficient
+        : !scores.length
           ? "Dados insuficientes"
-          : cells[0]?.valid && cells[0].points! < 1600
-            ? "Acompanhar"
-            : "Bom desempenho",
+          : cells.some(
+                (c) =>
+                  (c.official && (c.points === null || c.decks === null)) ||
+                  (c.required && !c.valid),
+              )
+            ? "Coleta incompleta"
+            : scores.length < 4
+              ? `Histórico em formação · ${scores.length}/4 guerras`
+              : cells.some((c) => !c.required)
+                ? "Participação integral não comprovada"
+                : cells[0]?.valid && cells[0].points! < 1600
+                  ? "Acompanhar"
+                  : "Bom desempenho",
     };
   });
 }
@@ -185,19 +206,11 @@ export function filterRows(rows: ComparisonRow[], params: URLSearchParams) {
       if (rule === "below" && !(p.latest !== null && p.latest < 1600))
         return false;
       if (rule === "repeat" && !p.twoBelow) return false;
-      if (
-        rule === "zero" &&
-        !(last?.official && last.required && last.decks === 0)
-      )
+      if (rule === "zero" && !(last?.official && last.decks === 0))
         return false;
       if (
         rule === "decks" &&
-        !(
-          last?.official &&
-          last.required &&
-          last.decks !== null &&
-          last.decks < 16
-        )
+        !(last?.official && last.decks !== null && last.decks < 16)
       )
         return false;
       if (rule === "full" && !p.fullFour) return false;

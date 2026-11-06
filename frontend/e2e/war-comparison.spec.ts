@@ -113,9 +113,13 @@ test("períodos, seleção manual, amostra incompleta e retorno ao padrão", asy
 }) => {
   await page.goto("/comparativo");
   await page.getByRole("button", { name: "Quatro guerras anteriores" }).click();
-  await expect(page.locator(".comparison-table thead")).toContainText("14/09/2026");
+  await expect(page.locator(".comparison-table thead")).toContainText(
+    "14/09/2026",
+  );
   await page.getByRole("button", { name: "Período mais recente" }).click();
-  await expect(page.locator(".comparison-table thead")).toContainText("12/10/2026");
+  await expect(page.locator(".comparison-table thead")).toContainText(
+    "12/10/2026",
+  );
   await page.getByText("Selecionar guerras históricas (4/4)").click();
   const selected = page.locator(".comparison-picker input:checked");
   await selected.first().click();
@@ -146,4 +150,73 @@ test("erro de consulta não vira resultados vazios ou zeros", async ({
     timeout: 15000,
   });
   await expect(page.locator(".comparison-table")).toHaveCount(0);
+});
+
+test("zero oficial de recém-chegado permanece na média e nos filtros sem virar reincidência", async ({
+  page,
+}) => {
+  const selected = wars
+    .slice(0, 3)
+    .map((w, i) => ({
+      ...w,
+      publishedAt: new Date(
+        Date.parse("2026-11-02T09:41:00Z") - i * 7 * 86400000,
+      ).toISOString(),
+    }));
+  await page.route("**/api/analytics", (r) =>
+    r.fulfill({ json: { ...report, generatedAt: "2026-11-06T00:00:00Z" } }),
+  );
+  await page.route("**/api/clan/members", (r) =>
+    r.fulfill({ json: [{ tag: "#W", name: "Wakasa" }] }),
+  );
+  await page.route("**/api/clan/events?*", (r) =>
+    r.fulfill({
+      json: {
+        items: [
+          { playerTag: "#W", type: "JOIN", observedAt: "2026-10-28T14:03:26Z" },
+        ],
+        totalElements: 1,
+      },
+    }),
+  );
+  await page.route(/\/api\/wars(?:\?.*|\/\d+)$/, (r) => {
+    const path = new URL(r.request().url()).pathname;
+    if (path === "/api/wars")
+      return r.fulfill({
+        json: { items: selected, totalElements: selected.length },
+      });
+    const w = selected.find((w) => w.id === Number(path.split("/").at(-1)));
+    return r.fulfill({
+      json: {
+        war: w,
+        participants:
+          w?.id === 1
+            ? [
+                {
+                  playerTag: "#W",
+                  name: "Wakasa",
+                  contribution: 0,
+                  decksUsed: 0,
+                  source: "DIRECT_API",
+                },
+              ]
+            : [],
+      },
+    });
+  });
+  await page.goto("/comparativo");
+  const table = page.locator(".comparison-table");
+  await expect(table).toContainText("1/3 guerras com pontuação oficial");
+  await expect(table).toContainText("Histórico em formação · 1/4 guerras");
+  await expect(table).toContainText("participação integral não comprovada");
+  await expect(table.locator("tbody td").nth(3).locator("strong")).toHaveText(
+    "0",
+  );
+  await expect(table.locator(".badge.bad")).toHaveCount(0);
+  await page.getByLabel("Cumprimento das regras").selectOption("zero");
+  await expect(table).toContainText("Wakasa");
+  await page.getByLabel("Cumprimento das regras").selectOption("repeat");
+  await expect(
+    page.getByText("Nenhum jogador atende aos filtros.", { exact: false }),
+  ).toBeVisible();
 });

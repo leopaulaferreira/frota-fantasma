@@ -272,11 +272,13 @@ export function WarComparison() {
             ])}
           </div>
           <p className="muted">
-            Média apenas dos resultados oficiais com vínculo elegível; a amostra
-            acompanha o valor. 2.400 pontos é um sinal para avaliação, não
-            garante promoção: doações, participação e contexto também importam.
-            Referência de 16 decks (quatro por dia, quinta a domingo), sem
-            presumir disponibilidade integral. Ordenação por pontuação em
+            Média dos resultados oficiais registrados, mesmo sem vínculo
+            integral comprovado; a amostra acompanha o valor. 2.400 pontos é um
+            sinal para avaliação, não garante promoção: doações, participação e
+            contexto também importam. Referência de 16 decks (quatro por dia,
+            quinta a domingo), sem presumir disponibilidade integral. Os filtros
+            de pontos e decks mostram registros; somente a revisão por
+            reincidência exige vínculo elegível. Ordenação por pontuação em
             Desempenho prevalece sobre Ordenação.
           </p>
         </details>
@@ -355,7 +357,7 @@ export function WarComparison() {
                         <span
                           className={
                             "badge " +
-                            (c.valid
+                            (c.valid && (c.required || c.points! >= 1600)
                               ? c.points! >= 1600
                                 ? "good"
                                 : "bad"
@@ -372,7 +374,8 @@ export function WarComparison() {
                     <td>
                       <strong>{format(p.average)}</strong>
                       <small>
-                        {p.sample}/{selected.length} guerras válidas
+                        {p.sample}/{selected.length} guerras com pontuação
+                        oficial
                       </small>
                       {p.delta !== null && (
                         <small>
@@ -430,7 +433,8 @@ export function WarComparison() {
             </Link>
             <p>
               Média: {format(player.average)} · Total: {format(player.total)}{" "}
-              pts · {player.sample}/{selected.length} guerras válidas.
+              pts · {player.sample}/{selected.length} guerras com pontuação
+              oficial.
             </p>
             <p>
               {player.delta === null
@@ -525,7 +529,12 @@ function ComparisonChart({
   zone: string;
 }) {
   if (player.sample < 2)
-    return <p>Gráfico indisponível: são necessárias duas guerras válidas.</p>;
+    return (
+      <p>
+        Gráfico indisponível: são necessárias duas guerras com pontuação
+        oficial.
+      </p>
+    );
   const cells = [...player.cells].reverse();
   const max = Math.max(
     3200,
