@@ -991,3 +991,56 @@ th {
 .comparison-facts { grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); }
 .comparison-dialog { width: min(900px,94vw); }
 .comparison-chart { width: 100%; max-width: 600px; color: #dfe9e9; }
+
+/* Arena scenery behind the Royal Ghost, scoped to the comparison header. */
+.comparison-heading {
+  position: relative;
+  isolation: isolate;
+}
+.comparison-heading .comparison-arena {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  width: 350px;
+  height: 350px;
+  object-fit: contain;
+  right: 135px;
+  top: -72px;
+  opacity: .48;
+  mask-image: linear-gradient(90deg, transparent, #000 28%, #000 80%, transparent);
+}
+.comparison-heading .heading-main {
+  grid-template-columns: minmax(0, 1fr) 360px;
+  min-height: 194px;
+  background: linear-gradient(90deg, #10232cf5 25%, #10232c55 60%, transparent);
+}
+.comparison-heading .heading-illustration {
+  justify-content: flex-end;
+  overflow: visible;
+  background: radial-gradient(ellipse at 70% 80%, #68d9cb22, transparent 70%);
+}
+.comparison-heading .heading-art {
+  width: 230px;
+  height: 248px;
+  margin-bottom: -42px;
+  object-position: center top;
+}
+@media (max-width: 720px) {
+  .comparison-heading .heading-main {
+    grid-template-columns: minmax(0, 1fr) 100px;
+    min-height: 154px;
+    background: linear-gradient(90deg, #10232cf5 25%, #10232c80 65%, transparent);
+  }
+  .comparison-heading .comparison-arena {
+    right: 24px;
+    top: -12px;
+    width: 210px;
+    height: 210px;
+    opacity: .32;
+  }
+  .comparison-heading .heading-art {
+    width: 135px;
+    height: 175px;
+    margin-bottom: -20px;
+  }
+}

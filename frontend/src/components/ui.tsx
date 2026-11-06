@@ -30,7 +30,7 @@ export function Heading({
     anciao: "golden-knight",
     recomendacoes: "royal-ghost",
     comparar: "golden-knight",
-    comparativo: "golden-knight",
+    comparativo: "royal-ghost",
     doacoes: "mighty-miner",
     expulsoes: "skeleton-king",
     regras: "archer-queen",
@@ -38,7 +38,10 @@ export function Heading({
   };
   const portrait = portraits[section] || "clan-emblem";
   return (
-    <header className="page-heading illustrated-heading">
+    <header className={"page-heading illustrated-heading" + (section === "comparativo" ? " comparison-heading" : "")}>
+      {section === "comparativo" && (
+        <img className="comparison-arena" src="/assets/royale/royal-arena.png" alt="" aria-hidden="true" />
+      )}
       <div className="heading-main">
         <div className="heading-copy">
           <div className="eyebrow">{eyebrow || "CENTRAL DE COMANDO"}</div>
