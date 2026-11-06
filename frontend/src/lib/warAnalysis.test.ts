@@ -21,8 +21,20 @@ const wars: WarDetail[] = [0, 1, 2, 3].map((i) => ({
     source: "DIRECT_API",
   },
   participants: [
-    { playerTag: "#A", name: "Mesmo nome", contribution: 0, decksUsed: 0 },
-    { playerTag: "#B", name: "Mesmo nome", contribution: 2000, decksUsed: 8 },
+    {
+      playerTag: "#A",
+      name: "Mesmo nome",
+      contribution: 0,
+      decksUsed: 0,
+      source: "DIRECT_API",
+    },
+    {
+      playerTag: "#B",
+      name: "Mesmo nome",
+      contribution: 2000,
+      decksUsed: 8,
+      source: "DIRECT_API",
+    },
   ],
 }));
 const events = [
@@ -81,18 +93,42 @@ describe("análise de guerras", () => {
       ).twoZero,
     ).toBe(false);
   });
-  it("não confirma reincidência com participantes importados em guerra oficial",()=>{
-    const mixed=wars.map(w=>({...w,participants:w.participants.map(p=>({...p,source:'ROYALEAPI_IMPORT'}))}));
-    expect(recurrence('#A',mixed,events,'2026-11-01').twoZero).toBe(false);
+  it("não confirma reincidência com participantes importados em guerra oficial", () => {
+    const mixed = wars.map((w) => ({
+      ...w,
+      participants: w.participants.map((p) => ({
+        ...p,
+        source: "ROYALEAPI_IMPORT",
+      })),
+    }));
+    expect(recurrence("#A", mixed, events, "2026-11-01").twoZero).toBe(false);
   });
-
 });
 
 it("identifica guerras por datas sem inventar período da batalha", () => {
-  expect(warLabel({publishedAt:"2026-11-02T01:00:00Z"}, "America/Sao_Paulo"))
-    .toBe("Guerra publicada em 01/11/2026");
-  expect(warLabel({publishedAt:"2026-11-02T01:00:00Z"}, "UTC"))
-    .toBe("Guerra publicada em 02/11/2026");
-  expect(warLabel({publishedAt:"2026-11-02T12:00:00Z",startDate:"2026-10-29T12:00:00Z",endDate:"2026-11-01T12:00:00Z"}))
-    .toBe("Guerra · 29/10/2026 a 01/11/2026");
+  expect(
+    warLabel({ publishedAt: "2026-11-02T01:00:00Z" }, "America/Sao_Paulo"),
+  ).toBe("Guerra publicada em 01/11/2026");
+  expect(warLabel({ publishedAt: "2026-11-02T01:00:00Z" }, "UTC")).toBe(
+    "Guerra publicada em 02/11/2026",
+  );
+  expect(
+    warLabel({
+      publishedAt: "2026-11-02T12:00:00Z",
+      startDate: "2026-10-29T12:00:00Z",
+      endDate: "2026-11-01T12:00:00Z",
+    }),
+  ).toBe("Guerra · 29/10/2026 a 01/11/2026");
+});
+
+it("não confirma reincidência com fonte desconhecida ou datas invertidas", () => {
+  const changed = structuredClone(wars);
+  delete changed[0].war.source;
+  expect(recurrence("#A", changed, events, "2026-11-01").twoBelow).toBe(false);
+  expect(
+    recurrence("#A", [wars[1], wars[0]], events, "2026-11-01").twoBelow,
+  ).toBe(false);
+  expect(
+    recurrence("#A", [wars[0], wars[0]], events, "2026-11-01").twoBelow,
+  ).toBe(false);
 });

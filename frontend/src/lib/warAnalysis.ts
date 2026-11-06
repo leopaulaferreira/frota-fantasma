@@ -22,6 +22,7 @@ export interface WarDetail {
   participants: WarPlayer[];
 }
 export interface WarEvent {
+  id?: number;
   playerTag: string;
   type: string;
   observedAt: string;
@@ -62,7 +63,26 @@ export function eligible(
   const boundary = war.startDate
     ? Date.parse(war.startDate)
     : Date.parse(war.publishedAt) - 7 * 86400000;
-  if (!Number.isFinite(at) || !Number.isFinite(boundary)) return false;
+  const end = Date.parse(war.endDate || war.publishedAt);
+  if (
+    !Number.isFinite(at) ||
+    !Number.isFinite(boundary) ||
+    !Number.isFinite(end) ||
+    end < boundary
+  )
+    return false;
+  // A departure during the battle prevents assuming full availability,
+  // including when reviewing a former member's episode before departure.
+  if (
+    events.some(
+      (e) =>
+        e.playerTag === tag &&
+        ["JOIN", "LEAVE"].includes(e.type) &&
+        Date.parse(e.observedAt) > boundary &&
+        Date.parse(e.observedAt) <= end,
+    )
+  )
+    return false;
   const e = events
     .filter(
       (e) =>
@@ -70,7 +90,11 @@ export function eligible(
         Date.parse(e.observedAt) <= at &&
         ["JOIN", "LEAVE", "BASELINE"].includes(e.type),
     )
-    .sort((a, b) => Date.parse(a.observedAt) - Date.parse(b.observedAt))
+    .sort(
+      (a, b) =>
+        Date.parse(a.observedAt) - Date.parse(b.observedAt) ||
+        (a.id ?? 0) - (b.id ?? 0),
+    )
     .at(-1);
   return !!e && e.type !== "LEAVE" && Date.parse(e.observedAt) <= boundary;
 }
@@ -82,13 +106,20 @@ export function recurrence(
   at: string,
 ) {
   const valid = (w: WarDetail) =>
-    w.war.source !== "ROYALEAPI_IMPORT" && w.participants.find(p=>p.playerTag===tag)?.source !== "ROYALEAPI_IMPORT" && eligible(tag, w.war, events, at);
+    w.war.source === "DIRECT_API" &&
+    w.participants.find((p) => p.playerTag === tag)?.source === "DIRECT_API" &&
+    eligible(tag, w.war, events, at);
   const row = (w: WarDetail) => w.participants.find((p) => p.playerTag === tag);
+  const gap =
+    wars.length >= 2
+      ? Date.parse(wars[0].war.publishedAt) -
+        Date.parse(wars[1].war.publishedAt)
+      : NaN;
   const consecutive =
     wars.length >= 2 &&
-    new Date(wars[0].war.publishedAt).getTime() -
-      new Date(wars[1].war.publishedAt).getTime() <=
-      8 * 86400000;
+    wars[0].war.id !== wars[1].war.id &&
+    gap > 0 &&
+    gap <= 8 * 86400000;
   return {
     twoZeroPoints:
       consecutive &&
@@ -130,11 +161,17 @@ export function range(value: number | null, min: string, max: string) {
 
 // Publication is a fallback label, never an invented battle date.
 export function warLabel(
-  war: { publishedAt: string; startDate?: string | null; endDate?: string | null },
+  war: {
+    publishedAt: string;
+    startDate?: string | null;
+    endDate?: string | null;
+  },
   zone = "America/Sao_Paulo",
 ) {
-  const date = (at: string) => new Intl.DateTimeFormat("pt-BR", { timeZone: zone }).format(new Date(at));
-  if (war.startDate && war.endDate) return `Guerra · ${date(war.startDate)} a ${date(war.endDate)}`;
+  const date = (at: string) =>
+    new Intl.DateTimeFormat("pt-BR", { timeZone: zone }).format(new Date(at));
+  if (war.startDate && war.endDate)
+    return `Guerra · ${date(war.startDate)} a ${date(war.endDate)}`;
   if (war.endDate) return `Guerra encerrada em ${date(war.endDate)}`;
   return `Guerra publicada em ${date(war.publishedAt)}`;
 }

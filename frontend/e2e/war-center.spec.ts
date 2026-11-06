@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 const entries = [
-  { playerTag: "#A", name: "Mesmo nome", contribution: 0, decksUsed: 0 },
-  { playerTag: "#B", name: "Mesmo nome", contribution: 2000, decksUsed: 8 },
+  { playerTag: "#A", name: "Mesmo nome", contribution: 0, decksUsed: 0, source: "DIRECT_API" },
+  { playerTag: "#B", name: "Mesmo nome", contribution: 2000, decksUsed: 8, source: "DIRECT_API" },
   { playerTag: "#C", name: "Sem dados", contribution: null, decksUsed: null },
 ];
 const wars = [0, 1, 2, 3].map((i) => ({
