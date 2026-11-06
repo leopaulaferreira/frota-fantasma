@@ -86,9 +86,11 @@ test("matriz única, filtros combinados e detalhe acessível", async ({
   await expect(page.getByLabel("Incluir ex-membros")).toBeChecked();
   await expect(page.locator(".comparison-table tbody tr")).toHaveCount(4);
   await page.getByLabel("Nome ou tag").fill("#P01");
+  await expect(page).toHaveURL(/q=%23P01/);
   await page.getByLabel("Cumprimento das regras").selectOption("repeat");
   await expect(page.locator(".comparison-table tbody tr")).toHaveCount(1);
   await expect(page.locator(".comparison-table")).toContainText("Revisão");
+  await expect(page).toHaveURL(/rule=repeat/);
   await page.reload();
   await expect(page.getByLabel("Nome ou tag")).toHaveValue("#P01");
   await page
@@ -111,9 +113,9 @@ test("períodos, seleção manual, amostra incompleta e retorno ao padrão", asy
 }) => {
   await page.goto("/comparativo");
   await page.getByRole("button", { name: "Quatro guerras anteriores" }).click();
-  await expect(page.locator(".comparison-table thead")).toContainText("T136");
+  await expect(page.locator(".comparison-table thead")).toContainText("14/09/2026");
   await page.getByRole("button", { name: "Período mais recente" }).click();
-  await expect(page.locator(".comparison-table thead")).toContainText("T137");
+  await expect(page.locator(".comparison-table thead")).toContainText("12/10/2026");
   await page.getByText("Selecionar guerras históricas (4/4)").click();
   const selected = page.locator(".comparison-picker input:checked");
   await selected.first().click();

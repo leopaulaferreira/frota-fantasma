@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  warLabel,
   totals,
   percent,
   range,
@@ -85,4 +86,13 @@ describe("análise de guerras", () => {
     expect(recurrence('#A',mixed,events,'2026-11-01').twoZero).toBe(false);
   });
 
+});
+
+it("identifica guerras por datas sem inventar período da batalha", () => {
+  expect(warLabel({publishedAt:"2026-11-02T01:00:00Z"}, "America/Sao_Paulo"))
+    .toBe("Guerra publicada em 01/11/2026");
+  expect(warLabel({publishedAt:"2026-11-02T01:00:00Z"}, "UTC"))
+    .toBe("Guerra publicada em 02/11/2026");
+  expect(warLabel({publishedAt:"2026-11-02T12:00:00Z",startDate:"2026-10-29T12:00:00Z",endDate:"2026-11-01T12:00:00Z"}))
+    .toBe("Guerra · 29/10/2026 a 01/11/2026");
 });

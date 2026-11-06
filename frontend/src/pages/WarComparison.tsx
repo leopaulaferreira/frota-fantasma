@@ -1,3 +1,4 @@
+import { warLabel } from "../lib/warAnalysis";
 import { useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQueries, useQuery } from "@tanstack/react-query";
@@ -103,7 +104,7 @@ export function WarComparison() {
     </label>
   );
   const date = (value: string | null) => displayDate(value, zone);
-  const label = (w: WarSummary) => `T${w.seasonId} · seção ${w.sectionIndex}`;
+  const label = (w: WarSummary) => warLabel(w, zone);
   const open = (tag: string) => {
     setOpened(tag);
     dialog.current?.showModal();
@@ -167,7 +168,7 @@ export function WarComparison() {
                         });
                       }}
                     />
-                    {label(w)} · publicação {date(w.publishedAt)} ·{" "}
+                    {label(w)} ·{" "}
                     {w.source === "DIRECT_API" ? "Oficial" : "Importação"}
                   </label>
                 ))}
@@ -440,12 +441,10 @@ export function WarComparison() {
                     ? "Queda na pontuação."
                     : "Pontuação estável."}
             </p>
-            <ComparisonChart player={player} />
+            <ComparisonChart player={player} zone={zone} />
             {player.cells.map((c, i) => (
               <section className="panel" key={c.war.id}>
-                <h3>
-                  {label(c.war)} · publicação {date(c.war.publishedAt)}
-                </h3>
+                <h3>{label(c.war)}</h3>
                 <p>
                   {format(c.points)} pts ·{" "}
                   {c.decks === null
@@ -518,7 +517,13 @@ export function WarComparison() {
     </>
   );
 }
-function ComparisonChart({ player }: { player: ComparisonRow }) {
+function ComparisonChart({
+  player,
+  zone,
+}: {
+  player: ComparisonRow;
+  zone: string;
+}) {
   if (player.sample < 2)
     return <p>Gráfico indisponível: são necessárias duas guerras válidas.</p>;
   const cells = [...player.cells].reverse();
@@ -531,7 +536,7 @@ function ComparisonChart({ player }: { player: ComparisonRow }) {
     <svg
       viewBox="0 0 520 190"
       role="img"
-      aria-label="Evolução dos pontos nas guerras selecionadas, da mais antiga para a recente; meta de 1.600"
+      aria-label="Evolução dos pontos nas guerras selecionadas, da mais antiga para a recente; datas de encerramento ou publicação; meta de 1.600"
       className="comparison-chart"
     >
       <line
@@ -566,7 +571,7 @@ function ComparisonChart({ player }: { player: ComparisonRow }) {
             </text>
           )}
           <text x={40 + i * 120} y="180" fill="currentColor">
-            {c.war.seasonId}/{c.war.sectionIndex}
+            {displayDate(c.war.endDate || c.war.publishedAt, zone).slice(0, 5)}
           </text>
         </g>
       ))}

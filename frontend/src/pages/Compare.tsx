@@ -1,5 +1,6 @@
+import { warLabel } from "../lib/warAnalysis";
 import { useSearchParams, Link } from "react-router-dom";
-import { useApi, date, type Report } from "../lib/api";
+import { useApi, type Report } from "../lib/api";
 import {
   classifyProspect,
   promotionSetting,
@@ -143,9 +144,9 @@ export function Compare() {
                   <tr key={id}>
                     <th>
                       <Link to={"/guerras/" + id}>
-                        T{w.seasonId} · seção {w.sectionIndex}
+                        {warLabel(w, String(q.data?.recommendationRules?.settings.analytics.timezone || "America/Sao_Paulo"))}
                       </Link>
-                      <small>{date(w.publishedAt)}</small>
+                      <small>Temporada {w.seasonId} · seção {w.sectionIndex}</small>
                     </th>
                     {players.map((p) => {
                       const pw = p.wars.find((x) => x.warId === id);

@@ -18,6 +18,7 @@ import {
 } from "../lib/api";
 import { Heading, QueryState, MetricView } from "../components/ui";
 import {
+  warLabel,
   known,
   totals,
   percent,
@@ -80,6 +81,7 @@ export function Wars() {
   });
   const roster = useApi<{ tag: string; name: string }[]>("/clan/members");
   const analytics = useApi<Report>("/analytics");
+  const zone = String(analytics.data?.recommendationRules?.settings.analytics.timezone || "America/Sao_Paulo");
   const membership = useQuery({
     queryKey: ["war-analysis-events"],
     queryFn: events,
@@ -340,8 +342,7 @@ export function Wars() {
             <option value="">Corrida atual · parcial</option>
             {list.data?.items.map((w) => (
               <option key={w.id} value={w.id}>
-                Temporada {w.seasonId} · seção {w.sectionIndex} · publicada{" "}
-                {date(w.publishedAt)}
+                {warLabel(w, zone)}
                 {w.source === "ROYALEAPI_IMPORT" ? " · Importação" : ""}
               </option>
             ))}
@@ -362,7 +363,7 @@ export function Wars() {
             <option value="">Guerra anterior</option>
             {list.data?.items.map((w) => (
               <option key={w.id} value={w.id}>
-                {w.seasonId} · seção {w.sectionIndex} · {date(w.publishedAt)}
+                {warLabel(w, zone)}
               </option>
             ))}
           </select>
@@ -739,8 +740,7 @@ export function Wars() {
             return (
               <div key={w.war.id} className="panel">
                 <Link to={"/guerras/" + w.war.id + "?" + url.toString()}>
-                  {w.war.seasonId} · seção {w.war.sectionIndex} · publicação{" "}
-                  {date(w.war.publishedAt)}
+                  {warLabel(w.war, zone)}
                 </Link>
                 <meter
                   min={0}

@@ -127,3 +127,14 @@ export function range(value: number | null, min: string, max: string) {
     (!max || (Number.isFinite(Number(max)) && value <= Number(max)))
   );
 }
+
+// Publication is a fallback label, never an invented battle date.
+export function warLabel(
+  war: { publishedAt: string; startDate?: string | null; endDate?: string | null },
+  zone = "America/Sao_Paulo",
+) {
+  const date = (at: string) => new Intl.DateTimeFormat("pt-BR", { timeZone: zone }).format(new Date(at));
+  if (war.startDate && war.endDate) return `Guerra · ${date(war.startDate)} a ${date(war.endDate)}`;
+  if (war.endDate) return `Guerra encerrada em ${date(war.endDate)}`;
+  return `Guerra publicada em ${date(war.publishedAt)}`;
+}
