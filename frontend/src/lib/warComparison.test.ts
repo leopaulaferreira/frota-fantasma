@@ -274,7 +274,7 @@ it("pontuação conhecida não depende de decks conhecidos, nem o inverso", () =
   const b = rows(changed).find((p) => p.tag === "#A")!;
   expect(b.sample).toBe(3);
   expect(b.twoBelow).toBe(false);
-  expect(b.situation).toBe("Coleta incompleta");
+  expect(b.situation).toBe("Conferir participação · resultado ausente");
   expect(
     filterRows(rows(changed), new URLSearchParams("q=%23A&rule=zero")),
   ).toHaveLength(1);
@@ -329,4 +329,35 @@ it("16 decks oficiais nas quatro não dependem de pontuação coletada", () => {
   expect(
     filterRows(rows(changed), new URLSearchParams("q=%23B&rule=full")),
   ).toHaveLength(1);
+});
+
+it("distingue membro elegível sem resultado, entrada posterior e vínculo desconhecido", () => {
+  const missing = wars.slice(0, 2).map((w) => ({ ...w, participants: [] }));
+  const members = [
+    { tag: "#OLD", name: "Antigo" },
+    { tag: "#NEW", name: "Novo" },
+    { tag: "#UNKNOWN", name: "Sem vínculo" },
+  ];
+  const e = [
+    { playerTag: "#OLD", type: "BASELINE", observedAt: "2026-01-01T00:00:00Z" },
+    { playerTag: "#NEW", type: "JOIN", observedAt: "2026-11-04T00:00:00Z" },
+  ];
+  const result = comparisonRows(missing, members, e, at, archive);
+  const old = result.find((p) => p.tag === "#OLD")!;
+  expect(old.cells[0].state).toBe("MISSING_RESULT");
+  expect(old.cells[0].tone).toBe("warn");
+  expect(old.average).toBeNull();
+  expect(old.twoBelow).toBe(false);
+  expect(old.situation).toContain("Conferir participação");
+  expect(result.find((p) => p.tag === "#NEW")?.cells[0].state).toBe(
+    "BEFORE_ENTRY",
+  );
+  expect(result.find((p) => p.tag === "#UNKNOWN")?.cells[0].state).toBe(
+    "UNKNOWN_MEMBERSHIP",
+  );
+  expect(
+    filterRows(result, new URLSearchParams("rule=unrecorded")).map(
+      (p) => p.tag,
+    ),
+  ).toEqual(["#OLD"]);
 });

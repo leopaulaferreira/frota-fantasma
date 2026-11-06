@@ -142,3 +142,20 @@ sendo limitações explícitas.
 Na rodada final: 44 testes unitários frontend e build de produção aprovados.
 O caso do recém-chegado com zero oficial tem regressão automatizada tanto no
 cálculo quanto no navegador. Nenhuma premiação ou decisão persistida foi alterada.
+
+### Ausência de resultado não é ausência do clã
+
+A classificação de cada célula é compartilhada pela tabela, pelo detalhe e pelo
+filtro “Vínculo comprovado · resultado ausente”:
+
+- Vínculo elegível, sem pontuação: amarelo, “Sem registro de pontuação nesta guerra ·
+  conferir participação”. Não gera zero, média, meta não atingida ou reincidência.
+- Guerra anterior ao JOIN/reingresso observado, sem registro: “Anterior à entrada”.
+- Sem resultado nem comprovação do vínculo: “Vínculo no período não confirmado”.
+  Histórico antigo sozinho não comprova presença contínua naquela batalha.
+- Resultado oficial abaixo de 1.600: vermelho somente com vínculo elegível.
+- Registro importado permanece identificado como parcial, inclusive com campos ausentes.
+
+O status geral destaca “Conferir participação · resultado ausente” mesmo quando
+não há nenhuma pontuação na seleção. Isso evita confundir um membro elegível com
+um recém-chegado. BASELINE continua sendo data de observação, não data de entrada.

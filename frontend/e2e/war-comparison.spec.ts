@@ -133,7 +133,7 @@ test("períodos, seleção manual, amostra incompleta e retorno ao padrão", asy
   await expect(page.locator(".comparison-table thead th")).toHaveCount(7);
   await page.getByLabel("Cumprimento das regras").selectOption("missing");
   await expect(page.locator(".comparison-table")).toContainText("Novato");
-  await expect(page.locator(".comparison-table")).toContainText("Não coletado");
+  await expect(page.locator(".comparison-table")).toContainText("Sem pontuação registrada");
   await page.getByLabel("Nome ou tag").fill("inexistente");
   await expect(
     page.getByText("Nenhum jogador atende aos filtros.", { exact: false }),
@@ -219,4 +219,21 @@ test("zero oficial de recém-chegado permanece na média e nos filtros sem virar
   await expect(
     page.getByText("Nenhum jogador atende aos filtros.", { exact: false }),
   ).toBeVisible();
+});
+
+test("resultado ausente de membro elegível fica amarelo e tem filtro próprio", async ({page}) => {
+  await page.route(/\/api\/wars\/\d+$/, r => {
+    const id=Number(new URL(r.request().url()).pathname.split("/").at(-1));
+    return r.fulfill({json:{war:wars[id-1],participants:participants.filter(p=>p.playerTag!=="#P01")}});
+  });
+  await page.goto("/comparativo");
+  await page.getByLabel("Cumprimento das regras").selectOption("unrecorded");
+  const table=page.locator(".comparison-table");
+  await expect(table.locator("tbody tr")).toHaveCount(1);
+  await expect(table).toContainText("#P01");
+  await expect(table).toContainText("Conferir participação · resultado ausente");
+  await expect(table.locator(".badge.warn").first()).toContainText("conferir participação");
+  await expect(table.locator(".badge.bad")).toHaveCount(0);
+  await page.getByLabel("Cumprimento das regras").selectOption("repeat");
+  await expect(page.getByText("Nenhum jogador atende aos filtros.",{exact:false})).toBeVisible();
 });

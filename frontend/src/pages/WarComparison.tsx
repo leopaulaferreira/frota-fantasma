@@ -237,6 +237,7 @@ export function WarComparison() {
             ["decks", "Menos de 16 decks na última"],
             ["full", "16/16 decks nas quatro"],
             ["missing", "Histórico insuficiente"],
+            ["unrecorded", "Vínculo comprovado · resultado ausente"],
           ])}
           {control("sort", "Ordenação", [
             ["", "Maior média"],
@@ -346,7 +347,9 @@ export function WarComparison() {
                       <td key={c.war.id}>
                         <strong>
                           {c.points === null
-                            ? "Não coletado"
+                            ? c.state === "BEFORE_ENTRY"
+                              ? "Anterior à entrada"
+                              : "Sem pontuação registrada"
                             : format(c.points) + " pts"}
                         </strong>
                         <small>
@@ -354,18 +357,7 @@ export function WarComparison() {
                             ? "Ataques não disponíveis"
                             : `${c.decks}/16 decks · referência`}
                         </small>
-                        <span
-                          className={
-                            "badge " +
-                            (c.valid && (c.required || c.points! >= 1600)
-                              ? c.points! >= 1600
-                                ? "good"
-                                : "bad"
-                              : "")
-                          }
-                        >
-                          {c.reason}
-                        </span>
+                        <span className={"badge " + c.tone}>{c.reason}</span>
                         {c.official && c.decks === 0 && (
                           <small>Zero decks explícito</small>
                         )}

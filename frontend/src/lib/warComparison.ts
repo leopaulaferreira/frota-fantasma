@@ -103,19 +103,42 @@ export function comparisonRows(
         last?.type === "JOIN" &&
         Date.parse(last.observedAt) >
           Date.parse(w.war.endDate || w.war.publishedAt);
-      const reason = beforeEpisode
-        ? "Anterior ao ingresso/reingresso observado"
-        : !record
-          ? "Pontuação não coletada"
-          : !official
-            ? "Registro importado / parcial"
-            : points === null
-              ? "Pontuação não coletada"
-              : points >= 1600
-                ? "Meta cumprida"
-                : !required
-                  ? "Pontuação registrada · participação integral não comprovada"
-                  : "Abaixo da meta";
+      const missingResult = !record || points === null;
+      const state =
+        record && !official
+          ? "PARTIAL"
+          : !record && beforeEpisode
+            ? "BEFORE_ENTRY"
+            : missingResult && required
+              ? "MISSING_RESULT"
+              : missingResult
+                ? "UNKNOWN_MEMBERSHIP"
+                : !official
+                  ? "PARTIAL"
+                  : points >= 1600
+                    ? "TARGET"
+                    : required
+                      ? "BELOW_TARGET"
+                      : "UNCONFIRMED_OBLIGATION";
+      const reason = {
+        BEFORE_ENTRY: "Anterior ao ingresso/reingresso observado",
+        MISSING_RESULT:
+          "Sem registro de pontuação nesta guerra · conferir participação",
+        UNKNOWN_MEMBERSHIP: "Vínculo no período não confirmado",
+        PARTIAL: "Registro importado / parcial",
+        TARGET: "Meta cumprida",
+        BELOW_TARGET: "Meta não atingida",
+        UNCONFIRMED_OBLIGATION:
+          "Pontuação registrada · participação integral não comprovada",
+      }[state];
+      const tone =
+        state === "MISSING_RESULT"
+          ? "warn"
+          : state === "TARGET"
+            ? "good"
+            : state === "BELOW_TARGET"
+              ? "bad"
+              : "";
       return {
         war: w.war,
         record,
@@ -126,6 +149,8 @@ export function comparisonRows(
         beforeEpisode,
         official,
         reason,
+        state,
+        tone,
       };
     });
     const scores = cells.filter((c) => c.valid).map((c) => c.points!);
@@ -169,21 +194,25 @@ export function comparisonRows(
       latest: cells[0]?.valid ? cells[0].points : null,
       situation: twoBelow
         ? "Revisão · duas abaixo da meta"
-        : !scores.length
-          ? "Dados insuficientes"
-          : cells.some(
-                (c) =>
-                  (c.official && (c.points === null || c.decks === null)) ||
-                  (c.required && !c.valid),
-              )
-            ? "Coleta incompleta"
-            : scores.length < 4
-              ? `Histórico em formação · ${scores.length}/4 guerras`
-              : cells.some((c) => !c.required)
-                ? "Participação integral não comprovada"
-                : cells[0]?.valid && cells[0].points! < 1600
-                  ? "Acompanhar"
-                  : "Bom desempenho",
+        : cells.some((c) => c.state === "MISSING_RESULT")
+          ? "Conferir participação · resultado ausente"
+          : !scores.length
+            ? cells.every((c) => c.state === "BEFORE_ENTRY") && cells.length > 0
+              ? "Guerras anteriores à entrada observada"
+              : "Dados insuficientes · conferir vínculo e coleta"
+            : cells.some(
+                  (c) =>
+                    (c.official && (c.points === null || c.decks === null)) ||
+                    (c.required && !c.valid),
+                )
+              ? "Coleta incompleta"
+              : scores.length < 4
+                ? `Histórico em formação · ${scores.length}/4 guerras`
+                : cells.some((c) => !c.required)
+                  ? "Participação integral não comprovada"
+                  : cells[0]?.valid && cells[0].points! < 1600
+                    ? "Acompanhar"
+                    : "Bom desempenho",
     };
   });
 }
@@ -215,6 +244,11 @@ export function filterRows(rows: ComparisonRow[], params: URLSearchParams) {
         return false;
       if (rule === "full" && !p.fullFour) return false;
       if (rule === "missing" && !p.insufficient) return false;
+      if (
+        rule === "unrecorded" &&
+        !p.cells.some((c) => c.state === "MISSING_RESULT")
+      )
+        return false;
       if (performance === "high" && !(p.average !== null && p.average >= 2400))
         return false;
       if (performance === "low" && !(p.average !== null && p.average < 1600))
