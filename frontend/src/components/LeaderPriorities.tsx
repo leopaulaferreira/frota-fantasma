@@ -1,7 +1,7 @@
 import { promotionSetting } from "../lib/prospects";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { type Report, useApi, tagPath, dateTime } from "../lib/api";
+import { type Report, useApi, tagPath, dateTime, date } from "../lib/api";
 import { type ActiveNotes, leaderSignals } from "../lib/leadership";
 import { Empty, MetricView, Person, QueryState } from "./ui";
 import { NoteText } from "./LeaderNotes";
@@ -98,6 +98,18 @@ export function LeaderPriorities({ report }: { report: Report }) {
             }}
           />
         </label>
+        <button
+          onClick={() => {
+            setSearch("");
+            setFilter("");
+            setPage(0);
+            setObjective(
+              String(promotionSetting(report, "pointsTarget") ?? ""),
+            );
+          }}
+        >
+          Limpar filtros das prioridades
+        </button>
       </div>
       <p className="muted">
         “Perto do objetivo” significa até 5% abaixo da referência, com quatro
@@ -120,9 +132,33 @@ export function LeaderPriorities({ report }: { report: Report }) {
                     <Link to={`/membros/${tagPath(player.tag)}?tab=notas`}>
                       Abrir histórico e notas →
                     </Link>
+                    <Link
+                      to={`/comparativo?q=${encodeURIComponent(player.tag)}`}
+                    >
+                      Ver quatro guerras →
+                    </Link>
                   </div>
                   <div>
                     <b>{signals.map((s) => s.label).join(" · ")}</b>
+                    {context.some(
+                      (n) => n.status === "ACTIVE" && n.followUpOn,
+                    ) && (
+                      <p className="muted">
+                        Retomar em{" "}
+                        {context
+                          .filter((n) => n.status === "ACTIVE" && n.followUpOn)
+                          .map((n) => n.followUpOn!)
+                          .sort()
+                          .map((d) => date(d))
+                          .filter((d, i, all) => all.indexOf(d) === i)
+                          .join(" · ")}
+                        {context.some(
+                          (n) => n.status === "ACTIVE" && n.followUpDue,
+                        )
+                          ? " · Há prazo atingido"
+                          : ""}
+                      </p>
+                    )}
                     {signals.map((s) => (
                       <div className="priority-signal" key={s.label}>
                         <p>{s.reason}</p>

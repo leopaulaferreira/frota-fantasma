@@ -817,3 +817,20 @@ test("Guardião identifica pico e semana encerrada sem relabelar evidências ant
   await expect(guardian).toContainText("Doações observadas");
   await expect(guardian).not.toContainText("semana encerrada");
 });
+
+test("prioridades refinadas mostram prazo e levam ao comparativo sem nova decisão", async ({ page }) => {
+  await page.route("**/api/leadership/notes/active", route => route.fulfill({json:{
+    generatedAt:report.generatedAt,timezone:"America/Sao_Paulo",
+    notes:[{id:"follow-1",playerTag:players[0].tag,kind:"AGREEMENT",body:"Conversar sobre participação",
+      createdAt:report.generatedAt,createdBy:"lider",status:"ACTIVE",followUpOn:"2026-10-12",
+      followUpDue:true,expiresOn:null,resolvedAt:null,resolvedBy:null,resolution:null}]
+  }}));
+  await page.goto("/");
+  const priorities=page.getByRole("region",{name:"Prioridades do líder"});
+  await priorities.getByLabel("Buscar nas prioridades").fill(players[0].tag);
+  await expect(priorities.getByText("Retomar em 12/10/2026 · Há prazo atingido")).toBeVisible();
+  await expect(priorities.getByRole("link",{name:"Ver quatro guerras"})).toHaveAttribute("href","/comparativo?q="+encodeURIComponent(players[0].tag));
+  await priorities.getByRole("button",{name:"Limpar filtros das prioridades"}).click();
+  await expect(priorities.getByLabel("Buscar nas prioridades")).toHaveValue("");
+  await expect(priorities.getByLabel("Filtrar prioridade")).toHaveValue("");
+});

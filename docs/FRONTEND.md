@@ -346,3 +346,9 @@ lado e evolução individual. Contratos, critérios e limites em [WARS.md](WARS.
 ## Comparativo de guerras
 
 O menu **Comparativo** abre `/comparativo`, com matriz das quatro últimas guerras oficiais encerradas, filtros combináveis na URL e diálogo individual com gráfico, doações e evidências. A rota `/comparar` permanece disponível para comparação de perfis. Consulte [critérios, utilização e validação](COMPARATIVO.md).
+
+### Refinamentos da visão do líder
+
+A visão geral mantém os componentes existentes de resumo e prioridades, sem criar outra fila de gestão. As prioridades agora deixam as datas de retorno visíveis, permitem limpar filtros e abrem o comparativo já filtrado pela tag. Os prazos e sinais continuam vindo das notas e métricas existentes.
+
+Seletores de Guerras, Comparativo e comparação de membros identificam as guerras por datas no fuso configurado. Sem datas efetivas, o texto diz explicitamente “Guerra publicada em”; não presume a data de batalha. Temporada e seção permanecem nas evidências. Nenhuma regra de premiação, revisão ou promoção foi alterada.
