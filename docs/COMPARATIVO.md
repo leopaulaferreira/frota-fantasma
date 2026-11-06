@@ -50,7 +50,7 @@ alterados são associados pela tag; o nome atual tem preferência.
 
 - Meta visual: 1.600 pontos. Abaixo da meta só recebe destaque de falta com
   resultado oficial, pontuação conhecida e vínculo elegível.
-- Média e total usam somente pontos oficiais com vínculo elegível, dentro da
+- Média e total usam pontos oficiais registrados, independentemente de comprovação de vínculo integral, dentro da
   seleção. O denominador aparece ao lado da média; não busca guerras extras para
   preencher lacunas. Sem valores válidos, média e total são desconhecidos.
 - Reincidência usa a função compartilhada `recurrence` de `warAnalysis.ts`.
@@ -60,12 +60,11 @@ alterados são associados pela tag; o nome atual tem preferência.
 - A função compartilhada `eligible` protege reingressos: o episódio atual não
   penaliza guerras anteriores. Para ex-membros com saída registrada, conserva-se
   o episódio imediatamente anterior à saída. Vínculo desconhecido é insuficiente.
-- Zero ataques é zero explícito em `decksUsed`, com fonte oficial e vínculo
-  elegível; zero pontos não comprova zero ataques. Filtros “zero ataques” e
+- Zero ataques é zero explícito em `decksUsed`, com fonte oficial; zero pontos não comprova zero ataques. Filtros “zero ataques” e
   “menos de 16 decks” referem-se à última guerra selecionada.
-- “16/16 nas quatro” exige exatamente quatro guerras válidas com 16 decks
+- “16/16 nas quatro” exige exatamente quatro guerras com registros oficiais de 16 decks
   registrados em cada uma. É referência de utilização, não disponibilidade presumida.
-- Histórico insuficiente: menos de quatro guerras, pontos/vínculo/fonte inválidos
+- Histórico insuficiente: menos de quatro guerras, pontos/fonte inválidos
   ou decks desconhecidos em alguma coluna. Isso pode coexistir com reincidência
   confirmada nas duas guerras recentes; a situação prioriza a evidência de revisão.
 - Média >= 2.400 é um filtro de desempenho, não uma regra nova de promoção.
@@ -98,3 +97,48 @@ Falhas nas fontes necessárias bloqueiam a tabela, com opção de tentar novamen
 - `mvn -q -f backend/pom.xml -Dtest=AnalyticsEngineTest,DonationCalculatorTest,WeeklyParticipationTest,WeeklyReviewEngineTest,RecommendationIntegrationIT,HistoryStoreIT,HistoricalBackfillIT test`:
   62 testes aprovados, sem skips, incluindo proteção do fechamento do Guardião e
   idempotência de premiações formalizadas. Integrações usam bancos de teste.
+
+### Resultado registrado e exigibilidade
+
+Pontuação oficial e decks registrados continuam visíveis e entram nas estatísticas descritivas mesmo quando o ingresso recente impede confirmar obrigação integral. Essa proteção continua exigida para reincidência e destaque vermelho por falta. Um zero oficial é uma amostra de valor zero, não ausência de dados. O texto “Histórico em formação · N/4 guerras” identifica amostras menores; “Coleta incompleta” indica lacunas em guerras elegíveis. Sem pontuação oficial conhecida, permanece “Dados insuficientes”. A média pode incluir episódios anteriores, mas eles não confirmam reincidência no episódio atual.
+
+## Auditoria de resultados registrados — 6 de novembro de 2026
+
+A verificação encontrou uma mistura entre resultado conhecido e participação
+exigível: médias e filtros descartavam números oficiais quando o vínculo integral
+não era comprovado. A correção separa essas dimensões:
+
+- Média, total, meta atingida e filtros de pontos usam a pontuação oficial conhecida.
+- Filtros de decks e quatro registros de 16 decks usam os decks oficiais conhecidos,
+  independentemente da disponibilidade de pontuação ou de ataques exigíveis.
+- Reincidência continua exigindo vínculo elegível. Saída durante a batalha,
+  fonte desconhecida, guerras duplicadas ou ordem invertida não confirmam sequência.
+- Importações e ausência de registro não passam a ser resultados oficiais ou zeros.
+- Exibição de histórico parcial não constitui recomendação de expulsão.
+
+No recorte somente leitura de 06/11/2026 às 20:09 UTC, havia 50 membros atuais,
+quatro guerras oficiais na seleção padrão e 13 guerras no arquivo. O cruzamento
+identificou 42 resultados oficiais de 42 membros que a exigência de vínculo
+excluía das estatísticas; 11 membros ficavam sem média. Foram verificados 25
+seleções históricas, 2.553 combinações jogador/período e 2.000 combinações de filtros.
+Esses números representam esse recorte, não uma garantia de cobertura futura.
+
+### Reproduzir a auditoria somente leitura
+
+Na raiz do projeto, com os serviços locais ativos:
+
+```bash
+docker compose exec -T db sh -c 'psql -qAt -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < scripts/audit-comparativo.sql > /tmp/comparison-audit-data.json
+frontend/node_modules/.bin/vite-node frontend/scripts/auditWarComparison.ts /tmp/comparison-audit-data.json
+```
+
+A consulta usa transação READ ONLY e não modifica dados. O JSON contém histórico
+real: mantenha-o fora do Git. O verificador cruza média, total e amostra com
+pontuações oficiais brutas, verifica os filtros e a proteção contra reincidência.
+Ele verifica consistência com o que foi coletado; não comprova atividade que a
+fonte não registrou. Datas de batalha ausentes e cobertura parcial continuam
+sendo limitações explícitas.
+
+Na rodada final: 44 testes unitários frontend e build de produção aprovados.
+O caso do recém-chegado com zero oficial tem regressão automatizada tanto no
+cálculo quanto no navegador. Nenhuma premiação ou decisão persistida foi alterada.
