@@ -301,25 +301,63 @@ export function WarComparison() {
           <div className="table-scroll comparison-table">
             <table>
               <caption>
-                Resultados da guerra mais recente para a mais antiga
+                Resultados da guerra mais recente para a mais antiga · datas de
+                publicação quando o encerramento não é informado
               </caption>
               <thead>
                 <tr>
                   <th>Jogador</th>
-                  {selected.map((w) => (
-                    <th key={w.id}>
-                      <Link to={"/guerras/" + w.id}>{label(w)}</Link>
+                  {selected.map((w, i) => (
+                    <th
+                      key={w.id}
+                      className={i === 0 ? "comparison-latest" : ""}
+                    >
+                      <Link
+                        className="comparison-war-date"
+                        to={"/guerras/" + w.id}
+                      >
+                        {date(w.endDate || w.publishedAt).slice(0, 5)}
+                      </Link>
                       <small>
-                        {w.startDate || w.endDate
-                          ? `${date(w.startDate)} → ${date(w.endDate)}`
-                          : "Período efetivo não informado"}
+                        {
+                          [
+                            "Última guerra",
+                            "Anterior",
+                            "Há 2 guerras",
+                            "Há 3 guerras",
+                          ][i]
+                        }
                       </small>
-                      <small>Publicação {date(w.publishedAt)}</small>
-                      <small>
-                        {w.source === "DIRECT_API"
-                          ? "Resultado oficial"
-                          : "Importação · cobertura parcial"}
-                      </small>
+                      <details className="comparison-metadata">
+                        <summary
+                          aria-label={
+                            "Informações da guerra " + date(w.publishedAt)
+                          }
+                        >
+                          Sobre a data
+                        </summary>
+                        <div>
+                          <b>
+                            {w.endDate
+                              ? "Data de encerramento"
+                              : "Data de publicação"}
+                          </b>
+                          <p>
+                            Publicação: {date(w.publishedAt)} · ID {w.id}
+                          </p>
+                          <p>
+                            Temporada {w.seasonId} · seção {w.sectionIndex}
+                          </p>
+                          <p>
+                            Período: {date(w.startDate)} → {date(w.endDate)}
+                          </p>
+                          <p>
+                            {w.source === "DIRECT_API"
+                              ? "Resultado oficial"
+                              : "Importação · cobertura parcial"}
+                          </p>
+                        </div>
+                      </details>
                     </th>
                   ))}
                   <th>Média</th>
@@ -329,58 +367,125 @@ export function WarComparison() {
               <tbody>
                 {rows.map((p) => (
                   <tr key={p.tag} onClick={() => open(p.tag)}>
-                    <th scope="row">
+                    <th scope="row" className="comparison-identity">
+                      <Link
+                        className="comparison-name"
+                        to={"/membros/" + encodeURIComponent(p.tag)}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {p.name}
+                      </Link>
+                      <small className="comparison-tag">{p.tag}</small>
+                      <span className="comparison-membership">
+                        {p.current ? "Membro atual" : "Ex-membro"}
+                      </span>
+                    </th>
+                    {p.cells.map((c, i) => (
+                      <td
+                        key={c.war.id}
+                        className={i === 0 ? "comparison-latest" : ""}
+                      >
+                        <div className="comparison-score">
+                          <strong>
+                            {c.points === null ? "—" : format(c.points)}
+                          </strong>
+                          {c.points !== null && <span>pts</span>}
+                        </div>
+                        <button
+                          className={"comparison-result " + c.tone}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            open(p.tag);
+                          }}
+                          aria-label={
+                            c.reason +
+                            " · " +
+                            date(c.war.publishedAt) +
+                            " · Ver detalhes de " +
+                            p.name
+                          }
+                        >
+                          {
+                            {
+                              TARGET: "✓ Meta",
+                              BELOW_TARGET: "Abaixo da meta",
+                              MISSING_RESULT: "Conferir registro",
+                              BEFORE_ENTRY: "Antes da entrada",
+                              UNKNOWN_MEMBERSHIP: "Vínculo incerto",
+                              PARTIAL: "Parcial",
+                              UNCONFIRMED_OBLIGATION: "Ver contexto",
+                            }[c.state]
+                          }
+                        </button>
+                        <small className="comparison-decks">
+                          {c.decks === null
+                            ? "Decks não informados"
+                            : c.official
+                              ? c.decks === 16
+                                ? "16 decks registrados"
+                                : " " + format(c.decks) + " decks registrados"
+                              : format(c.decks) + " decks · parcial"}
+                        </small>
+                      </td>
+                    ))}
+                    <td className="comparison-average">
+                      <strong>
+                        {p.average === null ? "—" : format(p.average)}
+                        <span>{p.average !== null ? " pts" : ""}</span>
+                      </strong>
+                      <small>
+                        {p.sample
+                          ? `${p.cells.filter((c) => c.valid && c.points! >= 1600).length}/${p.sample} metas cumpridas`
+                          : "Metas: sem amostra"}
+                      </small>
+                      <small>
+                        {p.sample}/{selected.length} com pontuação oficial
+                      </small>
+                      {p.delta !== null && (
+                        <span
+                          className="comparison-delta"
+                          tabIndex={0}
+                          aria-label={`Variação de ${format(p.delta)} pontos entre a última guerra e a imediatamente anterior`}
+                          title="Última guerra menos a imediatamente anterior; apenas resultados oficiais comparáveis"
+                        >
+                          {p.delta > 0 ? "↑ +" : p.delta < 0 ? "↓ " : "→ "}
+                          {format(p.delta)} pts
+                        </span>
+                      )}
+                    </td>
+                    <td>
                       <button
+                        className={
+                          "comparison-situation " + (p.twoBelow ? "warn" : "")
+                        }
                         aria-haspopup="dialog"
                         onClick={(e) => {
                           e.stopPropagation();
                           open(p.tag);
                         }}
+                        aria-label={
+                          "Detalhes de " + p.name + ": " + p.situation
+                        }
                       >
-                        {p.name}
+                        {p.twoBelow
+                          ? "Reincidência"
+                          : p.situation.startsWith("Conferir")
+                            ? "Conferir registro"
+                            : p.situation.startsWith("Histórico")
+                              ? "Histórico parcial"
+                              : p.situation.startsWith("Dados")
+                                ? "Dados insuficientes"
+                                : p.situation.startsWith("Guerras anteriores")
+                                  ? "Antes da entrada"
+                                  : p.situation === "Bom desempenho"
+                                    ? "Regular"
+                                    : p.situation ===
+                                        "Participação integral não comprovada"
+                                      ? "Ver participação"
+                                      : p.situation}
+                        <span aria-hidden="true"> ↗</span>
                       </button>
-                      <small>
-                        {p.tag} · {p.current ? "Membro atual" : "Ex-membro"}
-                      </small>
-                    </th>
-                    {p.cells.map((c) => (
-                      <td key={c.war.id}>
-                        <strong>
-                          {c.points === null
-                            ? c.state === "BEFORE_ENTRY"
-                              ? "Anterior à entrada"
-                              : "Sem pontuação registrada"
-                            : format(c.points) + " pts"}
-                        </strong>
-                        <small>
-                          {c.decks === null
-                            ? "Ataques não disponíveis"
-                            : `${c.decks}/16 decks · referência`}
-                        </small>
-                        <span className={"badge " + c.tone}>{c.reason}</span>
-                        {c.official && c.decks === 0 && (
-                          <small>Zero decks explícito</small>
-                        )}
-                      </td>
-                    ))}
-                    <td>
-                      <strong>{format(p.average)}</strong>
-                      <small>
-                        {p.sample}/{selected.length} guerras com pontuação
-                        oficial
-                      </small>
-                      {p.delta !== null && (
-                        <small>
-                          Variação: {p.delta > 0 ? "+" : ""}
-                          {format(p.delta)} pts
-                        </small>
-                      )}
-                    </td>
-                    <td>
-                      <span className={"badge " + (p.twoBelow ? "warn" : "")}>
-                        {p.situation}
-                      </span>
-                      {p.fullFour && <small>16/16 nas quatro</small>}
+                      {p.fullFour && <small>16 decks nas quatro</small>}
                     </td>
                   </tr>
                 ))}

@@ -1044,3 +1044,37 @@ th {
     margin-bottom: -20px;
   }
 }
+
+/* Compact performance matrix: identity, observed score, context on demand. */
+.comparison-table { max-height: 72vh; overflow: auto; scrollbar-gutter: stable; }
+.comparison-table table { min-width: 1060px; }
+.comparison-table thead th { position: sticky; top: 0; z-index: 2; background: #19313b; padding: 18px 14px; }
+.comparison-table thead th:first-child { z-index: 3; }
+.comparison-table th:first-child { width: 180px; }
+.comparison-table th:nth-last-child(2) { width: 145px; }
+.comparison-table th:last-child { width: 145px; }
+.comparison-table tbody th, .comparison-table tbody td { padding: 18px 14px; vertical-align: middle; border-bottom: 1px solid #29434e80; }
+.comparison-table .comparison-name { display: block; font-size: 15px; font-weight: 650; line-height: 1.4; color: #edf4f5; text-decoration: none; }
+.comparison-table .comparison-tag { font-size: 11px; font-weight: 400; color: #8ba5b0; margin-top: 4px; }
+.comparison-membership { display: block; font-size: 10px; font-weight: 400; color: #a7bbc3; margin-top: 5px; }
+.comparison-war-date { display: block; font-size: 18px; color: #edf4f5; font-variant-numeric: tabular-nums; }
+.comparison-table .comparison-latest { background: #18333b70; }
+.comparison-table thead .comparison-latest { background: #23434c; }
+.comparison-score { display: flex; align-items: baseline; gap: 4px; font-variant-numeric: tabular-nums; }
+.comparison-score strong { font-size: 19px; font-weight: 650; line-height: 1.35; }
+.comparison-score span, .comparison-average strong span { color: #91aab4; font-size: 10px; font-weight: 400; }
+.comparison-table .comparison-result { padding: 3px 0; margin: 4px 0; border: 0; border-radius: 2px; background: transparent; font-size: 11px; text-align: left; color: #b2c3ca; min-height: 26px; }
+.comparison-table .comparison-result.good { color: #8cebd5; }
+.comparison-table .comparison-result.bad { color: #f3a8aa; }
+.comparison-table .comparison-result.warn { color: #e5c789; }
+.comparison-table .comparison-decks { font-size: 10px; color: #8fa9b4; }
+.comparison-average { font-variant-numeric: tabular-nums; }
+.comparison-average > strong { display: block; font-size: 21px; color: #eef6f7; }
+.comparison-average small { font-size: 10px; line-height: 1.6; }
+.comparison-delta { display: inline-block; font-size: 11px; margin-top: 7px; color: #b9ced5; }
+.comparison-table .comparison-situation { display: block; padding: 6px 8px; font-size: 11px; font-weight: 500; text-align: left; background: #203740; border: 1px solid #39535d; white-space: normal; }
+.comparison-table .comparison-situation.warn { color: #e5c789; border-color: #79653c; }
+.comparison-metadata { font-weight: 400; font-size: 11px; margin-top: 6px; }
+.comparison-metadata summary { color: #a4bbc5; cursor: pointer; }
+.comparison-metadata > div { margin-top: 8px; line-height: 1.5; }
+.comparison-table tbody tr:focus-within { outline: 1px solid #8cebd5; outline-offset: -2px; }
