@@ -159,3 +159,19 @@ filtro “Vínculo comprovado · resultado ausente”:
 O status geral destaca “Conferir participação · resultado ausente” mesmo quando
 não há nenhuma pontuação na seleção. Isso evita confundir um membro elegível com
 um recém-chegado. BASELINE continua sendo data de observação, não data de entrada.
+
+## Apresentação compacta
+
+A matriz mantém os cálculos e filtros existentes. Nome destacado abre o perfil;
+clicar no resultado, na situação ou na linha abre o detalhamento existente.
+Cabeçalhos exibem dia/mês e metadados acessíveis em “Sobre a data”, incluindo
+publicação, período, fonte e identificadores. Sem encerramento conhecido, a data
+é de publicação, conforme a legenda da tabela. Cabeçalho e identidade ficam fixos
+na área de rolagem.
+
+“Decks registrados” indica utilização coletada, não comprovação de disponibilidade
+integral. Registros importados são identificados como parciais, desconhecidos como
+não informados. Os detalhes preservam a referência de 16 e a ressalva de vínculo.
+A média mostra metas atingidas entre resultados oficiais conhecidos, amostra e
+a variação existente entre guerras adjacentes. Estados curtos são apenas rótulos
+visuais; razões completas continuam no diálogo e nos nomes acessíveis dos botões.

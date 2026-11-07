@@ -89,13 +89,13 @@ test("matriz única, filtros combinados e detalhe acessível", async ({
   await expect(page).toHaveURL(/q=%23P01/);
   await page.getByLabel("Cumprimento das regras").selectOption("repeat");
   await expect(page.locator(".comparison-table tbody tr")).toHaveCount(1);
-  await expect(page.locator(".comparison-table")).toContainText("Revisão");
+  await expect(page.locator(".comparison-table")).toContainText("Reincidência");
   await expect(page).toHaveURL(/rule=repeat/);
   await page.reload();
   await expect(page.getByLabel("Nome ou tag")).toHaveValue("#P01");
   await page
     .locator(".comparison-table")
-    .getByRole("button", { name: "Mesmo nome" })
+    .getByRole("button", { name: /Detalhes de Mesmo nome/ })
     .click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByRole("dialog")).toContainText("#P01");
@@ -133,7 +133,9 @@ test("períodos, seleção manual, amostra incompleta e retorno ao padrão", asy
   await expect(page.locator(".comparison-table thead th")).toHaveCount(7);
   await page.getByLabel("Cumprimento das regras").selectOption("missing");
   await expect(page.locator(".comparison-table")).toContainText("Novato");
-  await expect(page.locator(".comparison-table")).toContainText("Sem pontuação registrada");
+  await expect(page.locator(".comparison-table")).toContainText(
+    "Vínculo incerto",
+  );
   await page.getByLabel("Nome ou tag").fill("inexistente");
   await expect(
     page.getByText("Nenhum jogador atende aos filtros.", { exact: false }),
@@ -155,14 +157,12 @@ test("erro de consulta não vira resultados vazios ou zeros", async ({
 test("zero oficial de recém-chegado permanece na média e nos filtros sem virar reincidência", async ({
   page,
 }) => {
-  const selected = wars
-    .slice(0, 3)
-    .map((w, i) => ({
-      ...w,
-      publishedAt: new Date(
-        Date.parse("2026-11-02T09:41:00Z") - i * 7 * 86400000,
-      ).toISOString(),
-    }));
+  const selected = wars.slice(0, 3).map((w, i) => ({
+    ...w,
+    publishedAt: new Date(
+      Date.parse("2026-11-02T09:41:00Z") - i * 7 * 86400000,
+    ).toISOString(),
+  }));
   await page.route("**/api/analytics", (r) =>
     r.fulfill({ json: { ...report, generatedAt: "2026-11-06T00:00:00Z" } }),
   );
@@ -206,13 +206,15 @@ test("zero oficial de recém-chegado permanece na média e nos filtros sem virar
   });
   await page.goto("/comparativo");
   const table = page.locator(".comparison-table");
-  await expect(table).toContainText("1/3 guerras com pontuação oficial");
-  await expect(table).toContainText("Histórico em formação · 1/4 guerras");
-  await expect(table).toContainText("participação integral não comprovada");
+  await expect(table).toContainText("1/3 com pontuação oficial");
+  await expect(table).toContainText("Histórico parcial");
+  await expect(
+    table.getByRole("button", { name: /participação integral não comprovada/ }),
+  ).toBeVisible();
   await expect(table.locator("tbody td").nth(3).locator("strong")).toHaveText(
-    "0",
+    "0 pts",
   );
-  await expect(table.locator(".badge.bad")).toHaveCount(0);
+  await expect(table.locator(".comparison-result.bad")).toHaveCount(0);
   await page.getByLabel("Cumprimento das regras").selectOption("zero");
   await expect(table).toContainText("Wakasa");
   await page.getByLabel("Cumprimento das regras").selectOption("repeat");
@@ -221,19 +223,42 @@ test("zero oficial de recém-chegado permanece na média e nos filtros sem virar
   ).toBeVisible();
 });
 
-test("resultado ausente de membro elegível fica amarelo e tem filtro próprio", async ({page}) => {
-  await page.route(/\/api\/wars\/\d+$/, r => {
-    const id=Number(new URL(r.request().url()).pathname.split("/").at(-1));
-    return r.fulfill({json:{war:wars[id-1],participants:participants.filter(p=>p.playerTag!=="#P01")}});
+test("resultado ausente de membro elegível fica amarelo e tem filtro próprio", async ({
+  page,
+}) => {
+  await page.route(/\/api\/wars\/\d+$/, (r) => {
+    const id = Number(new URL(r.request().url()).pathname.split("/").at(-1));
+    return r.fulfill({
+      json: {
+        war: wars[id - 1],
+        participants: participants.filter((p) => p.playerTag !== "#P01"),
+      },
+    });
   });
   await page.goto("/comparativo");
   await page.getByLabel("Cumprimento das regras").selectOption("unrecorded");
-  const table=page.locator(".comparison-table");
+  const table = page.locator(".comparison-table");
   await expect(table.locator("tbody tr")).toHaveCount(1);
   await expect(table).toContainText("#P01");
-  await expect(table).toContainText("Conferir participação · resultado ausente");
-  await expect(table.locator(".badge.warn").first()).toContainText("conferir participação");
-  await expect(table.locator(".badge.bad")).toHaveCount(0);
+  await expect(table).toContainText("Conferir registro");
+  await expect(table.locator(".comparison-result.warn").first()).toContainText(
+    "Conferir registro",
+  );
+  await expect(table.locator(".comparison-result.bad")).toHaveCount(0);
   await page.getByLabel("Cumprimento das regras").selectOption("repeat");
-  await expect(page.getByText("Nenhum jogador atende aos filtros.",{exact:false})).toBeVisible();
+  await expect(
+    page.getByText("Nenhum jogador atende aos filtros.", { exact: false }),
+  ).toBeVisible();
+});
+
+test("hierarquia compacta preserva perfil e metadados da publicação",async({page})=>{
+  await page.goto("/comparativo");
+  const table=page.locator(".comparison-table");
+  await expect(table.locator(".comparison-name").first()).toHaveAttribute("href","/membros/%23P02");
+  await expect(table.locator(".comparison-average").first()).toContainText("4/4 metas cumpridas");
+  await expect(table).toContainText("Metas: sem amostra");
+  await table.getByLabel("Informações da guerra 12/10/2026").click();
+  await expect(table.locator(".comparison-metadata[open]").getByText("Data de publicação",{exact:true})).toBeVisible();
+  await expect(table.getByText("Temporada 137 · seção 3")).toBeVisible();
+  await expect(table.locator(".comparison-metadata[open]").getByText("Resultado oficial",{exact:true})).toBeVisible();
 });
