@@ -134,6 +134,11 @@ const context: ParticipationContext = {
   group: "PRIORITY",
   reasons: ["Duas guerras abaixo da meta"],
 };
+context.wars.push({
+  ...context.wars[0],
+  id: 2,
+  publishedAt: "2026-10-05T10:00:00Z",
+});
 report.members[0].participation = context;
 report.members[1].participation = {
   ...context,
@@ -154,6 +159,7 @@ report.members[2].participation = {
 };
 report.members[3].participation = {
   ...context,
+  wars: context.wars.map((w) => ({ ...w, points: 1600 })),
   group: "FOLLOW",
   twoBelow: false,
   twoZero: false,
@@ -194,6 +200,14 @@ test("tabela ordenável, filtros de histórico e detalhes", async ({
   await page.goto("/expulsoes");
   await expect(rows(page)).toHaveCount(4);
   await page.getByLabel("Critério de revisão").selectOption("twoBelow");
+  await expect(rows(page)).toHaveCount(2);
+  await expect(
+    page.getByRole("columnheader", { name: "Penúltima encerrada" }),
+  ).toBeVisible();
+  await expect(rows(page).filter({ hasText: "Viagem avisada" })).toContainText(
+    "Conferir vínculo",
+  );
+  await page.getByLabel("Critério de revisão").selectOption("twoEligible");
   await expect(rows(page)).toHaveCount(1);
   await expect(rows(page)).toContainText("Duas regras");
   await page.getByLabel("Critério de revisão").selectOption("two");
@@ -207,11 +221,11 @@ test("tabela ordenável, filtros de histórico e detalhes", async ({
   await expect(rows(page)).toContainText("Sem registro");
   await page.getByRole("button", { name: "Mostrar todos" }).click();
   await page
-    .getByRole("button", { name: "Guerra atual ↕", exact: true })
+    .getByRole("button", { name: "Atual · parcial ↕", exact: true })
     .click();
   await expect(rows(page).last()).toContainText("Sem registro");
   await page
-    .getByRole("button", { name: "Guerra atual ↑", exact: true })
+    .getByRole("button", { name: "Atual · parcial ↑", exact: true })
     .click();
   await expect(rows(page).first()).toContainText("No limite");
   await page.getByRole("button", { name: /^\d+\. Duas regras$/ }).click();

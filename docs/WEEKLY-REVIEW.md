@@ -157,3 +157,26 @@ Integração com PostgreSQL cobre Coliseu, treino posterior, recorte, histórico
 oficial conhecido na data, permissões, decisões, imutabilidade e concorrência.
 Playwright cobre tabela, ordenação, filtros, detalhes, decisões, falhas,
 privacidade e ausência de transbordamento no desktop e celular.
+
+## Resultados abaixo da meta e elegibilidade — refinamento de 07/11/2026
+
+O filtro “Duas guerras abaixo da meta” agora consulta as pontuações oficiais das
+duas últimas guerras encerradas disponíveis, sem excluir resultados conhecidos
+por vínculo não comprovado. Ausência não é zero. Essa seleção não significa
+reincidência com obrigação integral confirmada.
+
+“Duas encerradas · vínculo elegível” conserva o critério conservador do backend.
+Os grupos prioritária/acompanhar e as decisões manuais não foram recalculados.
+A tabela mostra também a penúltima encerrada quando usa esses filtros, com datas
+e indicação de vínculo, mantendo a corrida atual identificada como parcial.
+
+“Encerrada + atual abaixo · prévia” compara a última publicação da mesma semana
+(no fuso do relatório) com a captura atual, somente na fase LIVE e com fontes
+frescas. O valor atual pode aumentar; isso não representa duas guerras encerradas.
+Nenhuma seleção executa expulsões ou altera decisões registradas.
+
+Na conferência somente leitura do elenco local, cinco membros tinham dois
+resultados oficiais abaixo de 1.600; apenas dois atendiam ao indicador de vínculo
+do backend. A diferença era ocultada pelo antigo filtro e pela apresentação de
+colunas de períodos diferentes. Os testes agora usam duas guerras reais nas
+fixtures em vez de apenas um booleano de reincidência.
