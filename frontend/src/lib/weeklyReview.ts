@@ -1,3 +1,4 @@
+import { mondayOf } from "./weeks";
 export interface WeeklyReviewMember {
   participation?: ParticipationContext;
   tag: string;
@@ -127,3 +128,45 @@ export const participationGroups = {
   FOLLOW: "Acompanhar",
   INSUFFICIENT: "Dados insuficientes",
 };
+
+// Observed scores and disciplinary eligibility are separate facts.
+export function twoClosedBelow(member: WeeklyReviewMember, target: number) {
+  const wars = member.participation?.wars.slice(0, 2) || [];
+  return (
+    wars.length === 2 &&
+    wars[0].id !== wars[1].id &&
+    wars.every(
+      (w) =>
+        w.source === "DIRECT_API" &&
+        w.points !== null &&
+        w.points >= 0 &&
+        w.points < target,
+    )
+  );
+}
+export function closedAndLiveBelow(
+  member: WeeklyReviewMember,
+  report: WeeklyReviewReport,
+) {
+  const last = member.participation?.wars[0];
+  if (!last || !Number.isFinite(Date.parse(last.publishedAt))) return false;
+  const localDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: report.timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(last.publishedAt));
+  return (
+    report.phase === "LIVE" &&
+    report.riverFresh &&
+    report.membersFresh &&
+    mondayOf(localDate) === report.week &&
+    last?.source === "DIRECT_API" &&
+    last.points !== null &&
+    last.points >= 0 &&
+    last.points < report.pointsTarget &&
+    member.points !== null &&
+    member.points >= 0 &&
+    member.points < report.pointsTarget
+  );
+}

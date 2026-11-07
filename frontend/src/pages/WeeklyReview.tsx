@@ -1,3 +1,4 @@
+import { twoClosedBelow, closedAndLiveBelow } from "../lib/weeklyReview";
 import { WeeklyDecision } from "../components/WeeklyDecision";
 import { Fragment, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -61,7 +62,11 @@ function PrivateWeeklyReview() {
       case "two":
         return !!p.participation?.twoZero;
       case "twoBelow":
+        return twoClosedBelow(p, r?.pointsTarget ?? 1600);
+      case "twoEligible":
         return !!p.participation?.twoBelow;
+      case "closedLive":
+        return !!r && closedAndLiveBelow(p, r);
       case "zeroDonations":
         return !!p.participation?.twoZeroDonations;
       case "new":
@@ -386,6 +391,12 @@ function PrivateWeeklyReview() {
                   <option value="zero">Zero pontos</option>
                   <option value="decks">Nenhum deck usado nesta semana</option>
                   <option value="twoBelow">Duas guerras abaixo da meta</option>
+                  <option value="twoEligible">
+                    Duas encerradas · vínculo elegível
+                  </option>
+                  <option value="closedLive">
+                    Encerrada + atual abaixo · prévia
+                  </option>
                   <option value="two">Duas guerras com zero ataques</option>
                   <option value="zeroDonations">
                     Zero doações nas últimas duas semanas completas
@@ -436,8 +447,18 @@ function PrivateWeeklyReview() {
             {(criterion === "two" || criterion === "twoBelow") && (
               <p className="muted">
                 Filtro das duas últimas guerras oficiais disponíveis no recorte.
-                Ausência de participante, entrada durante a guerra e reingresso
-                não contam como falta.
+                Resultados registrados não confirmam disponibilidade integral de
+                ataques. O filtro “Duas guerras abaixo da meta” inclui
+                pontuações oficiais conhecidas mesmo com vínculo pendente;
+                “vínculo elegível” mantém a avaliação conservadora. Ausência de
+                registro nunca vira zero.
+              </p>
+            )}
+            {criterion === "closedLive" && (
+              <p className="callout">
+                Prévia: última guerra publicada nesta semana + captura atual
+                atualizada. A pontuação atual pode aumentar. Não são duas
+                guerras encerradas nem uma reincidência confirmada.
               </p>
             )}
             {criterion === "zeroDonations" && (
@@ -465,8 +486,8 @@ function PrivateWeeklyReview() {
                   <tr>
                     {[
                       ["name", "Jogador"],
-                      ["previous", "Guerra anterior"],
-                      ["points", "Guerra atual"],
+                      ["previous", "Última encerrada"],
+                      ["points", "Atual · parcial"],
                       ["decks", "Decks"],
                       ["donations", "Doações"],
                       ["tenure", "Tempo no clã"],
@@ -494,6 +515,9 @@ function PrivateWeeklyReview() {
                         </button>
                       </th>
                     ))}
+                    {["twoBelow", "twoEligible"].includes(criterion) && (
+                      <th>Penúltima encerrada</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -568,10 +592,32 @@ function PrivateWeeklyReview() {
                                 : "Pendente"}
                           </small>
                         </td>
+                        {["twoBelow", "twoEligible"].includes(criterion) && (
+                          <td>
+                            {format(p.participation?.wars[1]?.points ?? null)}
+                            <small>
+                              Oficial ·{" "}
+                              {p.participation?.wars[1]
+                                ? date(p.participation.wars[1].publishedAt)
+                                : "Sem registro"}
+                            </small>
+                            <small>
+                              {p.participation?.twoBelow
+                                ? "Vínculo elegível nas duas"
+                                : "Conferir vínculo e disponibilidade; resultados não são faltas confirmadas"}
+                            </small>
+                          </td>
+                        )}
                       </tr>
                       {expanded === p.tag && (
                         <tr id={"review-" + i}>
-                          <td colSpan={8}>
+                          <td
+                            colSpan={
+                              ["twoBelow", "twoEligible"].includes(criterion)
+                                ? 9
+                                : 8
+                            }
+                          >
                             <ReviewMember
                               player={p}
                               position={i + 1}
