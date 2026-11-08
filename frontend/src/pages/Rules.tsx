@@ -70,6 +70,7 @@ function RuleForm({ rule }: { rule: RuleVersion }) {
     settings.score.donationsWeight;
   return (
     <form
+      className="rules-settings"
       onSubmit={(e) => {
         e.preventDefault();
         save.mutate();
@@ -86,156 +87,219 @@ function RuleForm({ rule }: { rule: RuleVersion }) {
         </p>
       )}
       <fieldset disabled={!admin}>
-        <h2>Participação e contexto</h2>
-        <div className="form-grid">
-          {Object.entries(settings.analytics).map(([k, v]) => (
-            <label key={k}>
-              {names[k] || k}
+        {[
+          {
+            title: "Participação nas guerras",
+            help: "Metas e critérios de participação; não representam punição automática.",
+            keys: [
+              "pointsTarget",
+              "reviewLowWars",
+              "adequateStandardDeckPercent",
+            ],
+          },
+          {
+            title: "Atividade e histórico",
+            help: "Amostras e atividade necessárias para interpretar os resultados.",
+            keys: ["offlineDays", "minimumWars"],
+          },
+          {
+            title: "Promoções e reconhecimento",
+            help: "Requisitos observados, sujeitos à avaliação do líder.",
+            keys: [
+              "promotionTenureDays",
+              "promotionDonations",
+              "immortalMinimumWars",
+            ],
+          },
+          {
+            title: "Qualidade dos dados",
+            help: "O fuso é definido pelo sistema e permanece somente leitura. Capturas antigas não comprovam atividade atual.",
+            keys: Object.keys(settings.analytics).filter(
+              (k) =>
+                ![
+                  "pointsTarget",
+                  "reviewLowWars",
+                  "adequateStandardDeckPercent",
+                  "offlineDays",
+                  "minimumWars",
+                  "promotionTenureDays",
+                  "promotionDonations",
+                  "immortalMinimumWars",
+                ].includes(k),
+            ),
+          },
+        ].map((group) => (
+          <section className="settings-section" key={group.title}>
+            <header>
+              <h2>{group.title}</h2>
+              <p>{group.help}</p>
+            </header>
+            <div className="form-grid">
+              {Object.entries(settings.analytics)
+                .filter(([k]) => group.keys.includes(k))
+                .map(([k, v]) => (
+                  <label key={k}>
+                    {names[k] || k}
+                    <input
+                      required
+                      disabled={k === "timezone"}
+                      type={typeof v === "number" ? "number" : "text"}
+                      min={
+                        [
+                          "minimumWars",
+                          "immortalMinimumWars",
+                          "reviewLowWars",
+                        ].includes(k)
+                          ? 2
+                          : k === "promotionDonations"
+                            ? 0
+                            : typeof v === "number"
+                              ? 1
+                              : undefined
+                      }
+                      max={
+                        [
+                          "minimumWars",
+                          "immortalMinimumWars",
+                          "reviewLowWars",
+                        ].includes(k)
+                          ? 4
+                          : k === "adequateStandardDeckPercent"
+                            ? 100
+                            : undefined
+                      }
+                      value={v}
+                      onChange={(e) =>
+                        setSettings((s) => ({
+                          ...s,
+                          analytics: {
+                            ...s.analytics,
+                            [k]:
+                              typeof v === "number"
+                                ? Number(e.target.value)
+                                : e.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </label>
+                ))}
+            </div>
+          </section>
+        ))}
+        <section className="settings-section">
+          <header>
+            <h2>Frota Score</h2>
+            <p>Pesos e referências usados na composição do indicador.</p>
+          </header>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={settings.score.enabled}
+              onChange={(e) =>
+                setSettings((s) => ({
+                  ...s,
+                  score: { ...s.score, enabled: e.target.checked },
+                }))
+              }
+            />{" "}
+            Habilitar Frota Score
+          </label>
+          <p className="muted">
+            Componentes sem evidência não recebem zero nem têm seus pesos
+            redistribuídos.
+          </p>
+          <div className="form-grid">
+            {Object.entries(settings.score)
+              .filter(([k]) => k !== "enabled")
+              .map(([k, v]) => (
+                <label key={k}>
+                  {names[k]}
+                  <input
+                    type="number"
+                    required
+                    min={k.endsWith("Weight") ? 0 : 1}
+                    max={k.endsWith("Weight") ? 100 : undefined}
+                    value={Number(v)}
+                    onChange={(e) =>
+                      setSettings((s) => ({
+                        ...s,
+                        score: { ...s.score, [k]: Number(e.target.value) },
+                      }))
+                    }
+                  />
+                </label>
+              ))}
+          </div>
+          <p className={total === 100 ? "muted" : "error"}>
+            Soma dos pesos: {total}% (necessário 100%).
+          </p>
+          <div className="form-grid">
+            <label>
+              Janela de alertas recentes (dias)
               <input
+                type="number"
+                min={1}
+                max={365}
                 required
-                disabled={k === "timezone"}
-                type={typeof v === "number" ? "number" : "text"}
-                min={
-                  [
-                    "minimumWars",
-                    "immortalMinimumWars",
-                    "reviewLowWars",
-                  ].includes(k)
-                    ? 2
-                    : k === "promotionDonations"
-                      ? 0
-                      : typeof v === "number"
-                        ? 1
-                        : undefined
-                }
-                max={
-                  [
-                    "minimumWars",
-                    "immortalMinimumWars",
-                    "reviewLowWars",
-                  ].includes(k)
-                    ? 4
-                    : k === "adequateStandardDeckPercent"
-                      ? 100
-                      : undefined
-                }
-                value={v}
+                value={settings.recentAlertDays}
                 onChange={(e) =>
                   setSettings((s) => ({
                     ...s,
-                    analytics: {
-                      ...s.analytics,
-                      [k]:
-                        typeof v === "number"
-                          ? Number(e.target.value)
-                          : e.target.value,
-                    },
+                    recentAlertDays: Number(e.target.value),
                   }))
                 }
               />
             </label>
-          ))}
-        </div>
-        <h2>Frota Score</h2>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={settings.score.enabled}
-            onChange={(e) =>
-              setSettings((s) => ({
-                ...s,
-                score: { ...s.score, enabled: e.target.checked },
-              }))
-            }
-          />{" "}
-          Habilitar Frota Score
-        </label>
-        <p className="muted">
-          Componentes sem evidência não recebem zero nem têm seus pesos
-          redistribuídos.
-        </p>
-        <div className="form-grid">
-          {Object.entries(settings.score)
-            .filter(([k]) => k !== "enabled")
-            .map(([k, v]) => (
-              <label key={k}>
-                {names[k]}
-                <input
-                  type="number"
-                  required
-                  min={k.endsWith("Weight") ? 0 : 1}
-                  max={k.endsWith("Weight") ? 100 : undefined}
-                  value={Number(v)}
-                  onChange={(e) =>
-                    setSettings((s) => ({
-                      ...s,
-                      score: { ...s.score, [k]: Number(e.target.value) },
-                    }))
-                  }
-                />
-              </label>
-            ))}
-        </div>
-        <p className={total === 100 ? "muted" : "error"}>
-          Soma dos pesos: {total}% (necessário 100%).
-        </p>
-        <div className="form-grid">
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={settings.immortalAllowPartial}
+                onChange={(e) =>
+                  setSettings((s) => ({
+                    ...s,
+                    immortalAllowPartial: e.target.checked,
+                  }))
+                }
+              />{" "}
+              Permitir amostra parcial para Alma Imortal conforme critérios do
+              backend
+            </label>
+          </div>
+        </section>
+        <section className="settings-section">
+          <header>
+            <h2>Publicar nova versão</h2>
+            <p>
+              Registre o motivo para manter a rastreabilidade dos critérios.
+            </p>
+          </header>
           <label>
-            Janela de alertas recentes (dias)
-            <input
-              type="number"
-              min={1}
-              max={365}
+            Motivo da alteração
+            <textarea
               required
-              value={settings.recentAlertDays}
-              onChange={(e) =>
-                setSettings((s) => ({
-                  ...s,
-                  recentAlertDays: Number(e.target.value),
-                }))
-              }
+              maxLength={500}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Explique a mudança para futuras consultas."
             />
           </label>
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={settings.immortalAllowPartial}
-              onChange={(e) =>
-                setSettings((s) => ({
-                  ...s,
-                  immortalAllowPartial: e.target.checked,
-                }))
-              }
-            />{" "}
-            Permitir amostra parcial para Alma Imortal conforme critérios do
-            backend
-          </label>
-        </div>
-        <label>
-          Motivo da alteração
-          <textarea
-            required
-            maxLength={500}
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="Explique a mudança para futuras consultas."
-          />
-        </label>
-        {save.error && (
-          <p className="error" role="alert">
-            {save.error.message}{" "}
-            {save.error instanceof ApiError && save.error.status === 409
-              ? "Recarregue para consultar a versão atual."
-              : ""}
-          </p>
-        )}
-        {save.isSuccess && <p role="status">Nova versão salva.</p>}
-        <button
-          className="primary"
-          disabled={save.isPending || total !== 100 || !reason.trim()}
-        >
-          {save.isPending ? "Salvando…" : "Salvar nova versão"}
-        </button>
+          {save.error && (
+            <p className="error" role="alert">
+              {save.error.message}{" "}
+              {save.error instanceof ApiError && save.error.status === 409
+                ? "Recarregue para consultar a versão atual."
+                : ""}
+            </p>
+          )}
+          {save.isSuccess && <p role="status">Nova versão salva.</p>}
+          <button
+            className="primary"
+            disabled={save.isPending || total !== 100 || !reason.trim()}
+          >
+            {save.isPending ? "Salvando…" : "Salvar nova versão"}
+          </button>
+        </section>
       </fieldset>
     </form>
   );

@@ -42,13 +42,14 @@ import "./style.css";
 import "./royale.css";
 import "./leadership.css";
 import "./fleet.css";
+import "./product.css";
 const client = new QueryClient();
 const nav = [
   ["/", "Visão geral", LayoutDashboard],
   ["/membros", "Tripulação", Users],
   ["/guerras", "Guerras", Swords],
   ["/comparativo", "Comparativo", GitCompareArrows],
-  ["/comparar", "Comparar", GitCompareArrows],
+  ["/comparar", "Comparar jogadores", Users],
   ["/recomendacoes", "Recomendações", ClipboardList],
   ["/premiacoes", "Premiações", Trophy],
   ["/expulsoes", "Expulsões semanais", UserRoundMinus],

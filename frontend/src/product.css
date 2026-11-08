@@ -1,0 +1,49 @@
+/* Product foundations. Domain statuses and evidence remain owned by their components. */
+:root {
+  --surface-base: #0c1922;
+  --surface-panel: #122630;
+  --surface-raised: #19343e;
+  --text-primary: #e6eef0;
+  --text-secondary: #aac0c9;
+  --state-success: #8cebd5;
+  --state-warning: #e5c789;
+  --state-error: #f3a8aa;
+  --state-info: #a8cce7;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px;
+  --space-4: 16px; --space-6: 24px; --space-8: 32px;
+  --radius-control: 6px; --radius-panel: 10px;
+  --shadow-panel: 0 4px 16px #0002;
+  --muted: var(--text-secondary);
+}
+main { max-width: 1680px; margin-inline: auto; width: 100%; }
+.sidebar nav a { min-height: 42px; font-size: 13px; border-radius: var(--radius-control); }
+.sidebar nav a.active { background: #23433e; text-shadow: none; }
+.topbar { box-shadow: none; }
+.panel, .toolbar { background: var(--surface-panel); box-shadow: none; border-radius: var(--radius-panel); }
+.toolbar { align-items: end; row-gap: var(--space-4); }
+.toolbar > label:not(.check) { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-2); font-size: 12px; color: var(--text-secondary); }
+input, select, textarea { border-radius: var(--radius-control); }
+:is(input,select,button,.button) { min-height: 36px; }
+input[type=checkbox] { min-height: auto; accent-color: var(--state-success); }
+:is(a,button,input,select,textarea,summary):focus-visible { outline: 2px solid var(--state-success); outline-offset: 3px; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+.metric:not(.compact) { background: var(--surface-panel); box-shadow: none; }
+.metric-label, .quality { line-height: 1.5; }
+.quality { color: var(--text-secondary); }
+.comparison-table, .analytics-table, .review-table { max-height: none; overflow-x: auto; }
+.settings-section { padding: var(--space-6); border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface-panel); margin-bottom: var(--space-4); }
+.settings-section header { margin-bottom: var(--space-6); }
+.settings-section h2 { font-size: 18px; margin: 0 0 var(--space-2); }
+.settings-section header p { color: var(--text-secondary); margin: 0; max-width: 75ch; }
+.settings-section .form-grid { grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--space-6); }
+.settings-section label { display: flex; flex-direction: column; gap: var(--space-2); font-size: 13px; }
+.settings-section label.check { flex-direction: row; align-items: center; }
+.rules-settings > fieldset { border: 0; padding: 0; min-width: 0; }
+.settings-section textarea { width: 100%; min-height: 100px; }
+.settings-section .primary { margin-top: var(--space-4); }
+@media(max-width: 800px) {
+  .settings-section { padding: var(--space-4); }
+  .settings-section .form-grid { grid-template-columns: 1fr; }
+  .toolbar > label:not(.check) { min-width: 0; max-width: 100%; }
+}
+@media(prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
