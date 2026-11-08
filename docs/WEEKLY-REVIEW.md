@@ -180,3 +180,16 @@ resultados oficiais abaixo de 1.600; apenas dois atendiam ao indicador de víncu
 do backend. A diferença era ocultada pelo antigo filtro e pela apresentação de
 colunas de períodos diferentes. Os testes agora usam duas guerras reais nas
 fixtures em vez de apenas um booleano de reincidência.
+
+## Apresentação da revisão
+
+A tabela segue a hierarquia visual do Comparativo: nomes em destaque, tags
+secundárias, métricas com algarismos tabulares e unidades discretas. Cabeçalho
+e identificação permanecem fixos na rolagem da tabela. A captura parcial tem
+identificação própria, separada dos resultados encerrados. Valores ausentes
+aparecem como travessão com descrição acessível, sem conversão para zero.
+
+O botão com o nome continua abrindo o detalhamento existente, incluindo
+histórico, justificativas e decisões. Filtros, ordenação, regras de classificação
+e trilha de auditoria permanecem preservados. Validação: build do frontend e
+10 testes Playwright da revisão semanal em desktop e celular.

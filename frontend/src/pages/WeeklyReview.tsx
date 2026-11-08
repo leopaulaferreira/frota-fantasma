@@ -482,6 +482,10 @@ function PrivateWeeklyReview() {
             </p>
             <div className="table-scroll review-table">
               <table>
+                <caption>
+                  Revisão individual · resultados oficiais e captura parcial
+                  identificados separadamente
+                </caption>
                 <thead>
                   <tr>
                     {[
@@ -523,9 +527,10 @@ function PrivateWeeklyReview() {
                 <tbody>
                   {rows.map((p, i) => (
                     <Fragment key={r.week + p.tag}>
-                      <tr>
-                        <td>
+                      <tr className="review-member-row">
+                        <td className="review-identity">
                           <button
+                            className="review-name"
                             aria-expanded={expanded === p.tag}
                             aria-controls={"review-" + i}
                             onClick={() =>
@@ -537,7 +542,10 @@ function PrivateWeeklyReview() {
                           <small>{p.tag}</small>
                         </td>
                         <td>
-                          {format(p.participation?.wars[0]?.points ?? null)}
+                          <ReviewValue
+                            value={p.participation?.wars[0]?.points}
+                            unit="pts"
+                          />
                           <small>
                             Oficial ·{" "}
                             {p.participation?.wars[0]
@@ -546,20 +554,22 @@ function PrivateWeeklyReview() {
                           </small>
                         </td>
                         <td>
-                          {format(p.points)}
-                          <small>Captura parcial</small>
+                          <ReviewValue value={p.points} unit="pts" />
+                          <small className="review-live-label">
+                            Captura parcial
+                          </small>
                         </td>
                         <td>
-                          {format(p.decksUsed)}
+                          <ReviewValue value={p.decksUsed} />
                           <small>
                             Anterior:{" "}
                             {format(p.participation?.wars[0]?.decks ?? null)}
                           </small>
                         </td>
                         <td>
-                          {format(
-                            p.participation?.donationWeeks[1]?.observed ?? null,
-                          )}
+                          <ReviewValue
+                            value={p.participation?.donationWeeks[1]?.observed}
+                          />
                           <small>
                             Semana anterior ·{" "}
                             {p.participation?.donationWeeks[1]?.complete
@@ -568,9 +578,10 @@ function PrivateWeeklyReview() {
                           </small>
                         </td>
                         <td>
-                          {p.participation?.tenureDays == null
-                            ? "Desconhecido"
-                            : p.participation.tenureDays + " dias"}
+                          <ReviewValue
+                            value={p.participation?.tenureDays}
+                            unit="dias"
+                          />
                           <small>
                             {p.participation?.rejoined
                               ? "Reingresso"
@@ -579,11 +590,24 @@ function PrivateWeeklyReview() {
                                 : p.participation?.tenureBasis}
                           </small>
                         </td>
-                        <td>{offlineDuration(p.offlineSeconds)}</td>
                         <td>
-                          {p.participation
-                            ? participationGroups[p.participation.group]
-                            : "Dados insuficientes"}
+                          <span className="review-activity">
+                            {offlineDuration(p.offlineSeconds)}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={
+                              "review-status " +
+                              (p.participation?.group === "PRIORITY"
+                                ? "warn"
+                                : "")
+                            }
+                          >
+                            {p.participation
+                              ? participationGroups[p.participation.group]
+                              : "Dados insuficientes"}
+                          </span>
                           <small>
                             {!decisions.data
                               ? "Decisão indisponível"
@@ -594,7 +618,10 @@ function PrivateWeeklyReview() {
                         </td>
                         {["twoBelow", "twoEligible"].includes(criterion) && (
                           <td>
-                            {format(p.participation?.wars[1]?.points ?? null)}
+                            <ReviewValue
+                              value={p.participation?.wars[1]?.points}
+                              unit="pts"
+                            />
                             <small>
                               Oficial ·{" "}
                               {p.participation?.wars[1]
@@ -1006,5 +1033,24 @@ function JustificationForm({ tag, week }: { tag: string; week: string }) {
         <p role="status">Justificativa registrada no histórico do membro.</p>
       )}
     </form>
+  );
+}
+
+function ReviewValue({
+  value,
+  unit = "",
+}: {
+  value: number | null | undefined;
+  unit?: string;
+}) {
+  return (
+    <strong
+      className="review-number"
+      aria-label={value == null ? "Dado não disponível" : undefined}
+      title={value == null ? "Dado não disponível" : undefined}
+    >
+      {value == null ? "—" : format(value)}
+      {value != null && unit && <span> {unit}</span>}
+    </strong>
   );
 }

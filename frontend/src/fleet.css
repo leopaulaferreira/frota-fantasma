@@ -1078,3 +1078,37 @@ th {
 .comparison-metadata summary { color: #a4bbc5; cursor: pointer; }
 .comparison-metadata > div { margin-top: 8px; line-height: 1.5; }
 .comparison-table tbody tr:focus-within { outline: 1px solid #8cebd5; outline-offset: -2px; }
+
+/* Weekly review shares the comparison matrix's hierarchy, preserving its actions. */
+.review-table { max-height: 76vh; overflow: auto; scrollbar-gutter: stable; }
+.review-table table { min-width: 1130px; }
+.review-table caption { text-align: left; padding: 12px 14px; color: #a4bbc5; font-size: 11px; }
+.review-table > table > thead > tr > th {
+  position: sticky; top: 0; z-index: 2; background: #19313b;
+  padding: 16px 12px; white-space: normal;
+}
+.review-table > table > thead > tr > th:first-child { left: 0; z-index: 3; min-width: 180px; }
+.review-table .review-member-row > td {
+  padding: 18px 12px; vertical-align: middle;
+  border-bottom: 1px solid #29434e80; font-variant-numeric: tabular-nums;
+}
+.review-table .review-member-row > .review-identity {
+  position: sticky; left: 0; z-index: 1; background: #14242a; min-width: 180px;
+}
+.review-table .review-identity .review-name {
+  display: block; width: 100%; min-height: 36px; padding: 5px 0;
+  border: 0; background: transparent; color: #edf4f5;
+  font-size: 15px; font-weight: 650; line-height: 1.4; text-align: left;
+}
+.review-table .review-identity small { color: #8ba5b0; font-size: 11px; }
+.review-number { display: block; color: #edf4f5; font-size: 20px; font-weight: 650; line-height: 1.4; white-space: nowrap; }
+.review-number > span { font-size: 10px; font-weight: 400; color: #91aab4; }
+.review-member-row small { display: block; font-size: 10px; color: #9cb1ba; line-height: 1.5; margin-top: 5px; max-width: 180px; }
+.review-member-row > td:nth-child(3) { background: #18333b70; }
+.review-live-label { color: #b1c6ce; }
+.review-activity { font-size: 12px; line-height: 1.5; }
+.review-status { display: inline-block; padding: 5px 8px; font-size: 11px; border: 1px solid #39535d; border-radius: 5px; background: #203740; white-space: normal; }
+.review-status.warn { color: #e5c789; border-color: #79653c; }
+.review-table .review-member-row:hover > td { background-color: #203b44; }
+.review-table .review-member-row:focus-within { outline: 1px solid #8cebd5; outline-offset: -2px; }
+.review-table .review-name:focus-visible { outline: 2px solid #8cebd5; outline-offset: 2px; }
