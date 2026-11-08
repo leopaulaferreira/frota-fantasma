@@ -38,9 +38,19 @@ export function Heading({
   };
   const portrait = portraits[section] || "clan-emblem";
   return (
-    <header className={"page-heading illustrated-heading" + (section === "comparativo" ? " comparison-heading" : "")}>
+    <header
+      className={
+        "page-heading illustrated-heading" +
+        (section === "comparativo" ? " comparison-heading" : "")
+      }
+    >
       {section === "comparativo" && (
-        <img className="comparison-arena" src="/assets/royale/royal-arena.png" alt="" aria-hidden="true" />
+        <img
+          className="comparison-arena"
+          src="/assets/royale/royal-arena.png"
+          alt=""
+          aria-hidden="true"
+        />
       )}
       <div className="heading-main">
         <div className="heading-copy">
@@ -179,7 +189,13 @@ export function MetricView({
             {name}
             <Info size={13} />
           </span>
-          <strong>{value}</strong>
+          <strong
+            className={
+              typeof metric.value === "number" ? "metric-number" : "metric-text"
+            }
+          >
+            {value}
+          </strong>
           <span className="quality">{quality}</span>
         </button>
       </div>
@@ -218,7 +234,15 @@ export function MetricView({
           </header>
           <div className="metric-dialog-body">
             <div className="metric-result">
-              <strong>{value}</strong>
+              <strong
+                className={
+                  typeof metric.value === "number"
+                    ? "metric-number"
+                    : "metric-text"
+                }
+              >
+                {value}
+              </strong>
               <span className="badge">
                 {qualityLabels[metric.quality] || metric.quality}
               </span>
@@ -420,7 +444,7 @@ export function Table({
   children: ReactNode;
 }) {
   return (
-    <div className="table-scroll">
+    <div className="table-scroll analytics-table">
       <table>
         <thead>
           <tr>

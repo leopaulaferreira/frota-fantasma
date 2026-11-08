@@ -81,7 +81,10 @@ export function Wars() {
   });
   const roster = useApi<{ tag: string; name: string }[]>("/clan/members");
   const analytics = useApi<Report>("/analytics");
-  const zone = String(analytics.data?.recommendationRules?.settings.analytics.timezone || "America/Sao_Paulo");
+  const zone = String(
+    analytics.data?.recommendationRules?.settings.analytics.timezone ||
+      "America/Sao_Paulo",
+  );
   const membership = useQuery({
     queryKey: ["war-analysis-events"],
     queryFn: events,
@@ -418,7 +421,7 @@ export function Wars() {
         </p>
         <details open={!!v("compare")}>
           <summary>Comparação lado a lado</summary>
-          <div className="table-scroll">
+          <div className="table-scroll analytics-table">
             <table>
               <thead>
                 <tr>
@@ -589,7 +592,7 @@ export function Wars() {
         <p role="status">
           {rows.length} resultados · {universe.length} registros
         </p>
-        <div className="table-scroll war-player-table">
+        <div className="table-scroll analytics-table war-player-table">
           <table>
             <thead>
               <tr>
@@ -630,9 +633,12 @@ export function Wars() {
             <tbody>
               {rows.map((p) => (
                 <Fragment key={p.playerTag}>
-                  <tr>
+                  <tr className="war-member-row">
                     <td>
-                      <Link to={"/membros/" + encodeURIComponent(p.playerTag)}>
+                      <Link
+                        className="analytics-name"
+                        to={"/membros/" + encodeURIComponent(p.playerTag)}
+                      >
                         {p.name}
                       </Link>
                       <small>
@@ -644,7 +650,15 @@ export function Wars() {
                       .filter(([key]) => !hidden.includes(key))
                       .map(([key]) => (
                         <td key={key}>
-                          {format(p[key])}
+                          <span
+                            className={
+                              typeof p[key] === "number"
+                                ? "analytics-number"
+                                : "analytics-text"
+                            }
+                          >
+                            {format(p[key])}
+                          </span>
                           {key === "average" && (
                             <small>
                               {p.averageSample}/4 guerras com pontos
@@ -838,7 +852,7 @@ function Evolution({ tag, wars }: { tag: string; wars: WarDetail[] }) {
               : "Pontuação estável."
           : "Tendência: dados insuficientes."}
       </p>
-      <div className="table-scroll">
+      <div className="table-scroll analytics-table">
         <table>
           <thead>
             <tr>

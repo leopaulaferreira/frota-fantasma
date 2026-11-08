@@ -352,3 +352,20 @@ O menu **Comparativo** abre `/comparativo`, com matriz das quatro últimas guerr
 A visão geral mantém os componentes existentes de resumo e prioridades, sem criar outra fila de gestão. As prioridades agora deixam as datas de retorno visíveis, permitem limpar filtros e abrem o comparativo já filtrado pela tag. Os prazos e sinais continuam vindo das notas e métricas existentes.
 
 Seletores de Guerras, Comparativo e comparação de membros identificam as guerras por datas no fuso configurado. Sem datas efetivas, o texto diz explicitamente “Guerra publicada em”; não presume a data de batalha. Temporada e seção permanecem nas evidências. Nenhuma regra de premiação, revisão ou promoção foi alterada.
+
+## Refinamento visual compartilhado — 08/11/2026
+
+As tabelas do componente `Table` (tripulação, perfil, doações, comparação
+individual e operações) e as tabelas de Guerras usam `analytics-table`.
+Cabeçalhos e primeira coluna permanecem visíveis durante a rolagem; células
+expandidas com `colspan` não ficam fixas. Tabelas internas de evidências usam
+a rolagem vertical externa. Nomes ganham destaque sobre tags e números usam
+algarismos tabulares. Métricas numéricas e valores descritivos têm tamanhos
+diferentes, preservando avisos de qualidade e acesso às explicações.
+
+Os componentes compartilhados também refinam a visão geral, recomendações e
+perfis. Premiações mantêm as artes e destacam o nome do premiado. Nenhum cálculo,
+endpoint, filtro, critério de classificação ou decisão foi alterado.
+
+Validação da alteração: build, 47 testes unitários e 102 testes Playwright
+(desktop e celular), com inspeção das capturas de visão geral e Guerras.

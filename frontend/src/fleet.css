@@ -1112,3 +1112,104 @@ th {
 .review-table .review-member-row:hover > td { background-color: #203b44; }
 .review-table .review-member-row:focus-within { outline: 1px solid #8cebd5; outline-offset: -2px; }
 .review-table .review-name:focus-visible { outline: 2px solid #8cebd5; outline-offset: 2px; }
+
+/* Shared analytical surfaces: roster, donations, comparisons, history and operations. */
+.analytics-table {
+  max-height: 76vh;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+.analytics-table > table > thead > tr > th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #19313b;
+  padding: 16px 14px;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: normal;
+}
+.analytics-table > table > tbody > tr > :is(td, th) {
+  padding: 16px 14px;
+  vertical-align: middle;
+  border-bottom: 1px solid #29434e80;
+  font-variant-numeric: tabular-nums;
+}
+.analytics-table > table > thead > tr > th:first-child {
+  left: 0;
+  z-index: 3;
+}
+.analytics-table > table > tbody > tr > :first-child:not([colspan]) {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #14242a;
+}
+.analytics-table > table > tbody > tr:hover > :is(td, th) {
+  background-color: #203b44;
+}
+.analytics-table > table > tbody > tr:focus-within {
+  outline: 1px solid #8cebd5;
+  outline-offset: -2px;
+}
+.person b, .analytics-name {
+  color: #edf4f5;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+.person small {
+  color: #9ab2bd;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+.person .avatar { flex-shrink: 0; }
+.analytics-table .person { min-width: 165px; }
+.analytics-table td > small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #9cb1ba;
+  margin-top: 5px;
+}
+.analytics-table .metric.compact { min-width: 100px; }
+.analytics-table .metric.compact .metric-trigger {
+  padding: 6px 0;
+  gap: 5px;
+  text-align: left;
+}
+.analytics-table .metric.compact .metric-label { font-size: 11px; }
+.analytics-table .metric.compact .quality { font-size: 10px; color: #a7bec7; }
+.analytics-number, .analytics-table .metric-number {
+  display: block;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.4;
+  color: #edf4f5;
+  font-variant-numeric: tabular-nums;
+}
+.analytics-table .metric-text { font-size: 13px; line-height: 1.5; }
+.analytics-table .badge { font-size: 11px; white-space: normal; }
+.war-player-table .analytics-name { display: block; min-width: 165px; }
+.war-player-table .war-member-row > td:last-child { min-width: 160px; }
+.war-player-table .war-member-row > td:last-child button { font-size: 11px; }
+.war-player-table .war-member-row > td:last-child > a { font-size: 11px; margin-top: 6px; }
+.person:focus-visible, .analytics-table :is(a, button, summary):focus-visible {
+  outline: 2px solid #8cebd5;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+/* Preserve descriptive values and quality warnings alongside numeric emphasis. */
+.metrics .metric-label { font-size: 12px; color: #b3c8d0; }
+.metrics .metric-number { font-size: 26px; line-height: 1.25; }
+.metrics .metric-text { font-size: 16px; line-height: 1.45; }
+.metrics .quality { font-size: 11px; }
+.recommendation-row { align-items: center; }
+.recommendation-reason { line-height: 1.6; font-size: 12px; }
+.award-content .award-winner { font-size: 15px; font-weight: 650; line-height: 1.5; }
+.form-grid label { line-height: 1.5; }
+details.panel > summary { line-height: 1.5; padding-block: 4px; }
+
+/* Expanded war evidence uses the outer scroll area instead of nesting vertical scrollbars. */
+.analytics-table .analytics-table { max-height: none; }
