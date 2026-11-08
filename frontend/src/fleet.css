@@ -1213,3 +1213,34 @@ details.panel > summary { line-height: 1.5; padding-block: 4px; }
 
 /* Expanded war evidence uses the outer scroll area instead of nesting vertical scrollbars. */
 .analytics-table .analytics-table { max-height: none; }
+
+/* Five indicators form one complete desktop row, independent of generic facts. */
+.war-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-block: 20px 12px;
+}
+.war-summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px;
+  text-align: left;
+  background: #142a34;
+  border: 1px solid #304a56;
+  border-radius: 10px;
+}
+.war-summary-card > span { min-height: 36px; color: #b3c8d0; font-size: 12px; line-height: 1.5; }
+.war-summary-card strong { color: #edf4f5; font-size: 26px; font-variant-numeric: tabular-nums; }
+.war-summary-card strong.unavailable { font-size: 14px; line-height: 1.5; color: #b3c8d0; }
+.war-summary-card small { color: #8cebd5; font-size: 11px; }
+.war-summary-card:hover { background: #203b44; border-color: #64877f; }
+.war-summary-card:focus-visible { outline: 2px solid #8cebd5; outline-offset: 3px; }
+@media (max-width: 800px) {
+  .war-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .war-summary-card:last-of-type { grid-column: 1 / -1; }
+}

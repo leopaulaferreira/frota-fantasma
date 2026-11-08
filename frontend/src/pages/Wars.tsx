@@ -1,5 +1,5 @@
 import { WarEvidence } from "../components/WarEvidence";
-import { Fragment, useState } from "react";
+import { Fragment, useState, useRef, useId } from "react";
 import {
   Link,
   useNavigate,
@@ -397,23 +397,54 @@ export function Wars() {
           Pontos ausentes não significam zero; 16 decks é uma referência, não
           disponibilidade comprovada.
         </p>
-        <div className="facts">
+        <section
+          className="war-summary"
+          aria-label="Indicadores da guerra selecionada"
+        >
           {[
-            ["Soma observada de contribuições", a.sum],
-            ["Meta atingida", a.target],
-            ["Zero ataques explícito", a.zero],
-            ["Decks observados", a.decks],
-            [
-              "Variação da soma (%)",
-              a.complete && b?.complete ? percent(a.sum, b.sum) : null,
-            ],
-          ].map(([label, value]) => (
-            <div key={String(label)}>
-              <small>{label}</small>
-              <strong>{format(value)}</strong>
-            </div>
+            {
+              name: "Soma observada de contribuições",
+              value: a.sum,
+              explanation:
+                "Soma dos pontos individuais conhecidos. Não representa o score oficial do clã. Registros ausentes não são convertidos em zero.",
+            },
+            {
+              name: "Meta atingida",
+              value: a.target,
+              explanation:
+                "Participantes com pontuação registrada igual ou superior a 1.600. O indicador descreve a guerra selecionada, antes dos filtros da tabela.",
+            },
+            {
+              name: "Zero ataques explícito",
+              value: a.zero,
+              explanation:
+                "Participantes cujo registro informa exatamente zero decks utilizados. Ausência de registro não confirma zero ataques. Em uma captura parcial, o jogador ainda pode atacar.",
+            },
+            {
+              name: "Decks observados",
+              value: a.decks,
+              explanation:
+                "Soma dos decks utilizados informados nos registros disponíveis. Não comprova que todos os jogadores tiveram 16 decks à disposição.",
+            },
+            {
+              name: "Variação da soma (%)",
+              value: a.complete && b?.complete ? percent(a.sum, b.sum) : null,
+              explanation:
+                "Diferença entre a soma selecionada e a soma de comparação, dividida pela soma de comparação, em porcentagem. Só é calculada quando todos os participantes registrados têm pontos nas duas bases e a soma de comparação é diferente de zero. Os elencos podem ser diferentes.",
+            },
+          ].map((metric) => (
+            <WarSummaryMetric
+              key={metric.name}
+              {...metric}
+              context={`${partial ? "Captura parcial da corrida" : selected.data?.war.source === "ROYALEAPI_IMPORT" ? "Registro importado" : "Resultado oficial"}. Amostra: ${a.sample}/${a.total} participantes com pontos; ${a.deckSample}/${a.total} com decks. Universo: participantes registrados na guerra, antes dos filtros.`}
+              comparison={
+                metric.name === "Variação da soma (%)"
+                  ? `Base selecionada: ${format(a.sum)} pontos. Comparação: ${comparison.data || prior ? warLabel((comparison.data || prior)!.war, zone) : "Sem guerra disponível"}; ${format(b?.sum)} pontos; ${b?.sample ?? 0}/${b?.total ?? 0} participantes com pontos.`
+                  : undefined
+              }
+            />
           ))}
-        </div>
+        </section>
         <p className="muted">
           Amostra: {a.sample}/{a.total} participantes com pontos; {a.deckSample}
           /{a.total} com decks. Soma individual não é score oficial do clã.
@@ -885,6 +916,61 @@ function Evolution({ tag, wars }: { tag: string; wars: WarDetail[] }) {
           </tbody>
         </table>
       </div>
+    </>
+  );
+}
+
+function WarSummaryMetric({
+  name,
+  value,
+  explanation,
+  context,
+  comparison,
+}: {
+  name: string;
+  value: number | null;
+  explanation: string;
+  context: string;
+  comparison?: string;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  return (
+    <>
+      <button
+        type="button"
+        className="war-summary-card"
+        aria-haspopup="dialog"
+        aria-label={`Ver detalhes: ${name}`}
+        onClick={() => dialog.current?.showModal()}
+      >
+        <span>{name}</span>
+        <strong className={value === null ? "unavailable" : ""}>
+          {format(value)}
+        </strong>
+        <small>Ver detalhes →</small>
+      </button>
+      <dialog ref={dialog} className="metric-dialog" aria-labelledby={titleId}>
+        <header className="metric-dialog-header">
+          <h2 id={titleId}>{name}</h2>
+          <button
+            type="button"
+            autoFocus
+            aria-label="Fechar explicação"
+            onClick={() => dialog.current?.close()}
+          >
+            Fechar
+          </button>
+        </header>
+        <div className="metric-dialog-body">
+          <div className="metric-result">
+            <strong>{format(value)}</strong>
+          </div>
+          <p>{explanation}</p>
+          <p>{context}</p>
+          {comparison && <p>{comparison}</p>}
+        </div>
+      </dialog>
     </>
   );
 }

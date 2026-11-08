@@ -369,3 +369,13 @@ endpoint, filtro, critério de classificação ou decisão foi alterado.
 
 Validação da alteração: build, 47 testes unitários e 102 testes Playwright
 (desktop e celular), com inspeção das capturas de visão geral e Guerras.
+
+### Indicadores da página Guerras
+
+O resumo de Guerras usa uma grade própria de cinco colunas no desktop, evitando
+que a variação fique isolada abaixo dos demais indicadores. Cada cartão tem uma
+ação explícita “Ver detalhes”, com explicação do cálculo, universo e cobertura;
+a variação informa também a guerra e a soma usadas como base de comparação.
+Os indicadores continuam descrevendo todos os participantes registrados antes
+dos filtros. Não houve alteração dos cálculos. Testes de navegador verificam
+alinhamento dos cinco cartões e abertura/fechamento dos detalhes por teclado.

@@ -139,7 +139,7 @@ test("captura atual é parcial e falta de vínculo não acusa novato", async ({
   page,
 }) => {
   await page.goto("/guerras?recurrence=twoZero");
-  await expect(page.getByText(/Captura parcial da corrida/)).toBeVisible();
+  await expect(page.locator(".callout").filter({ hasText: "Captura parcial da corrida" })).toBeVisible();
   await page.route("**/api/clan/events*", (r) =>
     r.fulfill({
       json: {
@@ -154,4 +154,31 @@ test("captura atual é parcial e falta de vínculo não acusa novato", async ({
   await expect(
     page.locator(".war-player-table > table > tbody > tr"),
   ).toHaveCount(0);
+});
+
+test("cinco indicadores alinhados e detalhes acessíveis", async ({ page }, info) => {
+  await page.goto("/guerras/1");
+  const summary = page.getByRole("region", { name: "Indicadores da guerra selecionada" });
+  const cards = summary.getByRole("button", { name: /^Ver detalhes:/ });
+  await expect(cards).toHaveCount(5);
+  if (info.project.name === "desktop") {
+    const tops = await cards.evaluateAll(nodes => nodes.map(n => n.getBoundingClientRect().top));
+    expect(Math.max(...tops) - Math.min(...tops)).toBeLessThan(2);
+  }
+  for (const name of ["Soma observada de contribuições", "Meta atingida", "Zero ataques explícito", "Decks observados", "Variação da soma (%)"]) {
+    const button = summary.getByRole("button", { name: `Ver detalhes: ${name}`, exact: true });
+    await button.focus();
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog", { name, exact: true });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText("2/3 participantes com pontos");
+    if (name === "Variação da soma (%)") {
+      await expect(dialog).toContainText("Dados insuficientes");
+      await expect(dialog).toContainText("dividida pela soma de comparação");
+    }
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await expect(button).toBeFocused();
+  }
+  await summary.screenshot({path: `test-results/war-summary-${info.project.name}.png`});
 });
