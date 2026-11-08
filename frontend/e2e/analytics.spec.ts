@@ -257,7 +257,7 @@ test("guerras anteriores, paginação e comparação alinhada", async ({
     page.getByRole("heading", { name: "Guerras da Frota" }),
   ).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.getByLabel("Guerra selecionada").selectOption("6");
+  await page.getByRole("combobox", { name: "Guerra selecionada", exact: true }).selectOption("6");
   await expect(page).toHaveURL(/guerras\/6/);
   await page.goto("/comparar?tags=%23P01");
   await page.getByLabel("Adicionar membro").selectOption("#P03");
@@ -834,3 +834,13 @@ test("prioridades refinadas mostram prazo e levam ao comparativo sem nova decis�
   await expect(priorities.getByLabel("Buscar nas prioridades")).toHaveValue("");
   await expect(priorities.getByLabel("Filtrar prioridade")).toHaveValue("");
 });
+
+for (const [name, route] of Object.entries({overview:"/",members:"/membros",profile:"/membros/%23P01",wars:"/guerras/1",comparison:"/comparativo",compare:"/comparar?tags=%23P01,%23P03",recommendations:"/recomendacoes",evaluation:"/recomendacoes/1",awards:"/premiacoes",review:"/expulsoes",rules:"/regras",operations:"/operacoes",donations:"/doacoes"})) {
+ test(`auditoria visual ${name}`, async ({page}, info) => {
+  await page.goto(route);
+  await expect(page.locator("main")).toBeVisible();
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({path:`test-results/audit-${name}-${info.project.name}.png`,fullPage:true});
+ });
+}
