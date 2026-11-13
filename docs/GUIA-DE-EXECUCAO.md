@@ -241,7 +241,7 @@ Setup, recuperação, verificações reais e preparação para HTTPS:
 
 ## Revisão semanal de expulsões
 
-No menu, **Expulsões semanais** fica abaixo de Premiações e é reservada à
+No menu, **Recomendações** fica abaixo de **Guerras**, seguida de **Revisão semanal**, reservada à
 liderança. Lista membros com menos de 1.600 pontos na corrida da semana **ou
 mais de 5 dias offline**, com contexto e justificativas para decisão individual.
 A prévia usa o recorte de domingo às 22h de São Paulo e permite consultar

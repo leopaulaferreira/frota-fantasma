@@ -48,11 +48,11 @@ const nav = [
   ["/", "Visão geral", LayoutDashboard],
   ["/membros", "Tripulação", Users],
   ["/guerras", "Guerras", Swords],
+  ["/recomendacoes", "Recomendações", ClipboardList],
+  ["/expulsoes", "Revisão semanal", ClipboardCheck],
   ["/comparativo", "Comparativo", GitCompareArrows],
   ["/comparar", "Comparar jogadores", Users],
-  ["/recomendacoes", "Recomendações", ClipboardList],
   ["/premiacoes", "Premiações", Trophy],
-  ["/expulsoes", "Revisão semanal", ClipboardCheck],
   ["/regras", "Regras", Settings],
   ["/operacoes", "Operações", Activity],
 ] as const;
