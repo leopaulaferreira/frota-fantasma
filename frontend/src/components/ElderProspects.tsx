@@ -1,4 +1,3 @@
-import { ElderAverage } from "./ElderAverage";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useAdmin } from "../lib/auth";
@@ -42,19 +41,10 @@ export function orderedProspects(players: Player[]) {
     });
 }
 export function ElderProspects({ report }: { report: Report }) {
-  const admin = useAdmin();
-  return (
-    <>
-      <ElderAverage report={report} />
-      <details>
-        <summary>Contexto adicional e critérios das regras salvas</summary>
-        {admin ? (
-          <PrivateProspects report={report} />
-        ) : (
-          <ProspectList report={report} />
-        )}
-      </details>
-    </>
+  return useAdmin() ? (
+    <PrivateProspects report={report} />
+  ) : (
+    <ProspectList report={report} />
   );
 }
 function PrivateProspects({ report }: { report: Report }) {
