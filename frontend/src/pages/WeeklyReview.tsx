@@ -26,7 +26,7 @@ export function WeeklyReview() {
     <PrivateWeeklyReview />
   ) : (
     <>
-      <Heading title="Expulsões semanais" />
+      <Heading title="Revisão semanal" />
       <p>Esta revisão e as justificativas são reservadas à liderança.</p>
     </>
   );
@@ -169,7 +169,7 @@ function PrivateWeeklyReview() {
       }) || [];
   return (
     <>
-      <Heading eyebrow="FAXINA NO CONVÉS" title="Expulsões semanais">
+      <Heading eyebrow="ACOMPANHAMENTO DA TRIPULAÇÃO" title="Revisão semanal">
         <Link className="button" to="/operacoes">
           Ver coletas →
         </Link>

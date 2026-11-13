@@ -24,7 +24,7 @@ import {
   Settings,
   RefreshCw,
   Activity,
-  UserRoundMinus,
+  ClipboardCheck,
 } from "lucide-react";
 import { DonationHistory } from "./pages/DonationHistory";
 import { WeeklyReview } from "./pages/WeeklyReview";
@@ -52,7 +52,7 @@ const nav = [
   ["/comparar", "Comparar jogadores", Users],
   ["/recomendacoes", "Recomendações", ClipboardList],
   ["/premiacoes", "Premiações", Trophy],
-  ["/expulsoes", "Expulsões semanais", UserRoundMinus],
+  ["/expulsoes", "Revisão semanal", ClipboardCheck],
   ["/regras", "Regras", Settings],
   ["/operacoes", "Operações", Activity],
 ] as const;
