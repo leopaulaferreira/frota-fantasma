@@ -1,3 +1,4 @@
+import { elderAverage } from "../lib/elderAverage";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useAdmin } from "../lib/auth";
@@ -73,6 +74,7 @@ function ProspectList({
   const savedTarget = promotionSetting(report, "pointsTarget");
   const [objectiveInput, setObjectiveInput] = useState("");
   const [toleranceInput, setToleranceInput] = useState("5");
+  const [averageFilter, setAverageFilter] = useState("");
   const [band, setBand] = useState("");
   const [sample, setSample] = useState("");
   const [gap, setGap] = useState("");
@@ -103,6 +105,7 @@ function ProspectList({
     .map((row, index) => ({ ...row, position: index + 1 }));
   const players = all.filter(
     ({ p, full, assessment }) =>
+      (!averageFilter || elderAverage(p).status === averageFilter) &&
       (!band || assessment.band === band) &&
       (!sample || (sample === "full" ? full : !full)) &&
       (!gap ||
@@ -120,6 +123,7 @@ function ProspectList({
     ? Math.max(...observedTenures)
     : null;
   const reset = () => {
+    setAverageFilter("");
     setBand("");
     setSample("");
     setGap("");
@@ -199,6 +203,19 @@ function ProspectList({
           />
         </label>
         <label>
+          Média nas últimas 4 guerras
+          <select
+            aria-label="Filtrar média nas últimas 4 guerras"
+            value={averageFilter}
+            onChange={(e) => setAverageFilter(e.target.value)}
+          >
+            <option value="">Todas as médias</option>
+            <option value="meets">Média ≥ 2.400 pontos</option>
+            <option value="below">Média abaixo de 2.400 pontos</option>
+            <option value="unknown">Sem 4 pontuações conhecidas</option>
+          </select>
+        </label>
+        <label>
           Situação
           <select
             aria-label="Filtrar sinal de candidatura"
@@ -261,6 +278,13 @@ function ProspectList({
           </select>
         </label>
       </div>
+      {averageFilter && (
+        <p className="muted">
+          A meta de 2.400 exige quatro pontuações conhecidas nas últimas quatro
+          guerras encerradas do histórico. A corrida atual não entra e dados
+          ausentes não viram zero. Os demais filtros também se aplicam.
+        </p>
+      )}
       <details className="panel prospect-options">
         <summary>Refinar a análise e simular referência</summary>
         <div className="prospect-filters">
