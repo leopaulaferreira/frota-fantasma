@@ -1,3 +1,4 @@
+import { ELDER_AVERAGE_TARGET } from "./elderAverage";
 import type { Metric, Player, Report } from "./api";
 export type ProspectBand =
   "strong" | "near" | "developing" | "unknown" | "blocked";
@@ -58,7 +59,7 @@ export function classifyProspect(
     action: string,
     metric?: Metric,
   ) => criteria.push({ key, label, state, detail, action, metric });
-  const minimum = promotionSetting(report, "minimumWars");
+  const minimum = 4;
   const average = numeric(player.metrics.recentAverage);
   const recent = player.wars.slice(0, 4);
   const known = recent.filter(
@@ -79,7 +80,7 @@ export function classifyProspect(
     "Coletar resultados oficiais e completar a amostra de guerras.",
     player.metrics.recentAverage,
   );
-  const officialTarget = promotionSetting(report, "pointsTarget");
+  const officialTarget = ELDER_AVERAGE_TARGET;
   // A simulation can raise the reference, but can never relax the saved policy.
   const validInput =
     Number.isFinite(objective) &&

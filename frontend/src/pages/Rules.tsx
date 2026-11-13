@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ApiError, api, useApi, date, type RuleVersion } from "../lib/api";
 import { Heading, QueryState, Paged } from "../components/ui";
 const names: Record<string, string> = {
-  pointsTarget: "Meta de pontuação",
+  pointsTarget: "Meta mínima de pontuação (revisão)",
   offlineDays: "Dias offline para revisão",
   minimumWars: "Amostra mínima de guerras",
   immortalMinimumWars: "Amostra mínima • Alma Imortal",

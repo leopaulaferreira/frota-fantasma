@@ -1,4 +1,4 @@
-import { elderAverage } from "../lib/elderAverage";
+import { elderAverage, ELDER_AVERAGE_TARGET } from "../lib/elderAverage";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useAdmin } from "../lib/auth";
@@ -71,7 +71,7 @@ function ProspectList({
   admin?: boolean;
   notes?: ActiveNotes;
 }) {
-  const savedTarget = promotionSetting(report, "pointsTarget");
+  const savedTarget = ELDER_AVERAGE_TARGET;
   const [objectiveInput, setObjectiveInput] = useState("");
   const [toleranceInput, setToleranceInput] = useState("5");
   const [averageFilter, setAverageFilter] = useState("");
@@ -330,8 +330,7 @@ function ProspectList({
           </label>
         </div>
         <p className="muted">
-          Referência inicial: {format(savedTarget)} pontos, conforme regras
-          salvas. Uma simulação abaixo desse valor não reduz a exigência
+          Referência inicial: {format(savedTarget)} pontos para Ancião nas quatro últimas guerras encerradas. Uma simulação abaixo desse valor não reduz a exigência
           oficial. “Poucas pendências” exige até dois critérios pendentes, média
           dentro da faixa e nenhum alerta ou dado ausente. A simulação não
           altera as regras.

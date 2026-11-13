@@ -10,6 +10,14 @@ function candidate(average = 2500, donations = 200) {
   return p;
 }
 describe("sinais de candidatura", () => {
+  it("separa os 1600 da revisão dos 2400 para Ancião", () => {
+    const r = structuredClone(report);
+    r.recommendationRules.settings.analytics.pointsTarget = 1600;
+    for (const [average, state] of [[1600, "pending"], [2399, "pending"], [2400, "pass"]] as const) {
+      const result = classifyProspect(candidate(average), r, 1600, 5);
+      expect(result.criteria.find(c => c.key === "points")?.state).toBe(state);
+    }
+  });
   it("verde exige pontuação e todos os critérios, inclusive alertas e regras atuais", () => {
     expect(classifyProspect(candidate(), report, 2400, 5).band).toBe("strong");
     const p = candidate();
@@ -67,13 +75,13 @@ describe("triagem multicritério para liderança", () => {
     expect(result.unknown).toBe(1);
     expect(result.nextAction).toContain("avaliações com alerta");
   });
-  it("respeita o mínimo salvo de duas guerras em uma janela ainda com duas guerras", () => {
+  it("exige quatro guerras para Ancião mesmo com mínimo geral de duas", () => {
     const p = candidate();
     p.wars = p.wars.slice(0, 2);
     p.metrics.recentAverage = metric(2500, { warsConsidered: 2 });
     const r = structuredClone(report);
     r.recommendationRules.settings.analytics.minimumWars = 2;
-    expect(classifyProspect(p, r, 2400, 5).band).toBe("strong");
+    expect(classifyProspect(p, r, 2400, 5).band).toBe("unknown");
     p.wars.push({ ...p.wars[0], warId: 3, points: metric(null) });
     expect(classifyProspect(p, r, 2400, 5).band).toBe("unknown");
   });
