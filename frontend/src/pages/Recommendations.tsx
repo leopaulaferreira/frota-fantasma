@@ -37,11 +37,7 @@ function RecommendationList() {
       : "candidatos";
   return (
     <>
-      <Heading eyebrow="APOIO À LIDERANÇA" title="Recomendações com contexto">
-        <Link className="button" to="/comparar">
-          Comparar membros →
-        </Link>
-      </Heading>
+      <Heading eyebrow="APOIO À LIDERANÇA" title="Recomendações com contexto" />
       <div className="toolbar">
         <label htmlFor="analysis-type">Tipo de análise</label>
         <select
@@ -57,10 +53,6 @@ function RecommendationList() {
           <option value="acompanhamento">Membros para acompanhar</option>
           <option value="avaliacoes">Avaliações registradas</option>
         </select>
-      </div>
-      <div className="callout">
-        Classificações analíticas para revisão humana. Nenhuma expulsão ou
-        promoção é executada pelo sistema.
       </div>
       {analysis !== "avaliacoes" && (
         <QueryState query={q}>
