@@ -22,7 +22,9 @@ public record AnalyticsProperties(
         @DefaultValue("PT2H") @NotNull @DurationMin(minutes = 1) Duration freshness,
         @DefaultValue("UTC") @NotNull ZoneId timezone
 ) {
-    public static final String VERSION = "analytics-v2";
+    public static final String VERSION = "analytics-v3";
+    public static final int ELDER_POINTS_TARGET = 2400;
+    public static final int ELDER_REQUIRED_WARS = 4;
     // Official rules: four Battle Days, four War Decks/day. This is NOT individual availability.
     public static final int STANDARD_WAR_DECKS = 16;
 }

@@ -212,7 +212,7 @@ public final class AnalyticsEngine {
         Number donationValue = (Number) donations.value();
         Double targetPercent = (Double) metrics.get("standardDeckTargetPercent").value();
         boolean candidate = active && latest != null && "member".equals(latest.getRole()) && "MANTER".equals(status)
-                && !insufficient && participated == recent.size() && average != null && average >= rules.pointsTarget()
+                && !insufficient && pointCount == AnalyticsProperties.ELDER_REQUIRED_WARS && participated == recent.size() && average != null && average >= AnalyticsProperties.ELDER_POINTS_TARGET
                 && targetPercent != null && targetPercent >= rules.adequateStandardDeckPercent()
                 && tenure != null && tenure >= rules.promotionTenureDays()
                 && donationValue != null && donationValue.longValue() >= rules.promotionDonations();
@@ -220,22 +220,22 @@ public final class AnalyticsEngine {
         var unmet = new ArrayList<String>();
         if (!active) unmet.add("não está no elenco observado");
         if (latest == null || !"member".equals(latest.getRole())) unmet.add("cargo não elegível ou desconhecido");
-        if (insufficient) unmet.add("amostra insuficiente");
+        if (insufficient || pointCount < AnalyticsProperties.ELDER_REQUIRED_WARS) unmet.add("amostra insuficiente: exige quatro pontuações conhecidas");
         if (participated != recent.size()) unmet.add("participação positiva em " + participated + "/" + recent.size());
-        if (average == null || average < rules.pointsTarget()) unmet.add("média=" + average);
+        if (average == null || average < AnalyticsProperties.ELDER_POINTS_TARGET) unmet.add("média=" + average);
         if (targetPercent == null || targetPercent < rules.adequateStandardDeckPercent()) unmet.add("uso do padrão=" + targetPercent);
         if (tenure == null || tenure < rules.promotionTenureDays()) unmet.add("dias observados=" + tenure);
         if (donationValue == null || donationValue.longValue() < rules.promotionDonations()) unmet.add("doações observadas=" + donationValue);
         if (!"MANTER".equals(status)) unmet.add("status=" + status);
-        String promotionReason = "Candidato somente se cargo member, participação em todas as guerras da janela, amostra mínima=" + rules.minimumWars()
-                + ", média >= " + rules.pointsTarget() + ", uso do padrão de decks >= " + rules.adequateStandardDeckPercent()
+        String promotionReason = "Candidato somente se cargo member, participação em todas as guerras da janela, amostra mínima=" + AnalyticsProperties.ELDER_REQUIRED_WARS
+                + ", média >= " + AnalyticsProperties.ELDER_POINTS_TARGET + ", uso do padrão de decks >= " + rules.adequateStandardDeckPercent()
                 + "%, tempo observado >= " + rules.promotionTenureDays() + " dias, doações observadas >= " + rules.promotionDonations()
                 + " e status MANTER (sem alertas atuais na janela). Resultado=" + candidate + ". Critérios pendentes: "
                 + (unmet.isEmpty() ? "nenhum" : String.join("; ", unmet)) + ". " + String.join(" ", reasons)
                 + " Doações são limite inferior; elegibilidade individual não é presumida. Sugestão de Ancião, nunca promoção automática.";
         return new PlayerStats(player.getPlayerTag(), latest == null ? player.getName() : latest.getName(), latest == null ? null : latest.getRole(), active,
                 metrics, history, donationPeriods, participationMetric, contextMetric, decision,
-                metric(candidate, Origin.SNAPSHOT_DERIVED, period, rows.size(), insufficient || donationValue == null, incomplete || donations.incompletePeriod() || !fresh, promotionEvidence, promotionReason));
+                metric(candidate, Origin.SNAPSHOT_DERIVED, period, rows.size(), insufficient || pointCount < AnalyticsProperties.ELDER_REQUIRED_WARS || donationValue == null, incomplete || donations.incompletePeriod() || !fresh, promotionEvidence, promotionReason));
     }
 
     private WarStats war(War war, WarParticipant row, WarRanking ranking) {

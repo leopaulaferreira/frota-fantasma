@@ -41,6 +41,26 @@ class AnalyticsEngineTest {
     Report report() { return engine.analyze(new AnalyticsEngine.Data(players, wars, participants, snapshots, events), NOW, WEEK); }
     PlayerStats first() { return report().players().getFirst(); }
 
+    @Test void separaMetaMinimaDaMediaParaAnciao() {
+        player(1, new int[]{1600,1600,1600,1600}, new int[]{16,16,16,16}, 200);
+        player(2, new int[]{2399,2400,2400,2400}, new int[]{16,16,16,16}, 200);
+        player(3, new int[]{2000,2800,2400,2400}, new int[]{16,16,16,16}, 200);
+        var result = report().players();
+        assertThat(result).extracting(p -> p.elderCandidate().value()).containsExactly(false,false,true);
+        assertThat(result).extracting(p -> p.operationalStatus().value()).containsOnly("MANTER");
+        result.forEach(p -> assertThat(p.metrics().get("warsBelowTarget").value()).isEqualTo(0));
+        assertThat(result.get(0).elderCandidate().reason()).contains("média >= 2400");
+    }
+
+    @Test void anciaoExigeQuatroResultadosMesmoComMinimoGeralMenor() {
+        player(1, new int[]{3200,3200}, new int[]{16,16}, 200);
+        wars.subList(2, wars.size()).clear();
+        var rules = new AnalyticsProperties(1600,5,2,4,3,80,28,100,Duration.ofHours(2),ZoneOffset.UTC);
+        var p = new AnalyticsEngine(rules).analyze(new AnalyticsEngine.Data(players,wars,participants,snapshots,events),NOW,WEEK).players().getFirst();
+        assertThat(p.elderCandidate().value()).isFalse();
+        assertThat(p.elderCandidate().insufficientSample()).isTrue();
+    }
+
     @Test void rankingIncluiExMembrosEmpataESaltaPosicoesSemInventarPontuacao() {
         player(1,new int[]{3200},new int[]{16},0);
         player(2,new int[]{3200},new int[]{16},0);
