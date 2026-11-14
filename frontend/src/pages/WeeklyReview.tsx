@@ -1,7 +1,8 @@
+import { mondayOf } from "../lib/weeks";
 import { twoClosedBelow, closedAndLiveBelow } from "../lib/weeklyReview";
 import { WeeklyDecision } from "../components/WeeklyDecision";
 import { Fragment, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useAdmin } from "../lib/auth";
 import { api, ApiError, useApi, date, format, tagPath } from "../lib/api";
@@ -32,12 +33,13 @@ export function WeeklyReview() {
   );
 }
 function PrivateWeeklyReview() {
-  const [week, setWeek] = useState("");
+  const [params] = useSearchParams();
+  const [week, setWeek] = useState(() => mondayOf(params.get("week") || ""));
   const [filter, setFilter] = useState("");
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(() => params.get("membro"));
   const [sort, setSort] = useState("priority");
   const [descending, setDescending] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => params.get("membro") || "");
   const [justified, setJustified] = useState(false);
   const [progress, setProgress] = useState("");
   const [criterion, setCriterion] = useState("");

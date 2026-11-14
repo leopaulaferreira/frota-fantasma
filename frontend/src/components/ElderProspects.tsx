@@ -1,5 +1,5 @@
 import { elderAverage, ELDER_AVERAGE_TARGET } from "../lib/elderAverage";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { useAdmin } from "../lib/auth";
 import {
@@ -71,6 +71,7 @@ function ProspectList({
   admin?: boolean;
   notes?: ActiveNotes;
 }) {
+  const [params] = useSearchParams();
   const savedTarget = ELDER_AVERAGE_TARGET;
   const [objectiveInput, setObjectiveInput] = useState("");
   const [toleranceInput, setToleranceInput] = useState("5");
@@ -78,7 +79,7 @@ function ProspectList({
   const [band, setBand] = useState("");
   const [sample, setSample] = useState("");
   const [gap, setGap] = useState("");
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => params.get("membro") || "");
   const [sort, setSort] = useState("readiness");
   const [watched, setWatched] = useState(false);
   const objective =
