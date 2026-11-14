@@ -1,3 +1,4 @@
+import { PlayerReview } from "../components/PlayerReview";
 import { mondayOf, shiftWeek } from "../lib/weeks";
 import { useAdmin } from "../lib/auth";
 import { LeaderNotes } from "../components/LeaderNotes";
@@ -291,6 +292,12 @@ export function PlayerProfile() {
                 Comparar membro
               </Link>
             </Heading>
+            <div className="toolbar">
+              {!week && p.currentMember && p.role === "member" && (
+                <Link to={`/recomendacoes?${new URLSearchParams({ tipo: "candidatos", membro: p.tag })}`}>Consultar candidatura a Ancião →</Link>
+              )}
+              {admin && <Link to={`/expulsoes?${new URLSearchParams({ membro: p.tag, ...(week ? { week } : {}) })}`}>Abrir revisão semanal deste membro →</Link>}
+            </div>
             <div className="tabs">
               {[
                 "Visão geral",
@@ -312,7 +319,10 @@ export function PlayerProfile() {
               ))}
             </div>
             {admin && tab === "Notas da liderança" && (
-              <LeaderNotes key={p.tag} tag={p.tag} />
+              <>
+                <PlayerReview key={`${p.tag}:${week}`} tag={p.tag} week={week} />
+                <LeaderNotes key={p.tag} tag={p.tag} />
+              </>
             )}
             {tab === "Visão geral" && (
               <>
