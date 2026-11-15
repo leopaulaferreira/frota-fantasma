@@ -12,6 +12,7 @@ import {
 import {
   useApi,
   date,
+  dateTime,
   format,
   tagPath,
   num,
@@ -645,13 +646,14 @@ export function Donations({ player: p }: { player: Player }) {
         Consultar últimas 6 semanas →
       </Link>
       <p className="lede">
-        Diferenças entre snapshots, com resets detectados. Os valores são
-        limites inferiores observados; períodos incompletos permanecem
-        sinalizados.
+        O contador é o valor informado pelo jogo no horário da coleta.
+        Doações observadas são diferenças entre coletas, considerando resets;
+        não representam o total exato da semana. Lacunas podem ocultar doações.
       </p>
       <Table
         headers={[
           "Semana",
+          "Contador coletado",
           "Doações observadas",
           "Snapshots",
           "Resets detectados",
@@ -661,7 +663,12 @@ export function Donations({ player: p }: { player: Player }) {
           <tr key={d.week}>
             <td>{date(d.week)}</td>
             <td>
-              <MetricView compact name="Doações" metric={d.observedDonations} />
+              <MetricView compact name="Contador do jogo" metric={d.lastCounter} />
+              <small>{d.counterCapturedAt ? `Coleta: ${dateTime(d.counterCapturedAt)}` : "Horário de coleta indisponível"}</small>
+            </td>
+            <td>
+              <MetricView compact name="Doações observadas" metric={d.observedDonations} />
+              <small>{d.observedDonations.incompletePeriod ? "Cobertura incompleta · total exato desconhecido" : "Consulte a cobertura nas evidências"}</small>
             </td>
             <td>{d.snapshots}</td>
             <td>{d.detectedResets}</td>
