@@ -1,3 +1,4 @@
+import { warSample } from "../lib/dataContext";
 import { elderAverage, ELDER_AVERAGE_TARGET } from "../lib/elderAverage";
 import { Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
@@ -387,9 +388,9 @@ function ProspectList({
                 </span>
                 <span className="prospect-row-stats">
                   {assessment.passed}/{assessment.criteria.length} critérios ·
-                  Média {format(numeric(p.metrics.recentAverage))} pts · Decks{" "}
+                  Média {format(numeric(p.metrics.recentAverage))} pts · {warSample(p.metrics.recentAverage?.warsConsidered ?? 0)} · Decks{" "}
                   {format(numeric(p.metrics.standardDeckTargetPercent))}% ·
-                  Doações {format(numeric(p.metrics.weeklyDonations))}
+                  Doações observadas {format(numeric(p.metrics.weeklyDonations))}
                 </span>
               </span>
               <span className="prospect-expand" aria-hidden="true">

@@ -1,3 +1,4 @@
+import { collectionAge } from "../lib/dataContext";
 import { mondayOf } from "../lib/weeks";
 import { twoClosedBelow, closedAndLiveBelow } from "../lib/weeklyReview";
 import { WeeklyDecision } from "../components/WeeklyDecision";
@@ -271,10 +272,10 @@ function PrivateWeeklyReview() {
             )}
             <div className="review-sources">
               <span>
-                Elenco e atividade: <b>{saoPauloTime(r.membersCapturedAt)}</b>
+                Elenco, atividade e contador de doações: <b>{saoPauloTime(r.membersCapturedAt)}</b> · {collectionAge(r.membersCapturedAt, r.cutoff)}
               </span>
               <span>
-                Corrida da semana: <b>{saoPauloTime(r.riverCapturedAt)}</b>
+                Corrida da semana (pontos e decks): <b>{saoPauloTime(r.riverCapturedAt)}</b> · {collectionAge(r.riverCapturedAt, r.cutoff)}
               </span>
             </div>
             <div

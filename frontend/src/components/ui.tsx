@@ -1,3 +1,4 @@
+import { warSample } from "../lib/dataContext";
 import { useState, useRef, useId, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPortal } from "react-dom";
@@ -150,11 +151,13 @@ export function MetricView({
   name,
   compact = false,
   icon,
+  context,
 }: {
   metric?: Metric;
   name: string;
   compact?: boolean;
   icon?: string;
+  context?: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const id = useId();
@@ -197,6 +200,10 @@ export function MetricView({
             {value}
           </strong>
           <span className="quality">{quality}</span>
+          {context && <span className="quality">{context}</span>}
+          {metric.period?.basis === "MEMBER_SNAPSHOT" && metric.period.to && (
+            <span className="quality">Coleta: {dateTime(metric.period.to)}</span>
+          )}
         </button>
       </div>
       {createPortal(
@@ -346,6 +353,7 @@ export function Metrics({
           <MetricView
             key={k}
             name={label(k)}
+            context={k === "recentAverage" ? warSample(metrics[k].warsConsidered) : k === "weeklyDonations" ? "Doações observadas · não é o contador do jogo" : undefined}
             metric={metrics[k]}
             icon={
               "/assets/royale/" +
