@@ -204,3 +204,15 @@ main .collection-card.collection-attention { border-top-color: var(--state-warni
 main .collection-card h2 { font-size: 21px; line-height: 1.35; margin-block: 14px; }
 main .collection-card > small { display: block; color: var(--text-secondary); line-height: 1.65; max-width: 65ch; }
 main .collection-card .eyebrow { color: var(--text-secondary); }
+
+/* Align summary cards while keeping provenance and capture dates on separate lines. */
+main .metrics { align-items: stretch; }
+main .metrics > .metric > .metric-trigger {
+  height: 100%; display: flex; flex-direction: column; align-items: stretch;
+}
+main .metrics > .metric .metric-label { min-height: 3em; }
+main .metrics > .metric .metric-trigger:has(.metric-icon) .metric-label { padding-right: 48px; }
+main .metrics > .metric .metric-icon { position: absolute; right: 18px; top: 19px; margin: 0; }
+main .quality { display: block; }
+main .timeline > article + article { margin-top: 12px; }
+main .recommendation-row + .recommendation-row { margin-top: 10px; }
