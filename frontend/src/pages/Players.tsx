@@ -71,6 +71,14 @@ export function Members() {
         Consulte evidências, acompanhe a consistência e conheça o contexto antes
         de decidir.
       </p>
+      {q.data && <section className="page-pulse" aria-label="Resumo da tripulação">
+        <div className="section-head">
+          <h2>Retrato da tripulação</h2>
+          <Link to="/doacoes">Histórico de doações →</Link>
+        </div>
+        <p className="muted">Indicadores do clã na semana consultada, antes dos filtros da lista.</p>
+        <Metrics metrics={q.data.clan} keys={["currentMembers", "averageRecentPoints", "participationPercent", "observedWeeklyDonations"]} />
+      </section>}
       <div className="toolbar" aria-label="Período da tripulação">
         <label>
           Consultar semana de
@@ -117,6 +125,7 @@ export function Members() {
           semana.
         </p>
       )}
+      <h2>Explorar membros</h2>
       <div className="toolbar">
         <input
           aria-label="Buscar membro"

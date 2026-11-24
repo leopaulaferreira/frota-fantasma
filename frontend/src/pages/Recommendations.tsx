@@ -38,7 +38,8 @@ function RecommendationList() {
   return (
     <>
       <Heading eyebrow="APOIO À LIDERANÇA" title="Recomendações com contexto" />
-      <div className="toolbar">
+      <p className="lede">Reconheça a consistência, acompanhe pendências e consulte as evidências antes de decidir.</p>
+      <div className="toolbar analysis-switcher">
         <label htmlFor="analysis-type">Tipo de análise</label>
         <select
           id="analysis-type"

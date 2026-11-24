@@ -118,3 +118,61 @@ main .empty { border: 1px dashed var(--border); border-radius: var(--radius-pane
   main .toolbar > :is(input, select), main .toolbar > label:not(.check) { flex: 1 1 180px; min-width: 0; }
   main .toolbar > label:has(input[type=checkbox]) { flex-basis: 100%; }
 }
+
+/* Data surfaces and recommendations share the same spacing and contrast. */
+.page-pulse { margin-bottom: 28px; }
+.page-pulse .metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+main .war-summary, main .facts, main .prospect-summary { gap: 14px; margin-block: 20px; }
+main .facts > div { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+main .analysis-switcher { border-left: 3px solid var(--state-success); }
+main .analysis-switcher > label { font-weight: 600; align-self: center; }
+main .analysis-switcher select { min-width: min(100%, 280px); }
+main .prospect-summary button {
+  min-width: 0; min-height: 112px; padding: 18px;
+  border-radius: var(--radius-panel); text-align: left;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  background: var(--surface-panel); font-size: 13px; line-height: 1.5;
+}
+main .prospect-summary strong { font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+main .prospect-summary button.selected { outline: 2px solid var(--state-success); outline-offset: 2px; box-shadow: none; background: #1c3939; }
+main .prospect-summary button:hover { background: var(--surface-hover); }
+main .prospect-list { gap: 12px; }
+main .prospect-list > .prospect-card { border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface-panel); }
+main .prospect-row-summary { padding: 18px; gap: 16px; }
+main .prospect-row-title { flex-wrap: wrap; gap: 8px 12px; }
+main .prospect-row-title > strong { font-size: 16px; white-space: normal; overflow-wrap: anywhere; }
+main .prospect-row-title > .badge { font-size: 11px; }
+main .prospect-row-stats { font-size: 12px; line-height: 1.6; white-space: normal; color: var(--text-secondary); }
+main .prospect-position { width: 38px; height: 38px; display: grid; place-items: center; background: #8cebd510; border-radius: 8px; font-size: 20px; }
+main .prospect-card[open] > .prospect-row-summary { background: #1b373d; }
+main .prospect-card-content { padding: 24px; }
+main .prospect-action { border-radius: 8px; padding: 16px; background: #8cebd508; border: 1px solid var(--border); }
+main .prospect-results { padding: 14px 0; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+main .recommendation-row { padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface-panel); }
+main :is(.analytics-table, .comparison-table, .review-table) {
+  max-height: 72vh; overflow: auto; border: 1px solid var(--border);
+  border-radius: var(--radius-panel); scrollbar-gutter: stable;
+}
+main :is(.analytics-table, .comparison-table, .review-table) > table { margin: 0; }
+main :is(.analytics-table, .comparison-table, .review-table) > table > thead > tr > th {
+  background: var(--surface-raised); color: #cfdee2; font-size: 12px; line-height: 1.5; padding: 16px;
+}
+main :is(.analytics-table, .comparison-table, .review-table) > table > tbody > tr > :is(td, th) {
+  padding: 16px; border-bottom-color: #35515c80; font-variant-numeric: tabular-nums;
+}
+main :is(.analytics-table, .comparison-table, .review-table) .quality { font-size: 11px; color: var(--text-secondary); }
+main :is(.analytics-table, .comparison-table, .review-table) .metric-label { font-size: 12px; }
+main :is(.analytics-table, .comparison-table, .review-table) > table > tbody > tr > :first-child:not([colspan]) { background: var(--surface-panel); }
+main :is(.analytics-table, .comparison-table, .review-table) > table > tbody > tr:hover > :is(td, th) { background: var(--surface-hover); }
+main .analytics-table .analytics-table { max-height: none; }
+main .pagination { gap: 12px; padding-block: 16px; color: var(--text-secondary); }
+@media (max-width: 1000px) { .page-pulse .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) {
+  main .prospect-row-summary { padding: 14px; grid-template-columns: 32px minmax(0, 1fr) 14px; gap: 10px; }
+  main .prospect-position { width: 30px; height: 34px; font-size: 17px; }
+  main .prospect-card-content { padding: 16px; }
+  main .prospect-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  main .prospect-summary button { padding: 14px; }
+  main .analysis-switcher > label { flex-basis: 100%; }
+  main .analysis-switcher select { width: 100%; }
+}

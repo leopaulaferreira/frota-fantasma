@@ -328,6 +328,7 @@ export function Wars() {
   return (
     <>
       <Heading title="Guerras da Frota" eyebrow="DIÁRIO DE BORDO" />
+      <p className="lede">Acompanhe a corrida atual, consulte resultados encerrados e compare a participação da tripulação.</p>
       <div className="toolbar">
         <label>
           Guerra selecionada
@@ -397,6 +398,7 @@ export function Wars() {
           Pontos ausentes não significam zero; 16 decks é uma referência, não
           disponibilidade comprovada.
         </p>
+        <h2>Pulso da guerra</h2>
         <section
           className="war-summary"
           aria-label="Indicadores da guerra selecionada"
