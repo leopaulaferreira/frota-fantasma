@@ -52,3 +52,9 @@
 .evolution-gap { align-self: center; color: #b6cbd2; }
 .evolution-legend { font-size: 12px; line-height: 1.5; color: #b6cbd2; margin: 16px 0 0; }
 @media (max-width: 1100px) { .evolution-grid { grid-template-columns: 1fr; } }
+.collection-freshness { margin: -4px 0 18px; font-size: 13px; color: #b6cbd2; }
+.collection-freshness summary { cursor: pointer; line-height: 1.6; }
+.collection-freshness ul { list-style: none; padding: 0; display: grid; gap: 12px; }
+.collection-freshness li { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.collection-freshness strong { color: #e6eef0; }
+.collection-warning { color: #e5c789; }

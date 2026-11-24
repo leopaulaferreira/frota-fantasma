@@ -1,4 +1,5 @@
 import "../overview.css";
+import { CollectionFreshness } from "../components/CollectionFreshness";
 import { WeeklyEvolution } from "../components/WeeklyEvolution";
 import { LeadershipSummary } from "../components/LeadershipSummary";
 import { useAdmin } from "../lib/auth";
@@ -19,12 +20,9 @@ export function Overview() {
           <>
             <div className="section-head">
               <h2>Pulso da semana</h2>
-              <small>
-                Análise gerada em{" "}
-                {new Date(r.generatedAt).toLocaleString("pt-BR")} ·{" "}
-                {r.ruleVersion}
-              </small>
+
             </div>
+            <CollectionFreshness generatedAt={r.generatedAt} />
             <Metrics
               metrics={r.clan}
               keys={[

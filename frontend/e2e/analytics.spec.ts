@@ -196,6 +196,12 @@ test("dashboard e investigação completa de membro", async ({ page }, info) => 
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.mouse.move(0, 0);
   }
+  await page.getByText(/Análise calculada em/).click();
+  await expect(page.getByText("Dentro do intervalo esperado", { exact: true })).toBeVisible();
+  await expect(page.getByText("Sem coleta bem-sucedida registrada", { exact: true })).toBeVisible();
+  await page.getByText(/Análise calculada em/).click();
+  await expect(page.locator(".overview > .metrics > .metric")).toHaveCount(4);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({
     path: "test-results/dashboard-" + info.project.name + ".png",
     fullPage: true,
