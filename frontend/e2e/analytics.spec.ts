@@ -457,7 +457,7 @@ test("explicação abre em janela sem esticar a tabela e preserva os dados técn
   });
   await expect(dialog).toBeVisible();
   await expect(
-    dialog.getByText("Calculado com dados da API", { exact: true }),
+    dialog.getByText("Calculado com os registros disponíveis", { exact: true }),
   ).toBeVisible();
   await expect(dialog.getByText("DERIVED", { exact: true })).not.toBeVisible();
   const after = await table.boundingBox();

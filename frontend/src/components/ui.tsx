@@ -116,7 +116,7 @@ export function Badge({ value }: { value: unknown }) {
 const originLabels: Record<string, string> = {
   DIRECT_API: "Informado pela API oficial",
   ROYALEAPI_IMPORT: "Histórico importado do RoyaleAPI (confirmado)",
-  DERIVED: "Calculado com dados da API",
+  DERIVED: "Calculado com os registros disponíveis",
   SNAPSHOT_DERIVED: "Calculado com capturas históricas",
   UNAVAILABLE: "Informação indisponível",
 };

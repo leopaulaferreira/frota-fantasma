@@ -291,15 +291,15 @@ public final class AnalyticsEngine {
         var below = current.stream().filter(p -> !p.wars().isEmpty() && p.wars().getFirst().points().value() != null && p.wars().getFirst().points().value() < rules.pointsTarget()).toList();
         long latestKnown = current.stream().filter(p -> !p.wars().isEmpty() && p.wars().getFirst().points().value() != null).count();
         result.put("membersBelowTarget", metric(latestKnown == 0 ? null : below.size(), Origin.DERIVED, warPeriod(wars.stream().limit(1).toList()), Math.min(1, wars.size()), wars.isEmpty(), latestKnown < current.size(),
-                below.stream().flatMap(p -> p.wars().getFirst().points().dataUsed().stream()).toList(), "Membros atuais abaixo de " + rules.pointsTarget() + " na última guerra publicada; pontuação ausente não é zero."));
+                current.stream().filter(p -> !p.wars().isEmpty() && p.wars().getFirst().points().value() != null).flatMap(p -> p.wars().getFirst().points().dataUsed().stream()).toList(), "Membros atuais abaixo de " + rules.pointsTarget() + " na última guerra publicada; pontuação ausente não é zero."));
         var offline = current.stream().filter(p -> !p.metrics().get("offlineDays").incompletePeriod() && number(p, "offlineDays", -1) >= rules.offlineDays()).toList();
         long activityKnown = current.stream().filter(p -> p.metrics().get("offlineDays").value() != null && !p.metrics().get("offlineDays").incompletePeriod()).count();
         result.put("membersOffline", metric(activityKnown == 0 ? null : offline.size(), Origin.DERIVED, calendar, 0, activityKnown == 0, activityKnown < current.size(),
-                offline.stream().flatMap(p -> p.metrics().get("offlineDays").dataUsed().stream()).toList(), "Conta somente lastSeen registrado na fonte indicada, com captura recente e pelo menos " + rules.offlineDays() + " dias offline."));
+                current.stream().filter(p -> p.metrics().get("offlineDays").value() != null && !p.metrics().get("offlineDays").incompletePeriod()).flatMap(p -> p.metrics().get("offlineDays").dataUsed().stream()).toList(), "Conta somente lastSeen registrado na fonte indicada, com captura recente e pelo menos " + rules.offlineDays() + " dias offline."));
         for (String status : List.of("OBSERVAR", "REVISAR")) {
             var matching = current.stream().filter(p -> status.equals(p.operationalStatus().value())).toList();
             result.put(status.equals("OBSERVAR") ? "membersToObserve" : "membersToReview", metric(rosterKnown ? matching.size() : null, Origin.SNAPSHOT_DERIVED, window, Math.min(4, wars.size()), wars.size() < rules.minimumWars(), stale,
-                    matching.stream().map(p -> p.tag() + ":" + p.operationalStatus().reason()).toList(), "Classificação analítica " + status + "; sem ações automáticas."));
+                    current.stream().flatMap(p -> p.operationalStatus().dataUsed().stream()).toList(), "Classificação analítica " + status + "; sem ações automáticas."));
         }
         return result;
     }

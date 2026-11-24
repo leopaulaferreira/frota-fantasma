@@ -19,6 +19,7 @@ export const labels: Record<string, string> = {
   lastKnownActivity: "Última atividade oficial",
   offlineDays: "Dias offline na captura",
   observedTenureDays: "Dias observados no clã",
+  guardianDonations: "Maior contador da semana encerrada",
   weeklyDonations: "Doações observadas na semana",
   warsBelowTarget: "Guerras abaixo da meta",
   frotaScore: "Frota Score",

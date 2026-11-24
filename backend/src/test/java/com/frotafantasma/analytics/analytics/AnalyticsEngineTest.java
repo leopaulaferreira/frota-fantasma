@@ -41,6 +41,16 @@ class AnalyticsEngineTest {
     Report report() { return engine.analyze(new AnalyticsEngine.Data(players, wars, participants, snapshots, events), NOW, WEEK); }
     PlayerStats first() { return report().players().getFirst(); }
 
+    @Test void contagensZeroPreservamEvidenciasDosMembrosAvaliados() {
+        player(1, new int[]{3200,3200,3200,3200}, new int[]{16,16,16,16}, 200);
+        var clan = report().clan();
+        for (var key : List.of("membersBelowTarget", "membersOffline", "membersToObserve", "membersToReview")) {
+            assertThat(clan.get(key).value()).as(key).isEqualTo(0);
+            assertThat(clan.get(key).dataUsed()).as(key).isNotEmpty();
+            assertThat(clan.get(key).sources()).as(key).containsExactly(Origin.DIRECT_API);
+        }
+    }
+
     @Test void eventoSemSnapshotNaoInterrompeRelatorioNemInventaTempoNoCla() {
         player(1, new int[]{3200,3200,3200,3200}, new int[]{16,16,16,16}, 200);
         snapshots.clear();
