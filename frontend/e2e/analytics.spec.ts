@@ -310,27 +310,26 @@ test("regras validam pesos e preservam expectedVersion", async ({ page }) => {
   await expect.poll(() => body?.reason).toBe("Ajuste de teste");
   expect(body?.expectedVersion).toBeNull();
 });
-test("erro recuperável e estado vazio sem números fabricados", async ({
-  page,
-}) => {
+test("erro recuperável e estado vazio sem números fabricados", async ({ page }, info) => {
   let fail = true;
-  await page.route("**/api/analytics", (route) =>
-    fail
-      ? route.fulfill({
-          status: 503,
-          json: { detail: "Fonte temporariamente indisponível." },
-        })
-      : route.fulfill({ json: { ...report, players: [] } }),
-  );
+  let release!: () => void;
+  const ready = new Promise<void>(resolve => { release = resolve; });
+  await page.route("**/api/analytics", async (route) => {
+    await ready;
+    return fail
+      ? route.fulfill({ status: 503, json: { detail: "Fonte temporariamente indisponível." } })
+      : route.fulfill({ json: { ...report, players: [] } });
+  });
   await page.goto("/membros");
-  await expect(page.getByRole("alert")).toContainText(
-    "Fonte temporariamente indisponível",
-  );
+  await expect(page.getByRole("status")).toContainText("Carregando registros");
+  await page.screenshot({path:`test-results/state-loading-${info.project.name}.png`,fullPage:true});
+  release();
+  await expect(page.getByRole("alert")).toContainText("Fonte temporariamente indisponível");
+  await page.screenshot({path:`test-results/state-error-${info.project.name}.png`,fullPage:true});
   fail = false;
   await page.getByRole("button", { name: "Tentar novamente" }).click();
-  await expect(
-    page.getByText("Nenhum membro corresponde aos filtros."),
-  ).toBeVisible();
+  await expect(page.getByText("Nenhum membro corresponde aos filtros.")).toBeVisible();
+  await page.screenshot({path:`test-results/state-empty-${info.project.name}.png`,fullPage:true});
 });
 
 test("identidade visual permanece disponível quando a API falha", async ({

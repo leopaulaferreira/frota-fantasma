@@ -209,6 +209,7 @@ main .collection-card .eyebrow { color: var(--text-secondary); }
 main .metrics { align-items: stretch; }
 main .metrics > .metric > .metric-trigger {
   height: 100%; display: flex; flex-direction: column; align-items: stretch;
+  justify-content: flex-start; gap: 0;
 }
 main .metrics > .metric .metric-label { min-height: 3em; }
 main .metrics > .metric .metric-trigger:has(.metric-icon) .metric-label { padding-right: 48px; }
