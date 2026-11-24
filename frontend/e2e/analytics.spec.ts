@@ -382,7 +382,7 @@ test("login, logout e sessão expirada", async ({ page }) => {
   await page.route("**/api/operations", (route) =>
     route.fulfill({ status: 401, json: { detail: "Sessão expirada" } }),
   );
-  await page.getByRole("link", { name: "Operações", exact: true }).click();
+  await page.goto("/operacoes");
   await expect(
     page.getByRole("heading", { name: "Bem-vindo a bordo." }),
   ).toBeVisible();
@@ -486,6 +486,8 @@ test("evidências da guerra abrem sem esticar o ranking", async ({ page }) => {
   const trigger = page.getByRole("button", { name: "Evidências", exact: true }).first();
   const row = page.locator(".war-player-table > table > tbody > tr").first();
   await expect(row).toBeVisible();
+  await expect(row).toContainText("4/4 guerras com pontos");
+  await trigger.click({ trial: true });
   const before = await row.boundingBox();
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: /Evidências de/ });
@@ -510,7 +512,7 @@ test("candidaturas mantêm membros acessíveis e simulam referência sem alterar
   const rows = section.locator(".prospect-card");
   await expect(rows).toHaveCount(players.filter(p => p.currentMember && p.role === "member").length);
   await section.getByText("Refinar a análise e simular referência", {exact:true}).click();
-  await expect(section.getByLabel("Objetivo de referência (pontos)")).toHaveAttribute("placeholder", "1600");
+  await expect(section.getByLabel("Objetivo de referência (pontos)")).toHaveAttribute("placeholder", "2400");
   await section.getByLabel("Objetivo de referência (pontos)").fill("99999");
   await expect(rows.first()).toContainText("99.999 pontos");
   await section.getByLabel("Objetivo de referência (pontos)").fill("0");
@@ -563,6 +565,7 @@ test("líder registra contexto e encerra acompanhamento preservando histórico",
   let saved: Record<string, unknown> | null = null;
   await page.route("**/api/leadership/**", async route => {
     const path = decodeURIComponent(new URL(route.request().url()).pathname);
+    if (path.endsWith("/weekly-review/decisions")) return route.fulfill({ json: [] });
     if (path.endsWith("/weekly-review")) return route.fallback();
     if (path.endsWith("/resolve")) {
       saved = { ...saved, status: "RESOLVED", followUpDue: false, resolvedAt: report.generatedAt, resolvedBy: "lider", resolution: route.request().postDataJSON().reason };
@@ -584,6 +587,7 @@ test("líder registra contexto e encerra acompanhamento preservando histórico",
   await expect(page.getByText("Anotação registrada.")).toBeVisible();
   await expect(page.getByText("Avisou viagem; conversar no retorno.")).toBeVisible();
   await page.goto("/");
+  await page.getByText("Investigar prioridades e acompanhamentos", { exact: true }).click();
   const section=page.getByRole("region",{name:"Prioridades do líder"});
   await section.getByLabel("Filtrar prioridade").selectOption("Retomar acompanhamento");
   await expect(section.getByText("1 membros nesta seleção",{exact:false})).toBeVisible();
@@ -833,6 +837,7 @@ test("prioridades refinadas mostram prazo e levam ao comparativo sem nova decis�
       followUpDue:true,expiresOn:null,resolvedAt:null,resolvedBy:null,resolution:null}]
   }}));
   await page.goto("/");
+  await page.getByText("Investigar prioridades e acompanhamentos", { exact: true }).click();
   const priorities=page.getByRole("region",{name:"Prioridades do líder"});
   await priorities.getByLabel("Buscar nas prioridades").fill(players[0].tag);
   await expect(priorities.getByText("Retomar em 12/10/2026 · Há prazo atingido")).toBeVisible();
