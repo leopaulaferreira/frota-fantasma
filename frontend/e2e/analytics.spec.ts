@@ -607,6 +607,7 @@ test("prioridades permitem percorrer toda a lista e reiniciam página ao buscar"
     operationalStatus:{...players[0].operationalStatus,value:"OBSERVAR"}}));
   await page.route("**/api/analytics", route=>route.fulfill({json:{...report,players:roster}}));
   await page.goto("/");
+  await page.getByText("Investigar prioridades e acompanhamentos", { exact: true }).click();
   const region=page.getByRole("region",{name:"Prioridades do líder"});
   await expect(region.locator(".priority-list > li")).toHaveCount(10);
   await region.getByRole("button",{name:"Próximas prioridades"}).click();

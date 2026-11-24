@@ -1,4 +1,5 @@
 import "../overview.css";
+import { WeeklyEvolution } from "../components/WeeklyEvolution";
 import { LeadershipSummary } from "../components/LeadershipSummary";
 import { useAdmin } from "../lib/auth";
 import { LeaderPriorities } from "../components/LeaderPriorities";
@@ -45,6 +46,7 @@ export function Overview() {
               <summary>Investigar prioridades e acompanhamentos</summary>
               <LeaderPriorities report={r} />
             </details>}
+            <WeeklyEvolution report={r} />
             <div className="section-head">
               <h2>Destaques provisórios</h2>
               <Link to="/premiacoes">Histórico de títulos →</Link>
@@ -59,7 +61,8 @@ export function Overview() {
                 />
               ))}
             </div>
-            <h2>Evolução entre semanas</h2>
+            <details className="panel">
+            <summary>Consultar indicadores e evidências por semana</summary>
             {r.evolution.length ? (
               r.evolution.map((e) => (
                 <details className="panel" key={e.week}>
@@ -70,6 +73,7 @@ export function Overview() {
             ) : (
               <Empty />
             )}
+            </details>
             <details className="panel">
               <summary>Todos os indicadores do clã</summary>
               <Metrics metrics={r.clan} />
