@@ -1,3 +1,4 @@
+import { report as weeklyReviewReport } from "./weekly-review-fixtures";
 import { test, expect } from "@playwright/test";
 import { report, players, rules, evaluation, award, metric } from "./fixtures";
 test.beforeEach(async ({ page }) => {
@@ -847,11 +848,23 @@ test("prioridades refinadas mostram prazo e levam ao comparativo sem nova decis�
   await expect(priorities.getByLabel("Filtrar prioridade")).toHaveValue("");
 });
 
-for (const [name, route] of Object.entries({overview:"/",members:"/membros",profile:"/membros/%23P01",wars:"/guerras/1",comparison:"/comparativo",compare:"/comparar?tags=%23P01,%23P03",recommendations:"/recomendacoes",evaluation:"/recomendacoes/1",awards:"/premiacoes",review:"/expulsoes",rules:"/regras",operations:"/operacoes",donations:"/doacoes"})) {
+for (const [name, route] of Object.entries({overview:"/",members:"/membros",profile:"/membros/%23P01",wars:"/guerras/1",comparison:"/comparativo",compare:"/comparar?tags=%23P01,%23P03",recommendations:"/recomendacoes",evaluation:"/recomendacoes/eval-1",awards:"/premiacoes",review:"/expulsoes",rules:"/regras",operations:"/operacoes",donations:"/doacoes"})) {
  test(`auditoria visual ${name}`, async ({page}, info) => {
+  if (name === "review") {
+    await page.route("**/api/leadership/weekly-review", r => r.fulfill({json:weeklyReviewReport}));
+    await page.route("**/api/leadership/weekly-review/decisions?*", r => r.fulfill({json:[]}));
+  }
+  if (name === "comparison") {
+    await page.route("**/api/clan/members", r => r.fulfill({json:players.map(p => ({tag:p.tag,name:p.name}))}));
+    await page.route("**/api/wars?*", r => r.fulfill({json:{items:players[0].wars.map(w => ({...w,id:w.warId,source:"DIRECT_API"})),totalElements:players[0].wars.length}}));
+  }
   await page.goto(route);
-  await expect(page.locator("main")).toBeVisible();
-  await page.waitForTimeout(300);
+  await expect(page.locator("main h1")).toBeVisible();
+  await expect(page.locator("main")).not.toContainText("Carregando registros…");
+  await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+  if (name === "comparison") await expect(page.locator(".comparison-table tbody tr").first()).toBeVisible();
+  if (name === "review") await expect(page.locator(".review-table tbody tr").first()).toBeVisible();
+  if (name === "evaluation") await expect(page.getByRole("heading", {name:"Membros na avaliação"})).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({path:`test-results/audit-${name}-${info.project.name}.png`,fullPage:true});
  });
