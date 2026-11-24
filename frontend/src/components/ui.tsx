@@ -39,20 +39,7 @@ export function Heading({
   };
   const portrait = portraits[section] || "clan-emblem";
   return (
-    <header
-      className={
-        "page-heading illustrated-heading" +
-        (section === "comparativo" ? " comparison-heading" : "")
-      }
-    >
-      {section === "comparativo" && (
-        <img
-          className="comparison-arena"
-          src="/assets/royale/royal-arena.png"
-          alt=""
-          aria-hidden="true"
-        />
-      )}
+    <header className="page-heading illustrated-heading page-masthead">
       <div className="heading-main">
         <div className="heading-copy">
           <div className="eyebrow">{eyebrow || "CENTRAL DE COMANDO"}</div>

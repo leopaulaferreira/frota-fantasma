@@ -47,3 +47,74 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   .toolbar > label:not(.check) { min-width: 0; max-width: 100%; }
 }
 @media(prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
+
+/* Shared visual language, aligned with the overview. */
+:root {
+  --border: #35515c;
+  --surface-hover: #1b3740;
+  --accent-brass: #dcc28a;
+}
+main .page-heading.page-masthead {
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--accent-brass);
+  border-radius: var(--radius-panel);
+  background: radial-gradient(ellipse at 92% 50%, #438c7430, transparent 55%), linear-gradient(115deg, #16323c, #0d222d);
+  box-shadow: none;
+}
+.page-masthead .heading-main {
+  min-height: 152px;
+  grid-template-columns: minmax(0, 1fr) 164px;
+  padding: 0 28px;
+  gap: 24px;
+}
+.page-masthead .heading-copy { padding-block: 28px; }
+.page-masthead .heading-copy h1 { font-size: clamp(26px, 2.8vw, 36px); line-height: 1.2; letter-spacing: -.8px; }
+.page-masthead .heading-copy .eyebrow { font-size: 10px; color: var(--accent-brass); letter-spacing: 1.8px; }
+.page-masthead .heading-main .heading-art { width: 156px; height: 170px; margin-bottom: -18px; }
+.page-masthead .heading-actions { padding: 12px 28px; background: #0c202966; }
+main .lede { color: var(--text-secondary); font-size: 14px; line-height: 1.7; max-width: 90ch; margin: 0 0 24px; }
+main .section-head { flex-wrap: wrap; gap: 8px 20px; margin-top: 28px; }
+main .section-head h2 { margin: 0; }
+main .muted { line-height: 1.65; }
+main .toolbar, main .prospect-filters {
+  padding: 18px;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--surface-panel);
+  box-shadow: none;
+}
+main .toolbar :is(input, select), main .prospect-filters :is(input, select) { max-width: 100%; min-height: 40px; }
+main .toolbar label:has(input[type=checkbox]) { flex-direction: row; align-items: center; }
+main .toolbar input[type=checkbox], main .prospect-filters input[type=checkbox] { min-height: auto; }
+main .toolbar label, main .prospect-filters label { font-size: 12px; color: var(--text-secondary); }
+main .panel > .toolbar { padding: 0; border: 0; }
+main .metric:not(.compact), main .war-summary-card, main .facts > div {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--surface-panel);
+  box-shadow: none;
+}
+main .metrics .metric-label, main .war-summary-card > span, main .facts small { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+main .metrics .metric-number, main .war-summary-card strong, main .facts strong { font-size: 30px; line-height: 1.25; font-variant-numeric: tabular-nums; }
+main .metrics .quality, main .war-summary-card small { font-size: 12px; color: var(--text-secondary); }
+main .war-summary-card strong.unavailable { font-size: 15px; }
+main .war-summary-card:hover { background: var(--surface-hover); border-color: #72998c; }
+main .callout { border: 1px solid #736544; border-left: 3px solid var(--accent-brass); border-radius: var(--radius-panel); background: #c9a85b08; padding: 18px 20px; line-height: 1.65; }
+main .callout p:last-child { margin-bottom: 0; }
+main details.panel > summary { padding-block: 8px; line-height: 1.5; }
+main .tabs { gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+main .tabs button { min-height: 40px; border-radius: 6px; }
+main .tabs button.active { background: #23433e; color: var(--state-success); border-color: #64877f; }
+main .timeline > article { background: var(--surface-panel); border: 1px solid var(--border); border-left: 3px solid var(--accent-brass); border-radius: var(--radius-panel); padding: 20px; }
+main .empty { border: 1px dashed var(--border); border-radius: var(--radius-panel); background: var(--surface-panel); color: var(--text-secondary); }
+@media (max-width: 720px) {
+  .page-masthead .heading-main { min-height: 132px; grid-template-columns: minmax(0, 1fr) 88px; gap: 12px; padding: 0 18px; }
+  .page-masthead .heading-copy { padding-block: 22px; }
+  .page-masthead .heading-main .heading-art { width: 100px; height: 132px; margin-bottom: -12px; }
+  .page-masthead .heading-actions { padding: 12px 18px; }
+  main .toolbar, main .prospect-filters { padding: 14px; }
+  main .toolbar > :is(input, select), main .toolbar > label:not(.check) { flex: 1 1 180px; min-width: 0; }
+  main .toolbar > label:has(input[type=checkbox]) { flex-basis: 100%; }
+}
