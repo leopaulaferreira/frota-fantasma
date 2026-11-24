@@ -197,3 +197,10 @@ main .comparison-selection .section-head { margin: 0 0 18px; }
   }
   main .member-comparison .analytics-table td { min-width: 155px; }
 }
+
+/* Collection states stay readable without relying on color alone. */
+main .collection-card { border-top: 3px solid var(--state-success); padding: 22px; }
+main .collection-card.collection-attention { border-top-color: var(--state-warning); }
+main .collection-card h2 { font-size: 21px; line-height: 1.35; margin-block: 14px; }
+main .collection-card > small { display: block; color: var(--text-secondary); line-height: 1.65; max-width: 65ch; }
+main .collection-card .eyebrow { color: var(--text-secondary); }

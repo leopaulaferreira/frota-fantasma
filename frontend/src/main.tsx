@@ -25,6 +25,7 @@ import {
   RefreshCw,
   Activity,
   ClipboardCheck,
+  Gift,
 } from "lucide-react";
 import { DonationHistory } from "./pages/DonationHistory";
 import { WeeklyReview } from "./pages/WeeklyReview";
@@ -47,6 +48,7 @@ const client = new QueryClient();
 const nav = [
   ["/", "Visão geral", LayoutDashboard],
   ["/membros", "Tripulação", Users],
+  ["/doacoes", "Doações", Gift],
   ["/guerras", "Guerras", Swords],
   ["/recomendacoes", "Recomendações", ClipboardList],
   ["/expulsoes", "Revisão semanal", ClipboardCheck],
@@ -99,9 +101,9 @@ function App() {
 
         <nav aria-label="Navegação principal">
           {[
-            { label: "A bordo", items: nav.slice(0, 5) },
-            { label: "Decisões do líder", items: nav.slice(5, 8) },
-            { label: "Administração", items: nav.slice(8) },
+            { label: "A bordo", items: nav.slice(0, 6) },
+            { label: "Decisões do líder", items: nav.slice(6, 9) },
+            { label: "Administração", items: nav.slice(9) },
           ].map((group) => (
             <div className="nav-group" key={group.label}>
               <span className="nav-caption">{group.label}</span>

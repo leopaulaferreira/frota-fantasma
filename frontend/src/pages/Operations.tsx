@@ -1,3 +1,4 @@
+import { collectionNames, collectionStatuses } from "../lib/collections";
 import { RoyaleApiImport } from "../components/RoyaleApiImport";
 import { useAdmin } from "../lib/auth";
 import { useApi, dateTime, type Page } from "../lib/api";
@@ -40,8 +41,8 @@ export function Operations() {
             </p>
             <div className="metrics collection-cards">
               {q.data.sources.map((s) => (
-                <article key={s.name} className="panel">
-                  <div className="eyebrow">{s.name}</div>
+                <article key={s.name} className={`panel collection-card ${!s.lastSuccess || s.stale ? "collection-attention" : "collection-current"}`}>
+                  <div className="eyebrow">{collectionNames[s.name] ?? s.name}</div>
                   <h2>
                     {s.lastSuccess
                       ? s.stale
@@ -59,7 +60,7 @@ export function Operations() {
                   </small>
                   {s.latest && (
                     <p>
-                      Última tentativa: <Badge value={s.latest.status} />{" "}
+                      Última tentativa: <Badge value={collectionStatuses[s.latest.status] ?? s.latest.status} />{" "}
                       {s.latest.errorCode}
                     </p>
                   )}
@@ -86,11 +87,11 @@ export function Operations() {
           >
             {items.map((r) => (
               <tr key={r.id}>
-                <td>{r.kind}</td>
+                <td>{collectionNames[r.kind] ?? r.kind}</td>
                 <td>{dateTime(r.startedAt)}</td>
                 <td>{dateTime(r.completedAt)}</td>
                 <td>
-                  <Badge value={r.status} />
+                  <Badge value={collectionStatuses[r.status] ?? r.status} />
                 </td>
                 <td>{r.recordCount ?? "—"}</td>
                 <td>{r.errorCode || "—"}</td>
