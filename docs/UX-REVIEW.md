@@ -39,6 +39,11 @@ Não considerar estas capturas validação completa de todos os estados reais.
 Build e testes são executados por npm; não existe script de lint no package.json.
 A remoção do limite vertical prioriza a página; o cabeçalho sticky dentro de um
 contêiner com overflow horizontal não equivale a um cabeçalho fixo na viewport.
-Ainda falta auditoria autenticada de todas as rotas com dados locais, comparações
-antes/depois e revisão detalhada de cada estado. Esta etapa não encerra o redesign
-global solicitado.
+Em 24/11/2026, a auditoria autenticada da versão local em execução percorreu 15
+rotas em desktop e conferiu métricas de 195 jogadores, sem divergências, erros
+JavaScript ou transbordamento horizontal. O resumo está em
+[DESKTOP-VALIDATION.json](DESKTOP-VALIDATION.json); o comando reproduzível está em
+[FRONTEND.md](FRONTEND.md#verificação). Esse resultado não comprova equivalência
+entre a versão em execução e o checkout. Ainda faltam comparações antes/depois,
+revisão visual detalhada e cobertura de cada estado. Esta etapa não encerra o
+redesign global solicitado.

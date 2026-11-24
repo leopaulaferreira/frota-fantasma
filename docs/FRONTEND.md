@@ -112,6 +112,23 @@ exercitam desktop e celular e geram screenshots em `frontend/test-results/`.
 Não provam conectividade ao vivo com a Supercell. Os testes de integração do
 backend validam os contratos internos com PostgreSQL descartável.
 
+Para auditar a aplicação local já iniciada, execute na raiz:
+
+```bash
+node scripts/audit-desktop.mjs
+```
+
+O script requer as dependências do frontend instaladas e lê as credenciais locais
+`AUTH_ADMIN_USERNAME` e `AUTH_ADMIN_PASSWORD` do `.env`. Aguarda a sessão autenticada,
+confere médias e o percentual do padrão de decks para os jogadores retornados e
+visita as rotas em desktop (1440 × 1000). Aceita `FROTA_URL` somente com endereço
+local e `CHROME_PATH` para escolher o navegador. Não altera regras ou decisões.
+Produz `docs/DESKTOP-VALIDATION.json` e capturas locais `*-live.png`, ignoradas pelo
+Git. As capturas podem conter dados reais. O relatório registra divergências,
+erros JavaScript e transbordamento horizontal; qualquer ocorrência faz o comando
+falhar. Esta verificação usa a versão em execução, que pode diferir do checkout,
+e não consulta a Supercell nem substitui revisão visual ou testes no celular.
+
 O frontend pode executar sem histórico: apresenta estados vazios/insuficientes.
 Para investigação real, a coleta do backend precisa ter acumulado observações.
 

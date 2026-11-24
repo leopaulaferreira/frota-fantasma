@@ -1,0 +1,76 @@
+{
+  "validatedAt": "2026-11-24T23:04:53.240Z",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "pages": [
+    {
+      "page": "overview",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "members",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "donations",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "wars",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "comparison",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "recommendations",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "followup",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "evaluations",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "awards",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "review",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "rules",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "operations",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "profile",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "compare",
+      "horizontalOverflow": false
+    },
+    {
+      "page": "evaluation",
+      "horizontalOverflow": false
+    }
+  ],
+  "playersChecked": 195,
+  "metricMismatches": [],
+  "runtimeErrors": [],
+  "limitations": [
+    "Read-only navigation; no rules, decisions, awards or imports were submitted.",
+    "Current local captures; no new collection or comparison with the remote Supercell API was requested."
+  ]
+}
