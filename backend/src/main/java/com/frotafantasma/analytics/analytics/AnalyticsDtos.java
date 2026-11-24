@@ -6,9 +6,17 @@ import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public final class AnalyticsDtos {
     private AnalyticsDtos() {}
+    private static final Pattern SOURCE_MARKER = Pattern.compile(
+            "(?:^|[;:])source=(DIRECT_API|ROYALEAPI_IMPORT)(?=$|[;:])");
+
+    static boolean hasSource(List<String> evidence, Origin source) {
+        return evidence.stream().anyMatch(entry -> SOURCE_MARKER.matcher(entry).results()
+                .anyMatch(match -> match.group(1).equals(source.name())));
+    }
     public enum Origin { DIRECT_API, ROYALEAPI_IMPORT, DERIVED, SNAPSHOT_DERIVED, UNAVAILABLE }
     public enum Quality { AVAILABLE, INSUFFICIENT_DATA, INCOMPLETE, UNAVAILABLE }
     public record Period(Instant from, Instant to, String basis) {}
@@ -22,7 +30,7 @@ public final class AnalyticsDtos {
         public List<Origin> sources() {
             var sources = new LinkedHashSet<Origin>();
             for (var source : List.of(Origin.DIRECT_API, Origin.ROYALEAPI_IMPORT)) {
-                if (origin == source || dataUsed.stream().anyMatch(e -> e.contains("source=" + source.name()))) {
+                if (origin == source || hasSource(dataUsed, source)) {
                     sources.add(source);
                 }
             }

@@ -429,7 +429,7 @@ public final class AnalyticsEngine {
     private static double number(PlayerStats p, String key, double fallback) { return p.metrics().get(key).value() instanceof Number n ? n.doubleValue() : fallback; }
     private static Metric<?> unavailable(Period period, int wars, String reason) { return new Metric<>(null, Origin.UNAVAILABLE, Quality.UNAVAILABLE, period, wars, true, true, List.of(), reason); }
     static <T> Metric<T> metric(T value, Origin origin, Period period, int wars, boolean insufficient, boolean incomplete, List<String> evidence, String reason) {
-        if(evidence.stream().anyMatch(e->e.contains("source=ROYALEAPI_IMPORT"))) {
+        if(hasSource(evidence, Origin.ROYALEAPI_IMPORT)) {
             incomplete=true;
             reason += " Contém backfill RoyaleAPI confirmado; a completude do período não é comprovada pelo CSV. Consulte as fontes e referências nas evidências.";
         }

@@ -30,6 +30,18 @@ class AnalyticsDtosTest {
         assertThat(metric.sources()).containsExactly(Origin.DIRECT_API, Origin.ROYALEAPI_IMPORT);
     }
 
+    @Test void exigeMarcadorCompletoParaIdentificarFonte() {
+        assertThat(metric(Origin.DERIVED, List.of(
+                "war:1;source=DIRECT_API_INVALID",
+                "war:2;source=ROYALEAPI_IMPORT_INVALID",
+                "war:3;previous_source=DIRECT_API",
+                "war:4;previous_source=ROYALEAPI_IMPORT")).sources()).isEmpty();
+        assertThat(metric(Origin.DERIVED, List.of("source=DIRECT_API")).sources())
+                .containsExactly(Origin.DIRECT_API);
+        assertThat(metric(Origin.DERIVED, List.of("membership:2:source=DIRECT_API:donations=100")).sources())
+                .containsExactly(Origin.DIRECT_API);
+    }
+
     @Test void calculoDerivadoNaoInventaFonteQuandoNaoHaEvidencias() {
         for (var origin : List.of(Origin.DERIVED, Origin.SNAPSHOT_DERIVED, Origin.UNAVAILABLE)) {
             assertThat(metric(origin, List.of()).sources()).isEmpty();

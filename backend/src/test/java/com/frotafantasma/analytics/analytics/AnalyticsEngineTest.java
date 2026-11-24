@@ -41,6 +41,23 @@ class AnalyticsEngineTest {
     Report report() { return engine.analyze(new AnalyticsEngine.Data(players, wars, participants, snapshots, events), NOW, WEEK); }
     PlayerStats first() { return report().players().getFirst(); }
 
+    @Test void apenasMarcadorCompletoDeImportacaoTornaPeriodoIncompleto() {
+        var period = new AnalyticsDtos.Period(NOW, NOW, "TEST");
+        for (var evidence : List.of("war:1;source=ROYALEAPI_IMPORT_INVALID",
+                "war:1;previous_source=ROYALEAPI_IMPORT")) {
+            var metric = AnalyticsEngine.metric(100, Origin.DERIVED, period, 4,
+                    false, false, List.of(evidence), "fixture");
+            assertThat(metric.quality()).isEqualTo(Quality.AVAILABLE);
+            assertThat(metric.incompletePeriod()).isFalse();
+            assertThat(metric.sources()).isEmpty();
+        }
+        var imported = AnalyticsEngine.metric(100, Origin.DERIVED, period, 4,
+                false, false, List.of("war:1;source=ROYALEAPI_IMPORT;batch=123"), "fixture");
+        assertThat(imported.quality()).isEqualTo(Quality.INCOMPLETE);
+        assertThat(imported.incompletePeriod()).isTrue();
+        assertThat(imported.sources()).containsExactly(Origin.ROYALEAPI_IMPORT);
+    }
+
     @Test void contagensZeroPreservamEvidenciasDosMembrosAvaliados() {
         player(1, new int[]{3200,3200,3200,3200}, new int[]{16,16,16,16}, 200);
         var clan = report().clan();
