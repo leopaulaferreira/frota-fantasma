@@ -164,7 +164,11 @@ public final class AnalyticsEngine {
         Long offline = activityValid ? Duration.between(lastSeen, latest.getCapturedAt()).toDays() : null;
         metrics.put("offlineDays", metric(offline, Origin.DERIVED, observed, 0, offline == null, !fresh, memberEvidence, "Dias completos entre lastSeen registrado e captura (não o relógio atual); coleta desatualizada não produz alerta de inatividade."));
         Long tenure = active && joined != null ? Math.max(0, Duration.between(joined.getObservedAt(), latest.getCapturedAt()).toDays()) : null;
-        var tenureEvidence = joined == null ? memberEvidence : List.of("membershipEvent:" + joined.getId() + ":" + joined.getType() + "@" + joined.getObservedAt() + ";source=DIRECT_API", "observedThrough=" + latest.getCapturedAt() + ";" + latest.provenance());
+        var tenureEvidence = new ArrayList<>(memberEvidence);
+        if (joined != null) {
+            tenureEvidence.add("membershipEvent:" + joined.getId() + ":" + joined.getType() + "@" + joined.getObservedAt() + ";source=DIRECT_API");
+            if (latest != null) tenureEvidence.add("observedThrough=" + latest.getCapturedAt() + ";" + latest.provenance());
+        }
         metrics.put("observedTenureDays", metric(tenure, Origin.SNAPSHOT_DERIVED, new Period(joined == null ? null : joined.getObservedAt(), latest == null ? null : latest.getCapturedAt(), "CURRENT_MEMBERSHIP_OBSERVED"), 0,
                 tenure == null, true, tenureEvidence, "Tempo aproximado do episódio atual desde último JOIN/BASELINE. BASELINE não é ingresso real; reingresso reinicia a estimativa, e lacunas podem esconder saídas."));
         var donationPeriods = DonationCalculator.calculate(snapshots, events, rules.timezone(), cutoff);
@@ -353,7 +357,7 @@ public final class AnalyticsEngine {
             }
             used.add("rankedCandidates=" + candidates.stream().map(PlayerStats::tag).toList());
             Origin origin = "CAPITAO_DA_GUERRA".equals(title) ? Origin.DERIVED : Origin.SNAPSHOT_DERIVED;
-            results.add(new Highlight(title, winner.tag(), metric(source.value(), origin, "GUARDIAO_DA_FROTA".equals(title) ? source.period() : period, source.warsConsidered(), "ALMA_IMORTAL".equals(title) ? source.warsConsidered() < rules.immortalMinimumWars() : source.insufficientSample(), true,
+            results.add(new Highlight(title, winner.tag(), metric(source.value(), origin, source.period(), source.warsConsidered(), "ALMA_IMORTAL".equals(title) ? source.warsConsidered() < rules.immortalMinimumWars() : source.insufficientSample(), true,
                     used, reason.apply(winner) + " Alocação provisória exclusiva por semana: Capitão → Guardião → Alma; empate final por tag. Candidato já premiado é pulado.")));
         }
     }

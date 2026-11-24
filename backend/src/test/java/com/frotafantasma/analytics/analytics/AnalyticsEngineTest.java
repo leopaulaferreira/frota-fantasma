@@ -41,6 +41,27 @@ class AnalyticsEngineTest {
     Report report() { return engine.analyze(new AnalyticsEngine.Data(players, wars, participants, snapshots, events), NOW, WEEK); }
     PlayerStats first() { return report().players().getFirst(); }
 
+    @Test void eventoSemSnapshotNaoInterrompeRelatorioNemInventaTempoNoCla() {
+        player(1, new int[]{3200,3200,3200,3200}, new int[]{16,16,16,16}, 200);
+        snapshots.clear();
+        var p = first();
+        assertThat(p.currentMember()).isFalse();
+        assertThat(p.metrics().get("observedTenureDays").value()).isNull();
+        assertThat(p.metrics().get("observedTenureDays").quality()).isEqualTo(Quality.INSUFFICIENT_DATA);
+        assertThat(p.metrics().get("observedTenureDays").dataUsed()).anyMatch(e -> e.startsWith("membershipEvent:"));
+        assertThat(p.metrics().get("recentAverage").value()).isEqualTo(3200.0);
+    }
+
+    @Test void premiacoesProvisoriasPreservamPeriodoDaMetricaQueEscolheuVencedor() {
+        player(1, new int[]{3200,3200,3200,3200}, new int[]{16,16,16,16}, 200);
+        player(2, new int[]{3000,3000,3000,3000}, new int[]{16,16,16,16}, 200);
+        var r = report();
+        var captain = r.highlights().stream().filter(h -> h.title().equals("CAPITAO_DA_GUERRA")).findFirst().orElseThrow();
+        var immortal = r.highlights().stream().filter(h -> h.title().equals("ALMA_IMORTAL")).findFirst().orElseThrow();
+        assertThat(captain.result().period()).isEqualTo(r.players().getFirst().wars().getFirst().points().period());
+        assertThat(immortal.result().period()).isEqualTo(r.players().get(1).metrics().get("recentAverage").period());
+    }
+
     @Test void separaMetaMinimaDaMediaParaAnciao() {
         player(1, new int[]{1600,1600,1600,1600}, new int[]{16,16,16,16}, 200);
         player(2, new int[]{2399,2400,2400,2400}, new int[]{16,16,16,16}, 200);
