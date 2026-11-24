@@ -1,3 +1,4 @@
+import "../overview.css";
 import { LeadershipSummary } from "../components/LeadershipSummary";
 import { useAdmin } from "../lib/auth";
 import { LeaderPriorities } from "../components/LeaderPriorities";
@@ -10,12 +11,11 @@ export function Overview() {
   const q = useApi<Report>("/analytics");
   const r = q.data;
   return (
-    <>
+    <div className="overview">
       <FleetBanner week={r?.week} />
       <QueryState query={q}>
         {r && (
           <>
-            <LeadershipSummary report={r} />
             <div className="section-head">
               <h2>Pulso da semana</h2>
               <small>
@@ -30,14 +30,21 @@ export function Overview() {
                 "currentMembers",
                 "averageRecentPoints",
                 "participationPercent",
-                "totalRecentDecks",
                 "observedWeeklyDonations",
-                "membersToObserve",
-                "membersToReview",
-                "membersOffline",
               ]}
             />
-            {admin && <LeaderPriorities report={r} />}
+            <section className="overview-attention" aria-labelledby="attention-title">
+              <div className="section-head">
+                <h2 id="attention-title">Atenção e próximos passos</h2>
+                <Link to="/membros">Ver tripulação →</Link>
+              </div>
+              <LeadershipSummary report={r} />
+              <Metrics metrics={r.clan} keys={["membersToObserve", "membersToReview", "membersOffline"]} />
+            </section>
+            {admin && <details className="panel overview-priorities">
+              <summary>Investigar prioridades e acompanhamentos</summary>
+              <LeaderPriorities report={r} />
+            </details>}
             <div className="section-head">
               <h2>Destaques provisórios</h2>
               <Link to="/premiacoes">Histórico de títulos →</Link>
@@ -70,6 +77,6 @@ export function Overview() {
           </>
         )}
       </QueryState>
-    </>
+    </div>
   );
 }

@@ -1,0 +1,39 @@
+/* Overview layout: keep data ahead of decorative artwork. */
+.overview .fleet-banner { min-height: 220px; margin-bottom: 24px; box-shadow: none; }
+.overview .fleet-banner-copy { padding: 24px 28px; width: 66%; }
+.overview .fleet-banner h1 { font-size: clamp(28px, 3vw, 38px); letter-spacing: -1px; margin: 10px 0; }
+.overview .fleet-banner h1 span { display: inline; }
+.overview .fleet-banner h1 span::before { content: ' '; }
+.overview .fleet-banner p { max-width: 470px; font-size: 14px; }
+.overview .banner-actions { margin-top: 14px; }
+.overview .banner-period { margin-top: 14px; font-size: 11px; }
+.overview .fleet-banner-art { inset: 0 0 0 67%; }
+.overview .banner-ghost { width: 240px; height: 250px; right: -25px; bottom: -15px; }
+.overview .banner-king { width: 175px; height: 200px; right: 110px; bottom: -10px; }
+.overview .banner-art-caption, .overview .banner-seal { display: none; }
+.overview > .metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.overview > .metrics .metric-number { font-size: 32px; }
+.overview .metrics .quality { font-size: 12px; color: #c0d0d6; }
+.overview .section-head { flex-wrap: wrap; gap: 8px 20px; }
+.overview .section-head small { color: #b6cbd2; }
+.overview-attention { margin: 28px 0 20px; padding: 20px; border: 1px solid #7f704c; border-radius: 10px; background: #c9a85b08; }
+.overview-attention .section-head { margin-top: 0; }
+.overview-attention .leadership-summary { margin-bottom: 16px; }
+.overview-attention > .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.overview-attention > .metrics .metric { border: 0; background: transparent; }
+.overview-attention > .metrics .metric-icon { display: none; }
+.overview-attention > .metrics .metric-number { font-size: 24px; color: #e5c789; }
+.overview-priorities > summary { padding: 8px 0; }
+@media (max-width: 1000px) {
+  .overview > .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .overview .banner-king { display: none; }
+}
+@media (max-width: 600px) {
+  .overview .fleet-banner { min-height: 0; }
+  .overview .fleet-banner-copy { width: 100%; padding: 20px; }
+  .overview .fleet-banner-art { display: none; }
+  .overview .fleet-banner h1 { font-size: 28px; }
+  .overview-attention { padding: 14px; }
+  .overview-attention > .metrics { grid-template-columns: 1fr; }
+  .overview .metrics .metric-label { font-size: 13px; }
+}
