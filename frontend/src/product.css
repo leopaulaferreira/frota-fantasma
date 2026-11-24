@@ -176,3 +176,5 @@ main .pagination { gap: 12px; padding-block: 16px; color: var(--text-secondary);
   main .analysis-switcher > label { flex-basis: 100%; }
   main .analysis-switcher select { width: 100%; }
 }
+main .collection-cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+main .collection-cards > .panel { min-width: 0; overflow-wrap: anywhere; }

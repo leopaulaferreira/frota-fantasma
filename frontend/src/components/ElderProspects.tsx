@@ -388,8 +388,8 @@ function ProspectList({
                 </span>
                 <span className="prospect-row-stats">
                   {assessment.passed}/{assessment.criteria.length} critérios ·
-                  Média {format(numeric(p.metrics.recentAverage))} pts · {warSample(p.metrics.recentAverage?.warsConsidered ?? 0)} · Decks{" "}
-                  {format(numeric(p.metrics.standardDeckTargetPercent))}% ·
+                  Média {format(numeric(p.metrics.recentAverage))}{numeric(p.metrics.recentAverage) !== null && " pts"} · {warSample(p.metrics.recentAverage?.warsConsidered ?? 0)} · Decks{" "}
+                  {format(numeric(p.metrics.standardDeckTargetPercent))}{numeric(p.metrics.standardDeckTargetPercent) !== null && "%"} ·
                   Doações observadas {format(numeric(p.metrics.weeklyDonations))}
                 </span>
               </span>

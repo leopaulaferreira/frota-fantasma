@@ -38,7 +38,7 @@ export function Operations() {
               {q.data.collectionEnabled ? "habilitada" : "desabilitada"} ·
               consulta em {dateTime(q.data.generatedAt)}.
             </p>
-            <div className="metrics">
+            <div className="metrics collection-cards">
               {q.data.sources.map((s) => (
                 <article key={s.name} className="panel">
                   <div className="eyebrow">{s.name}</div>
