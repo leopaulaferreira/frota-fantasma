@@ -31,14 +31,18 @@ export function Compare() {
     );
   });
   return (
-    <>
-      <Heading eyebrow="LEITURA EM CONTEXTO" title="Comparar membros" />
+    <div className="member-comparison">
+      <Heading eyebrow="LEITURA EM CONTEXTO" title="Comparar jogadores" />
       <p className="lede">
         Até quatro membros, nas mesmas guerras. Abra as métricas para verificar
         diferenças de amostra e período.
       </p>
       <QueryState query={q}>
-        <div className="panel">
+        <div className="panel comparison-selection">
+          <div className="section-head">
+            <h2>Membros selecionados</h2>
+            <span className="badge" role="status">{selected.length} de 4</span>
+          </div>
           <label>
             Adicionar membro
             <select
@@ -59,6 +63,11 @@ export function Compare() {
                 ))}
             </select>
           </label>
+          <p className="muted comparison-selection-help">
+            {selected.length >= 4
+              ? "Limite de quatro membros atingido. Remova um para adicionar outro."
+              : "Adicione até quatro membros. Toque no nome selecionado para removê-lo."}
+          </p>
           <div className="chips">
             {selected.map((t) => (
               <button
@@ -116,11 +125,12 @@ export function Compare() {
               })}
             </div>
             <h2>Indicadores comparáveis</h2>
+            <p className="muted">Role a tabela para consultar os indicadores e deslize para os lados para ver os demais membros.</p>
             <Table headers={["Indicador", ...players.map((p) => p.name)]}>
               {[...new Set(players.flatMap((p) => Object.keys(p.metrics)))].map(
                 (k) => (
                   <tr key={k}>
-                    <th>{label(k)}</th>
+                    <th scope="row">{label(k)}</th>
                     {players.map((p) => (
                       <td key={p.tag}>
                         <MetricView
@@ -142,7 +152,7 @@ export function Compare() {
                   .find((w) => w.warId === id)!;
                 return (
                   <tr key={id}>
-                    <th>
+                    <th scope="row">
                       <Link to={"/guerras/" + id}>
                         {warLabel(w, String(q.data?.recommendationRules?.settings.analytics.timezone || "America/Sao_Paulo"))}
                       </Link>
@@ -185,6 +195,6 @@ export function Compare() {
           <Empty>Selecione membros para iniciar a comparação.</Empty>
         )}
       </QueryState>
-    </>
+    </div>
   );
 }

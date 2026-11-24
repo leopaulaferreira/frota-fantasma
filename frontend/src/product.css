@@ -178,3 +178,22 @@ main .pagination { gap: 12px; padding-block: 16px; color: var(--text-secondary);
 }
 main .collection-cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
 main .collection-cards > .panel { min-width: 0; overflow-wrap: anywhere; }
+
+/* Member selection and fixed labels leave room for values on small screens. */
+main .comparison-selection .section-head { margin: 0 0 18px; }
+.comparison-selection h2 { font-size: 16px; }
+.comparison-selection > label { display: flex; flex-direction: column; gap: 8px; color: var(--text-secondary); font-size: 12px; }
+.comparison-selection select { min-height: 44px; }
+.comparison-selection-help { font-size: 12px; margin-bottom: 0; }
+.comparison-selection .chips:empty { display: none; }
+.comparison-selection .chips button { min-height: 44px; overflow-wrap: anywhere; max-width: 100%; }
+.member-comparison .comparison-decisions h3 { margin-top: 0; overflow-wrap: anywhere; }
+.member-comparison .comparison-decisions .panel { display: flex; flex-direction: column; align-items: flex-start; }
+.member-comparison .comparison-decisions .metric { margin-top: auto; width: 100%; }
+@media (max-width: 720px) {
+  main .member-comparison .analytics-table > table > :is(thead, tbody) > tr > :first-child {
+    min-width: 120px; width: 120px; max-width: 120px;
+    white-space: normal; overflow-wrap: anywhere; padding: 12px;
+  }
+  main .member-comparison .analytics-table td { min-width: 155px; }
+}
