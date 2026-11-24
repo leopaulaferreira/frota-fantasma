@@ -18,17 +18,28 @@ public final class FrotaScoreCalculator {
         var donations=component(player.metrics().get("weeklyDonations"),settings.donationTarget(),settings.donationsWeight(),"doações observadas; limite inferior");
         result.put("frotaScoreWar",war); result.put("frotaScoreDecks",decks); result.put("frotaScoreDonations",donations);
         var parts=List.of(war,decks,donations);
+        var active = new ArrayList<Metric<Double>>();
+        if (settings.warWeight() > 0) active.add(war);
+        if (settings.decksWeight() > 0) active.add(decks);
+        if (settings.donationsWeight() > 0) active.add(donations);
+        var from = active.stream().map(p -> p.period().from()).filter(Objects::nonNull).min(java.time.Instant::compareTo).orElse(null);
+        var to = active.stream().map(p -> p.period().to()).filter(Objects::nonNull).max(java.time.Instant::compareTo).orElse(null);
         boolean missing=parts.stream().anyMatch(p->p.value()==null);
         boolean incomplete=parts.stream().anyMatch(Metric::incompletePeriod);
-        var used=parts.stream().flatMap(p->p.dataUsed().stream()).toList();
+        var used=active.stream().flatMap(p->p.dataUsed().stream()).toList();
         Double score=missing?null:parts.stream().mapToDouble(Metric::value).sum();
         result.put("frotaScore",new Metric<>(score,Origin.SNAPSHOT_DERIVED,missing?Quality.INSUFFICIENT_DATA:incomplete?Quality.INCOMPLETE:Quality.AVAILABLE,
-                new Period(average.period().from(),player.metrics().get("weeklyDonations").period().to(),"WAR_PUBLICATIONS_AND_DONATION_WEEK; see component periods"),
-                average.warsConsidered(),missing,incomplete,used,"Soma das parcelas ponderadas, entre 0 e 100. Pesos="+settings.warWeight()+"/"+settings.decksWeight()+"/"+settings.donationsWeight()
+                new Period(from, to, "ACTIVE_SCORE_COMPONENT_PERIODS; see component periods"),
+                active.stream().mapToInt(Metric::warsConsidered).max().orElse(0),missing,incomplete,used,"Soma das parcelas ponderadas, entre 0 e 100. Pesos="+settings.warWeight()+"/"+settings.decksWeight()+"/"+settings.donationsWeight()
                         +". Não redistribui pesos nem substitui dados ausentes por zero. Doações incompletas tornam o resultado um limite inferior; score não decide promoção ou expulsão."));
         return result;
     }
     private static Metric<Double> component(Metric<?> input,double target,int weight,String name) {
+        if (weight == 0) {
+            return new Metric<>(0.0, Origin.DERIVED, Quality.AVAILABLE,
+                    new Period(null, null, "EXCLUDED_BY_ZERO_WEIGHT"), 0, false, false,
+                    List.of("weight=0"), "Parcela " + name + " excluída por peso zero; não usa fontes, período ou amostra do indicador.");
+        }
         boolean missing=weight>0 && (!(input.value() instanceof Number) || input.insufficientSample() || input.quality()==Quality.UNAVAILABLE);
         Double value=missing?null:weight==0?0.0:weight*Math.max(0,Math.min(1,((Number)input.value()).doubleValue()/target));
         var evidence=new ArrayList<>(input.dataUsed()); evidence.add("input="+input.value()+";target="+target+";weight="+weight);
