@@ -1,7 +1,9 @@
 package com.frotafantasma.analytics.analytics;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -12,11 +14,18 @@ public final class AnalyticsDtos {
     public record Period(Instant from, Instant to, String basis) {}
     public record Metric<T>(T value, Origin origin, Quality quality, Period period, int warsConsidered,
                             boolean insufficientSample, boolean incompletePeriod, List<String> dataUsed, String reason) {
-        @com.fasterxml.jackson.annotation.JsonProperty(value="sources",access=com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY)
+        public Metric {
+            dataUsed = List.copyOf(dataUsed);
+        }
+
+        @JsonProperty(value = "sources", access = JsonProperty.Access.READ_ONLY)
         public List<Origin> sources() {
-            var sources=new java.util.LinkedHashSet<Origin>();
-            for(var source:List.of(Origin.DIRECT_API,Origin.ROYALEAPI_IMPORT))
-                if(origin==source || dataUsed.stream().anyMatch(e->e.contains("source="+source.name()))) sources.add(source);
+            var sources = new LinkedHashSet<Origin>();
+            for (var source : List.of(Origin.DIRECT_API, Origin.ROYALEAPI_IMPORT)) {
+                if (origin == source || dataUsed.stream().anyMatch(e -> e.contains("source=" + source.name()))) {
+                    sources.add(source);
+                }
+            }
             return List.copyOf(sources);
         }
     }
