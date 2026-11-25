@@ -44,7 +44,7 @@ nenhuma dessas ações no jogo.
 
 As telas abaixo mostram os principais recursos de consulta e avaliação.
 
-<sub>Capturas demonstrativas em desktop, com nomes e dados fictícios. As imagens ainda mostram os textos anteriores à revisão atual. Clique para abrir em tamanho original.</sub>
+<sub>Capturas atualizadas da interface desktop, com nomes e dados fictícios. Clique para abrir em tamanho original.</sub>
 
 ### Resumo da semana
 
