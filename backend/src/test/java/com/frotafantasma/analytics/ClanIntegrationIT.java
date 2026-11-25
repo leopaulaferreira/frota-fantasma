@@ -174,7 +174,7 @@ class ClanIntegrationIT {
 
         mvc.perform(get("/api/analytics"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.ruleVersion").value("analytics-v2"))
+                .andExpect(jsonPath("$.ruleVersion").value("analytics-v3"))
                 .andExpect(jsonPath("$.players[0].metrics.lastKnownActivity.origin").value("DIRECT_API"))
                 .andExpect(jsonPath("$.players[0].metrics.lastKnownActivity.value").isNotEmpty())
                 .andExpect(jsonPath("$.players[0].metrics.deckUtilizationPercent.origin").value("UNAVAILABLE"))
