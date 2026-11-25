@@ -868,3 +868,93 @@ for (const [name, route] of Object.entries({overview:"/",members:"/membros",prof
   await page.screenshot({path:`test-results/audit-${name}-${info.project.name}.png`,fullPage:true});
  });
 }
+
+// Opt-in publication assets: API fixtures only; never reads the local .env or live data.
+test.describe("galeria README", () => {
+  test.use({
+    viewport: { width: 1440, height: 1100 },
+    locale: "pt-BR",
+    timezoneId: "America/Sao_Paulo",
+    reducedMotion: "reduce",
+  });
+  test("capturas públicas com dados demonstrativos", async ({ page }, info) => {
+    test.skip(process.env.UPDATE_README_SCREENSHOTS !== "1" || info.project.name !== "desktop",
+      "Geração explícita de imagens públicas, somente desktop.");
+    await page.clock.setFixedTime(new Date(report.generatedAt));
+    const demo = structuredClone(report);
+    demo.ruleVersion = "analytics-v3";
+    demo.players.forEach((p, i) => {
+      const recent = p.wars.slice(0, 4);
+      const points = recent.map(w => Number(w.points.value));
+      p.metrics.recentAverage = metric(points.reduce((a,b) => a+b,0)/4, {
+        dataUsed: recent.map(w => `war:${w.warId};source=DIRECT_API`),
+        reason: "Soma dos pontos conhecidos dividida pelas quatro guerras analisadas. Zeros explícitos entram na média; registros ausentes permanecem desconhecidos.",
+      });
+      p.metrics.recentPoints = metric(points.reduce((a,b) => a+b,0));
+      p.metrics.recentDecks = metric((16-i)*4);
+      p.metrics.standardDeckTargetPercent = metric((16-i)/16*100);
+      p.metrics.recentAlerts = metric(i < 2 ? 0 : 1);
+    });
+    demo.clan.currentMembers = metric(5);
+    demo.clan.averageRecentPoints = metric(2650);
+    demo.clan.participationPercent = metric(100);
+    demo.clan.observedWeeklyDonations = metric(900, {incompletePeriod:true});
+    demo.clan.membersToObserve = metric(2);
+    demo.clan.membersToReview = metric(1);
+    demo.clan.membersOffline = metric(0);
+    demo.highlights[1].result = demo.players[1].metrics.weeklyDonations;
+    demo.highlights[2].result = demo.players[2].metrics.recentAverage;
+    await page.route("**/api/analytics", r => r.fulfill({json:demo}));
+    await page.route("**/api/analytics/players/*", r => r.fulfill({json:demo.players.find(p => decodeURIComponent(new URL(r.request().url()).pathname).endsWith(p.tag))}));
+    await page.route(/\/api\/wars\/\d+$/, r => {
+      const id = Number(new URL(r.request().url()).pathname.split("/").at(-1));
+      const war = players[0].wars.find(w => w.warId === id)!;
+      return r.fulfill({json:{
+        war: {...war,id,source:"DIRECT_API",capturedAt:report.generatedAt},
+        participants:demo.players.map(p => ({playerTag:p.tag,name:p.name,
+          contribution:p.wars.find(w => w.warId === id)?.points.value,
+          decksUsed:p.wars.find(w => w.warId === id)?.decksUsed.value,source:"DIRECT_API"})),
+      }});
+    });
+    await page.route("**/api/clan/members", r => r.fulfill({json:players.map(p => ({tag:p.tag,name:p.name}))}));
+    await page.route("**/api/wars?*", r => r.fulfill({json:{items:players[0].wars.map(w => ({...w,id:w.warId,source:"DIRECT_API"})),totalElements:players[0].wars.length}}));
+    const errors: string[] = [];
+    page.on("pageerror", e => errors.push(e.message));
+    const capture = async (name: string) => {
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+        await Promise.all(Array.from(document.images).map(img => {
+          img.loading = "eager";
+          return img.decode().catch(() => {});
+        }));
+      });
+      await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await page.mouse.move(0, 0);
+      await page.screenshot({path:`../docs/screenshots/readme/${name}.png`,animations:"disabled"});
+    };
+    for (const [name, route] of [
+      ["overview", "/"],
+      ["war-comparison", "/comparativo"],
+      ["candidates", "/recomendacoes"],
+      ["player-profile", "/membros/%23P01"],
+      ["awards", "/premiacoes"],
+    ]) {
+      await page.goto(route);
+      await expect(page.locator("main h1")).toBeVisible();
+      await expect(page.locator("main")).not.toContainText("Carregando registros…");
+      if (name === "war-comparison") await expect(page.locator(".comparison-table tbody tr").first()).toBeVisible();
+      if (name === "candidates") await expect(page.locator(".prospect-card").first()).toBeVisible();
+      if (name === "war-comparison" || name === "candidates") {
+        await page.locator(name === "war-comparison" ? ".comparison-facts" : ".elder-prospects")
+          .evaluate(el => window.scrollTo(0, el.getBoundingClientRect().top + scrollY - 20));
+      }
+      await capture(name);
+    }
+    await page.goto("/membros/%23P01");
+    await page.getByRole("button", {name:/Média das últimas 4 guerras/}).first().click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await capture("metric-evidence");
+    expect(errors).toEqual([]);
+  });
+});

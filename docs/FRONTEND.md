@@ -129,6 +129,25 @@ erros JavaScript e transbordamento horizontal; qualquer ocorrência faz o comand
 falhar. Esta verificação usa a versão em execução, que pode diferir do checkout,
 e não consulta a Supercell nem substitui revisão visual ou testes no celular.
 
+### Capturas públicas do README
+
+```bash
+UPDATE_README_SCREENSHOTS=1 npm run test:e2e --prefix frontend -- --project=desktop --grep 'galeria README'
+```
+
+Execute na raiz para regenerar as seis imagens em `docs/screenshots/readme/`.
+O fluxo usa somente fixtures, sem ler `.env` ou consultar o backend local;
+as chamadas de API são interceptadas. A data, o fuso, o idioma e a janela de
+1440 × 1100 ficam fixos. Comparativo e candidatos são capturados com a página
+rolada para destacar os resultados. As imagens mostram a interface real, sem
+alterar o CSS para as capturas. A geração exige a variável acima e não sobrescreve
+as imagens durante a execução normal dos testes.
+
+Antes de publicar, confira enquadramento, carregamento das artes e coerência das
+legendas. Não substitua estas imagens pelas capturas `*-live.png`, que podem
+conter dados reais. As imagens antigas permanecem para referências históricas
+em outros documentos; a galeria do README usa a pasta `readme/`.
+
 O frontend pode executar sem histórico: apresenta estados vazios/insuficientes.
 Para investigação real, a coleta do backend precisa ter acumulado observações.
 
