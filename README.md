@@ -45,42 +45,65 @@ o contexto de cada decisão, sem depender apenas da memória ou de números isol
 
 ## 🖼️ A Frota em tela
 
-### Uma visão para começar a semana
+Do panorama do clã à evidência de cada indicador: um percurso pelas principais
+ferramentas da liderança.
 
-Indicadores do clã e destaques reunidos em uma interface com a identidade da Frota.
+<sub>Capturas do visual atual em desktop, com nomes e dados fictícios. Clique nas imagens para abrir em tamanho original.</sub>
 
-![Dashboard do Frota Fantasma Analytics](docs/screenshots/frontend-desktop.png)
+### O que merece atenção nesta semana?
 
-### Evidências por trás dos indicadores
+Membros, média de pontos, participação e doações dão o panorama inicial.
+Os próximos passos ficam logo abaixo: avaliar candidatos, revisar casos e
+acompanhar a tripulação.
 
-Consulte como cada indicador foi calculado, a origem dos dados e o período
-analisado para interpretar os resultados no contexto da trajetória do membro.
+[![Visão geral com indicadores da semana e cartões de próximos passos para a liderança](docs/screenshots/readme/overview.png)](docs/screenshots/readme/overview.png)
 
-![Explicação da média das últimas quatro guerras](docs/screenshots/metric-explanation-desktop.png)
+### Quatro guerras, uma trajetória
 
-<sub>Capturas demonstrativas da aplicação com dados fictícios. Os resultados reais dependem do histórico disponível.</sub>
+Veja pontos e decks de cada membro lado a lado, compare médias e filtre o
+cumprimento das metas. A tabela preserva a diferença entre resultado conhecido
+e histórico insuficiente, para dar contexto a cada avaliação.
+
+[![Comparativo com quatro guerras, pontos, decks, média e situação dos membros](docs/screenshots/readme/war-comparison.png)](docs/screenshots/readme/war-comparison.png)
+
+### Quem está pronto para uma oportunidade?
+
+A área de candidatos a Ancião reúne prontidão, pendências e alertas.
+Filtros e resumos individuais ajudam a escolher quem avaliar; os critérios e
+as evidências continuam disponíveis antes de qualquer decisão.
+
+[![Candidatos a Ancião agrupados por prontidão, com filtros e resumo dos critérios por membro](docs/screenshots/readme/candidates.png)](docs/screenshots/readme/candidates.png)
+
+<details>
+<summary><strong>Explore também: perfil do membro e explicação dos indicadores</strong></summary>
+
+### Cada membro, uma história
+
+O perfil reúne desempenho recente, participação, doações e atividade.
+As abas dão acesso às guerras, à linha do tempo, às premiações e às notas da
+liderança, mantendo a investigação no contexto da pessoa.
+
+[![Perfil demonstrativo de Maré Negra com médias, decks, doações, atividade e navegação pelo histórico](docs/screenshots/readme/player-profile.png)](docs/screenshots/readme/player-profile.png)
+
+### Um número que você pode conferir
+
+Abra um indicador para consultar o cálculo, a origem, o período e a amostra.
+Os registros utilizados ficam acessíveis na mesma janela, sem perder o lugar
+na página.
+
+[![Janela de evidências da média de quatro guerras, com explicação do cálculo, fonte e período analisado](docs/screenshots/readme/metric-evidence.png)](docs/screenshots/readme/metric-evidence.png)
+
+</details>
 
 ## 👑 Reconheça quem faz a diferença
 
-<table>
-<tr>
-<td align="center" width="33%">
-<img src="frontend/public/assets/royale/skeleton-king.png" height="140" alt="Rei Esqueleto" /><br />
-<strong>Capitão da Guerra</strong><br />
-Destaque pela pontuação na guerra.
-</td>
-<td align="center" width="33%">
-<img src="frontend/public/assets/royale/fisherman.png" height="140" alt="Pescador" /><br />
-<strong>Guardião da Frota</strong><br />
-Reconhecimento pelo maior contador de doações coletado na semana encerrada.
-</td>
-<td align="center" width="33%">
-<img src="frontend/public/assets/royale/royal-ghost.png" height="140" alt="Fantasma Real" /><br />
-<strong>Alma Imortal</strong><br />
-Consistência ao longo das guerras analisadas.
-</td>
-</tr>
-</table>
+O mural destaca diferentes formas de contribuir para a Frota:
+
+- **Capitão da Guerra:** destaque pela pontuação na guerra.
+- **Guardião da Frota:** reconhecimento pelo maior contador de doações coletado na semana encerrada.
+- **Alma Imortal:** consistência ao longo das guerras analisadas.
+
+[![Mural de premiações com os três títulos, jogadores demonstrativos e indicadores que sustentam a projeção](docs/screenshots/readme/awards.png)](docs/screenshots/readme/awards.png)
 
 Os títulos seguem os critérios e a amostra disponíveis. A projeção é provisória;
 o reconhecimento formalizado fica registrado. Um jogador não acumula títulos
