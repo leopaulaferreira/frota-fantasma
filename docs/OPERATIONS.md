@@ -119,6 +119,32 @@ Doações continuam limites inferiores. Detectar resets futuros e evolução ent
 semanas exige acumular novas capturas; os cenários são cobertos pelos testes,
 mas não se deve anunciar um período ainda não observado como validado.
 
+## Atualização local — 25/11/2026
+
+Backend reconstruído com as correções de métricas e `AnalyticsDtos` do commit
+`cf16df2` e atualizado no Compose local. O teste de integração passou a esperar
+`analytics-v3` no commit `dab1219`, acompanhando o contrato já implementado.
+
+Validação realizada antes e depois da troca:
+
+- `mvn -B -f backend/pom.xml clean verify -Pintegration`: 103 testes unitários e
+  74 de integração, sem falhas, erros ou testes ignorados. A contagem anterior
+  de 129 unitários incluía relatórios antigos; a execução limpa elimina esses
+  resultados residuais.
+- Backup `backups/frota-20261125T145438Z.dump` criado, checksum conferido e
+  restauração testada em PostgreSQL descartável, preservando o banco local.
+- Health do backend `UP`; Flyway validou as 10 migrações, sem migração pendente.
+- Nginx recarregado para resolver o endereço do backend após recriar o container.
+- Contrato autenticado `analytics-v3` e fontes de 19.674 métricas conferidos
+  contra suas origens e evidências, sem divergências.
+- Auditoria desktop após a atualização: 15 rotas e 195 jogadores, sem diferenças
+  nas métricas verificadas, erros JavaScript ou transbordamento horizontal.
+  Resumo em [DESKTOP-VALIDATION.json](DESKTOP-VALIDATION.json).
+
+A imagem do backend em execução nesta validação é
+`sha256:e36e0501c0e47ee579334ee3749a7b9609747c80d79034bdd377510837671b17`.
+A aplicação permanece restrita ao ambiente local. Publicação externa não executada.
+
 ## Publicação pendente
 
 A hospedagem e o domínio ainda precisam ser escolhidos. O que já está preparado:
