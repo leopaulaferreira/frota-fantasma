@@ -895,6 +895,15 @@ test.describe("galeria README", () => {
       p.metrics.standardDeckTargetPercent = metric((16-i)/16*100);
       p.metrics.recentAlerts = metric(i < 2 ? 0 : 1);
     });
+    demo.evolution = Array.from({length:8}, (_, i) => {
+      const week = new Date(`${demo.week}T00:00:00Z`);
+      week.setUTCDate(week.getUTCDate() - (7-i)*7);
+      return {week:week.toISOString().slice(0,10), metrics:{
+        averagePoints:metric([2120,2280,2190,2430,2360,2510,2580,2650][i]),
+        participationPercent:metric([75,80,85,80,90,95,90,100][i]),
+        observedDonations:metric([720,810,760,880,920,850,980,900][i], {incompletePeriod:true}),
+      }};
+    });
     demo.clan.currentMembers = metric(5);
     demo.clan.averageRecentPoints = metric(2650);
     demo.clan.participationPercent = metric(100);
@@ -931,15 +940,22 @@ test.describe("galeria README", () => {
       await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.mouse.move(0, 0);
-      await page.screenshot({path:`../docs/screenshots/readme/${name}.png`,animations:"disabled"});
+      let clip;
+      if (name === "awards") {
+        const charts = (await page.locator(".weekly-evolution").boundingBox())!;
+        const awards = (await page.locator(".overview > .awards").boundingBox())!;
+        clip = {x:charts.x,y:charts.y,width:charts.width,height:awards.y+awards.height-charts.y};
+      }
+      await page.screenshot({path:`../docs/screenshots/readme/${name}.png`,animations:"disabled",fullPage:!!clip,clip});
     };
     for (const [name, route] of [
       ["overview", "/"],
       ["war-comparison", "/comparativo"],
       ["candidates", "/recomendacoes"],
       ["player-profile", "/membros/%23P01"],
-      ["awards", "/premiacoes"],
+      ["awards", "/"],
     ]) {
+      if (name === "awards") await page.setViewportSize({width:1920,height:1400});
       await page.goto(route);
       await expect(page.locator("main h1")).toBeVisible();
       await expect(page.locator("main")).not.toContainText("Carregando registros…");
@@ -951,6 +967,7 @@ test.describe("galeria README", () => {
       }
       await capture(name);
     }
+    await page.setViewportSize({width:1440,height:1100});
     await page.goto("/membros/%23P01");
     await page.getByRole("button", {name:/Média das últimas 4 guerras/}).first().click();
     await expect(page.getByRole("dialog")).toBeVisible();

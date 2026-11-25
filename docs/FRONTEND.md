@@ -138,7 +138,9 @@ UPDATE_README_SCREENSHOTS=1 npm run test:e2e --prefix frontend -- --project=desk
 Execute na raiz para regenerar as seis imagens em `docs/screenshots/readme/`.
 O fluxo usa somente fixtures, sem ler `.env` ou consultar o backend local;
 as chamadas de API são interceptadas. A data, o fuso, o idioma e a janela de
-1440 × 1100 ficam fixos. Comparativo e candidatos são capturados com a página
+1440 × 1100 ficam fixos nas capturas gerais. A imagem de gráficos e premiações
+usa uma janela de 1920 × 1400 e um recorte dessas duas seções da visão geral,
+com oito semanas de dados demonstrativos. Comparativo e candidatos são capturados com a página
 rolada para destacar os resultados. As imagens mostram a interface real, sem
 alterar o CSS para as capturas. A geração exige a variável acima e não sobrescreve
 as imagens durante a execução normal dos testes.

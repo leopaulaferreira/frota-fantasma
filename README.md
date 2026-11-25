@@ -92,13 +92,14 @@ na página.
 
 ## Premiações
 
-As premiações seguem três categorias:
+Os gráficos mostram a evolução semanal da pontuação, da participação e das
+doações. Logo abaixo, as premiações previstas destacam três categorias:
 
 - **Capitão da Guerra:** destaque pela pontuação na guerra.
 - **Guardião da Frota:** reconhecimento pelo maior contador de doações coletado na semana encerrada.
 - **Alma Imortal:** consistência ao longo das guerras analisadas.
 
-[![Mural de premiações com os três títulos, jogadores demonstrativos e indicadores que sustentam a projeção](docs/screenshots/readme/awards.png)](docs/screenshots/readme/awards.png)
+[![Gráficos de oito semanas de pontos, participação e doações, seguidos das três premiações previstas](docs/screenshots/readme/awards.png)](docs/screenshots/readme/awards.png)
 
 Os títulos seguem os critérios e a amostra disponíveis. A projeção é provisória;
 o reconhecimento formalizado fica registrado. Um jogador não acumula títulos
