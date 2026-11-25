@@ -168,7 +168,7 @@ test("dashboard e investigação completa de membro", async ({ page }, info) => 
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Uma tripulação. Um legado." }),
+    page.getByRole("heading", { name: "Desempenho da Frota Fantasma" }),
   ).toBeVisible();
   await expect
     .poll(() =>
@@ -207,7 +207,7 @@ test("dashboard e investigação completa de membro", async ({ page }, info) => 
     path: "test-results/dashboard-" + info.project.name + ".png",
     fullPage: true,
   });
-  await page.getByRole("link", { name: "Tripulação", exact: true }).click();
+  await page.getByRole("link", { name: "Membros", exact: true }).click();
   await page.getByLabel("Buscar membro").fill("Maré");
   await page.getByRole("link", { name: /Maré Negra/ }).click();
   await expect(
@@ -261,7 +261,7 @@ test("guerras anteriores, paginação e comparação alinhada", async ({
 }) => {
   await page.goto("/guerras/1");
   await expect(
-    page.getByRole("heading", { name: "Guerras da Frota" }),
+    page.getByRole("heading", { name: "Guerras do clã" }),
   ).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.getByRole("combobox", { name: "Guerra selecionada", exact: true }).selectOption("6");
@@ -286,7 +286,7 @@ test("avaliações explícitas, evidências congeladas e coleta parcial", async 
   await page.getByRole("button", { name: "Registrar avaliação" }).click();
   await page.getByRole("link", { name: "Consultar evidências →" }).click();
   await expect(
-    page.getByRole("heading", { name: "Evidências preservadas" }),
+    page.getByRole("heading", { name: "Detalhes da avaliação" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Atualizar dados" }).click();
   await expect(page.getByRole("status")).toContainText("WAR_LOG: FAILED");
@@ -340,7 +340,7 @@ test("identidade visual permanece disponível quando a API falha", async ({
   );
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Uma tripulação. Um legado." }),
+    page.getByRole("heading", { name: "Desempenho da Frota Fantasma" }),
   ).toBeVisible();
   await expect
     .poll(() =>
@@ -370,13 +370,13 @@ test("login, logout e sessão expirada", async ({ page }) => {
   });
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Bem-vindo a bordo." }),
+    page.getByRole("heading", { name: "Acesso ao painel" }),
   ).toBeVisible();
   await page.getByLabel("Usuário", { exact: true }).fill("lider");
   await page.getByLabel("Senha", { exact: true }).fill("senha-de-teste");
-  await page.getByRole("button", { name: "Entrar na Frota" }).click();
+  await page.getByRole("button", { name: "Entrar" }).click();
   await expect(
-    page.getByRole("heading", { name: "Uma tripulação. Um legado." }),
+    page.getByRole("heading", { name: "Desempenho da Frota Fantasma" }),
   ).toBeVisible();
   authenticated = false;
   await page.route("**/api/operations", (route) =>
@@ -384,18 +384,18 @@ test("login, logout e sessão expirada", async ({ page }) => {
   );
   await page.goto("/operacoes");
   await expect(
-    page.getByRole("heading", { name: "Bem-vindo a bordo." }),
+    page.getByRole("heading", { name: "Acesso ao painel" }),
   ).toBeVisible();
   await page.unroute("**/api/operations");
   await page.getByLabel("Usuário", { exact: true }).fill("lider");
   await page.getByLabel("Senha", { exact: true }).fill("senha-de-teste");
-  await page.getByRole("button", { name: "Entrar na Frota" }).click();
+  await page.getByRole("button", { name: "Entrar" }).click();
   await expect(
-    page.getByRole("heading", { name: "Operações da Frota" }),
+    page.getByRole("heading", { name: "Coleta de dados" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Sair", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Bem-vindo a bordo." }),
+    page.getByRole("heading", { name: "Acesso ao painel" }),
   ).toBeVisible();
 });
 
@@ -407,7 +407,7 @@ test("conta de consulta acessa histórico e não altera regras", async ({
   );
   await page.goto("/regras");
   await expect(
-    page.getByRole("heading", { name: "Regras da Frota" }),
+    page.getByRole("heading", { name: "Regras de avaliação" }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Salvar nova versão" }),
@@ -508,7 +508,7 @@ test("evidências da guerra abrem sem esticar o ranking", async ({ page }) => {
 
 test("candidaturas mantêm membros acessíveis e simulam referência sem alterar regras", async ({ page }) => {
   await page.goto("/anciao");
-  const section = page.getByRole("region", { name: "Possíveis candidatos a Ancião" });
+  const section = page.getByRole("region", { name: "Candidatos a Ancião" });
   const rows = section.locator(".prospect-card");
   await expect(rows).toHaveCount(players.filter(p => p.currentMember && p.role === "member").length);
   await section.getByText("Refinar a análise e simular referência", {exact:true}).click();
@@ -604,7 +604,7 @@ test("consulta não exibe notas nem prioridades privadas", async ({ page }) => {
   let privateRequests=0;
   page.on("request",r=>{if(r.url().includes("/api/leadership/")) privateRequests++;});
   await page.goto("/");
-  await expect(page.getByRole("heading",{name:"Uma tripulação. Um legado."})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Desempenho da Frota Fantasma"})).toBeVisible();
   await expect(page.getByRole("heading",{name:"Prioridades do líder"})).toHaveCount(0);
   await page.goto("/membros/"+encodeURIComponent(players[0].tag)+"?tab=notas");
   await expect(page.getByRole("heading",{name:players[0].name,exact:true})).toBeVisible();
@@ -650,7 +650,7 @@ test("candidaturas mostram cores filtros amostra e acompanhamento manual", async
     return route.fulfill({json:{generatedAt:report.generatedAt,timezone:"America/Sao_Paulo",notes:note?[note]:[]}});
   });
   await page.goto("/anciao");
-  const section=page.getByRole("region",{name:"Possíveis candidatos a Ancião"});
+  const section=page.getByRole("region",{name:"Candidatos a Ancião"});
   const rows=section.locator(".prospect-card");
   await expect(rows).toHaveCount(4);
   await expect(rows.first()).toContainText(roster[0].name);
@@ -688,7 +688,7 @@ test("alertas não são candidatos próximos e a pendência específica orienta 
   roster[2].elderCandidate = metric(false);
   await page.route("**/api/analytics", route => route.fulfill({json:{...report,players:roster}}));
   await page.goto("/anciao");
-  const section = page.getByRole("region", {name:"Possíveis candidatos a Ancião"});
+  const section = page.getByRole("region", {name:"Candidatos a Ancião"});
   const cards = section.locator(".prospect-card");
   await expect(cards.first()).toContainText(roster[0].name);
   await expect(cards.last()).toContainText("Revisar alertas");
@@ -719,7 +719,7 @@ test("candidatos numerados mostram todos os membros e abrem dois níveis de deta
   });
   await page.route("**/api/analytics", route => route.fulfill({json:{...report,players:roster}}));
   await page.goto("/anciao");
-  const section=page.getByRole("region",{name:"Possíveis candidatos a Ancião"});
+  const section=page.getByRole("region",{name:"Candidatos a Ancião"});
   const cards=section.locator(".prospect-card");
   await expect(cards).toHaveCount(43);
   await expect(cards.first().locator(".prospect-position")).toHaveText("1º");
@@ -762,7 +762,7 @@ test("histórico de doações sobrevive ao reset e mantém semana no perfil", as
   await page.getByRole("link", {name:/Maré Negra/}).click();
   await expect(page).toHaveURL(/week=2026-10-05/);
   await expect(page.getByText(/Consulta histórica · semana de 05/)).toBeVisible();
-  await page.getByRole("link", {name:"← Tripulação"}).click();
+  await page.getByRole("link", {name:"← Membros"}).click();
   await page.getByRole("button", { name: "Semana atual", exact: true }).click();
   await page.getByLabel("Comparar doações entre semanas").check();
   const comparison = page.getByRole("region", {name:"Comparação de doações"});
@@ -777,7 +777,7 @@ test("histórico de doações sobrevive ao reset e mantém semana no perfil", as
 test("recomendações centraliza análises e preserva filtro, histórico e atalhos", async ({ page }) => {
   await page.goto("/recomendacoes");
   const filter = page.getByLabel("Tipo de análise");
-  const candidates = page.getByRole("region", { name: "Possíveis candidatos a Ancião" });
+  const candidates = page.getByRole("region", { name: "Candidatos a Ancião" });
   await expect(filter).toHaveValue("candidatos");
   await expect(candidates).toBeVisible();
   await expect(page.locator("nav").getByRole("link", { name: "Candidatos a Ancião" })).toHaveCount(0);
@@ -791,7 +791,7 @@ test("recomendações centraliza análises e preserva filtro, histórico e atalh
   await filter.selectOption("avaliacoes");
   await expect(page.getByRole("heading", { name: "Avaliações anteriores" })).toBeVisible();
   await page.getByRole("link", { name: /^Semana de/ }).click();
-  await expect(page.getByRole("heading", { name: "Evidências preservadas" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Detalhes da avaliação" })).toBeVisible();
   await page.getByRole("link", { name: "← Avaliações" }).click();
   await expect(filter).toHaveValue("avaliacoes");
   await page.goto("/anciao");

@@ -37,8 +37,8 @@ function RecommendationList() {
       : "candidatos";
   return (
     <>
-      <Heading eyebrow="APOIO À LIDERANÇA" title="Recomendações com contexto" />
-      <p className="lede">Reconheça a consistência, acompanhe pendências e consulte as evidências antes de decidir.</p>
+      <Heading eyebrow="AVALIAÇÃO DOS MEMBROS" title="Recomendações" />
+      <p className="lede">Consulte candidatos a Ancião, membros em acompanhamento e avaliações registradas.</p>
       <div className="toolbar analysis-switcher">
         <label htmlFor="analysis-type">Tipo de análise</label>
         <select
@@ -216,7 +216,7 @@ function EvaluationDetail({ id }: { id: string }) {
   return (
     <>
       <Link to="/recomendacoes?tipo=avaliacoes">← Avaliações</Link>
-      <Heading title="Evidências preservadas" />
+      <Heading title="Detalhes da avaliação" />
       <QueryState query={q}>
         {q.data && (
           <>
@@ -301,7 +301,7 @@ export function Awards() {
   }>("/recommendations/automation", 60000);
   return (
     <>
-      <Heading eyebrow="RECONHECIMENTO" title="Mural de premiações" />
+      <Heading eyebrow="RECONHECIMENTO" title="Premiações" />
       <p className="lede">
         Um título por jogador em cada semana. Projeções e títulos formalizados
         ficam separados.
@@ -325,7 +325,7 @@ export function Awards() {
         </Link>
         <p>
           Consulte critérios, pendências e acompanhamentos na área de
-          desenvolvimento da tripulação.
+          desenvolvimento dos membros.
         </p>
       </div>
       {automation.data && (

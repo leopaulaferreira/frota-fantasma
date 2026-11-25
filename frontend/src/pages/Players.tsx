@@ -66,20 +66,20 @@ export function Members() {
     );
   return (
     <>
-      <Heading eyebrow="TRIPULAÇÃO" title="Cada membro, uma história" />
+      <Heading eyebrow="MEMBROS" title="Membros do clã" />
       <p className="lede">
-        Consulte evidências, acompanhe a consistência e conheça o contexto antes
-        de decidir.
+        Consulte pontos, participação e doações. Filtre por cargo ou situação
+        e abra o perfil para ver o histórico do membro.
       </p>
-      {q.data && <section className="page-pulse" aria-label="Resumo da tripulação">
+      {q.data && <section className="page-pulse" aria-label="Resumo dos membros">
         <div className="section-head">
-          <h2>Retrato da tripulação</h2>
+          <h2>Resumo dos membros</h2>
           <Link to="/doacoes">Histórico de doações →</Link>
         </div>
         <p className="muted">Indicadores do clã na semana consultada, antes dos filtros da lista.</p>
         <Metrics metrics={q.data.clan} keys={["currentMembers", "averageRecentPoints", "participationPercent", "observedWeeklyDonations"]} />
       </section>}
-      <div className="toolbar" aria-label="Período da tripulação">
+      <div className="toolbar" aria-label="Período dos membros">
         <label>
           Consultar semana de
           <input
@@ -125,7 +125,7 @@ export function Members() {
           semana.
         </p>
       )}
-      <h2>Explorar membros</h2>
+      <h2>Lista de membros</h2>
       <div className="toolbar">
         <input
           aria-label="Buscar membro"
@@ -267,7 +267,7 @@ export function PlayerProfile() {
   return (
     <>
       <Link className="back" to={"/membros" + (week ? "?week=" + week : "")}>
-        ← Tripulação
+        ← Membros
       </Link>
       {week && (
         <p className="callout">
@@ -353,7 +353,7 @@ export function PlayerProfile() {
                     "recentTrendPoints",
                   ]}
                 />
-                <h2>Contexto para decidir</h2>
+                <h2>Situação do membro</h2>
                 <div className="metrics">
                   {(
                     [
@@ -528,7 +528,7 @@ export function PlayerProfile() {
                     </div>
                   )}
                 />
-                <h2>Snapshots de membro</h2>
+                <h2>Histórico de coletas</h2>
                 <Paged<Record<string, unknown>>
                   path={"/players/" + tagPath(tag) + "/history"}
                   render={(items) => (

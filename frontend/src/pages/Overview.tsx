@@ -19,7 +19,7 @@ export function Overview() {
         {r && (
           <>
             <div className="section-head">
-              <h2>Pulso da semana</h2>
+              <h2>Resumo da semana</h2>
 
             </div>
             <CollectionFreshness generatedAt={r.generatedAt} />
@@ -34,8 +34,8 @@ export function Overview() {
             />
             <section className="overview-attention" aria-labelledby="attention-title">
               <div className="section-head">
-                <h2 id="attention-title">Atenção e próximos passos</h2>
-                <Link to="/membros">Ver tripulação →</Link>
+                <h2 id="attention-title">Pendências da semana</h2>
+                <Link to="/membros">Ver membros →</Link>
               </div>
               <LeadershipSummary report={r} />
               <Metrics metrics={r.clan} keys={["membersToObserve", "membersToReview", "membersOffline"]} />
@@ -46,7 +46,7 @@ export function Overview() {
             </details>}
             <WeeklyEvolution report={r} />
             <div className="section-head">
-              <h2>Destaques provisórios</h2>
+              <h2>Premiações previstas</h2>
               <Link to="/premiacoes">Histórico de títulos →</Link>
             </div>
             <div className="awards">

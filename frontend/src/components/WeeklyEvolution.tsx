@@ -11,7 +11,7 @@ export function WeeklyEvolution({ report }: { report: Report }) {
   return (
     <section className="weekly-evolution" aria-labelledby="evolution-title">
       <div className="section-head">
-        <h2 id="evolution-title">Evolução entre semanas</h2>
+        <h2 id="evolution-title">Evolução semanal</h2>
         <span className="muted">Últimas 8 semanas</span>
       </div>
       <p className="muted">Guerras por semana de publicação. Participantes podem variar; doações são limites inferiores observados, incluindo ex-membros.</p>

@@ -471,7 +471,7 @@ function ResolutionForm({
             </p>
           )}
           <details>
-            <summary>Evidências preservadas</summary>
+            <summary>Evidências da identificação</summary>
             <pre>{JSON.stringify(item.evidence, null, 2)}</pre>
           </details>
         </details>

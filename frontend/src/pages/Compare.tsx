@@ -32,7 +32,7 @@ export function Compare() {
   });
   return (
     <div className="member-comparison">
-      <Heading eyebrow="LEITURA EM CONTEXTO" title="Comparar jogadores" />
+      <Heading eyebrow="COMPARAÇÃO DE DESEMPENHO" title="Comparar jogadores" />
       <p className="lede">
         Até quatro membros, nas mesmas guerras. Abra as métricas para verificar
         diferenças de amostra e período.
@@ -83,7 +83,7 @@ export function Compare() {
         </div>
         {players.length ? (
           <>
-            <h2>Contexto para a decisão</h2>
+            <h2>Situação dos jogadores</h2>
             <div className="comparison-decisions">
               {players.map((p) => {
                 const assessment = classifyProspect(

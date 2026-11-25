@@ -51,8 +51,8 @@ function Login({ onSuccess }: { onSuccess: () => unknown }) {
       <section className="login-panel">
         <img className="login-crest" src={art("clan-emblem")} alt="" />
         <div className="eyebrow">FROTA FANTASMA</div>
-        <h1>Bem-vindo a bordo.</h1>
-        <p className="lede">Entre para acompanhar a história da tripulação.</p>
+        <h1>Acesso ao painel</h1>
+        <p className="lede">Entre para consultar os dados e as avaliações do clã.</p>
         <form
           onSubmit={async (e) => {
             e.preventDefault();
@@ -98,7 +98,7 @@ function Login({ onSuccess }: { onSuccess: () => unknown }) {
             </p>
           )}
           <button className="primary" disabled={busy}>
-            {busy ? "Entrando…" : "Entrar na Frota"}
+            {busy ? "Entrando…" : "Entrar"}
           </button>
         </form>
         <small>

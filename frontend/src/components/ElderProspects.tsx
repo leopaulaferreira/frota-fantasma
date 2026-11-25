@@ -141,7 +141,7 @@ function ProspectList({
       className="elder-prospects"
     >
       <div className="section-head">
-        <h2 id="elder-prospects-title">Possíveis candidatos a Ancião</h2>
+        <h2 id="elder-prospects-title">Candidatos a Ancião</h2>
         <Link to="/regras">Consultar regras →</Link>
       </div>
       <p className="muted">

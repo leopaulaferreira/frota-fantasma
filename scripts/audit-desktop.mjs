@@ -45,7 +45,7 @@ try {
   await page
     .getByLabel("Senha", { exact: true })
     .fill(values.AUTH_ADMIN_PASSWORD);
-  await page.getByRole("button", { name: "Entrar na Frota" }).click();
+  await page.getByRole("button", { name: "Entrar" }).click();
   await expect(
     page.getByRole("button", { name: "Sair", exact: true }),
   ).toBeVisible({ timeout: 30000 });

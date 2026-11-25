@@ -58,9 +58,9 @@ export function DonationHistory() {
     });
   return (
     <>
-      <Heading eyebrow="MEMÓRIA DA TRIPULAÇÃO" title="Doações">
+      <Heading eyebrow="HISTÓRICO SEMANAL" title="Doações">
         <Link className="button" to="/membros">
-          Voltar à tripulação →
+          Voltar aos membros →
         </Link>
       </Heading>
       <p className="lede">

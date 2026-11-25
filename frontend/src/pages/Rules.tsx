@@ -25,7 +25,7 @@ export function Rules() {
   const q = useApi<RuleVersion>("/recommendations/rules");
   return (
     <>
-      <Heading eyebrow="CRITÉRIOS TRANSPARENTES" title="Regras da Frota" />
+      <Heading eyebrow="CONFIGURAÇÃO" title="Regras de avaliação" />
       <QueryState query={q}>
         {q.data && <RuleForm key={q.data.id || "initial"} rule={q.data} />}
       </QueryState>

@@ -172,7 +172,7 @@ function PrivateWeeklyReview() {
       }) || [];
   return (
     <>
-      <Heading eyebrow="ACOMPANHAMENTO DA TRIPULAÇÃO" title="Revisão semanal">
+      <Heading eyebrow="AVALIAÇÃO DOS MEMBROS" title="Revisão semanal">
         <Link className="button" to="/operacoes">
           Ver coletas →
         </Link>
@@ -181,7 +181,7 @@ function PrivateWeeklyReview() {
         Revise a participação com resultados oficiais, captura da corrida,
         doações, vínculo com o clã e atividade. Selecione um critério para
         identificar reincidência ou sinais recentes. A decisão é sua, após
-        conferir o contexto e as justificativas de cada tripulante.
+        conferir o contexto e as justificativas de cada membro.
       </p>
       <div className="toolbar">
         <label>

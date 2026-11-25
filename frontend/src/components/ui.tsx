@@ -42,7 +42,7 @@ export function Heading({
     <header className="page-heading illustrated-heading page-masthead">
       <div className="heading-main">
         <div className="heading-copy">
-          <div className="eyebrow">{eyebrow || "CENTRAL DE COMANDO"}</div>
+          <div className="eyebrow">{eyebrow || "PAINEL DO CLÃ"}</div>
           <h1>{title}</h1>
         </div>
         <div className="heading-illustration" aria-hidden="true">

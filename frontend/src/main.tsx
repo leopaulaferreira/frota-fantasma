@@ -47,7 +47,7 @@ import "./product.css";
 const client = new QueryClient();
 const nav = [
   ["/", "Visão geral", LayoutDashboard],
-  ["/membros", "Tripulação", Users],
+  ["/membros", "Membros", Users],
   ["/doacoes", "Doações", Gift],
   ["/guerras", "Guerras", Swords],
   ["/recomendacoes", "Recomendações", ClipboardList],
@@ -56,13 +56,13 @@ const nav = [
   ["/comparar", "Comparar jogadores", Users],
   ["/premiacoes", "Premiações", Trophy],
   ["/regras", "Regras", Settings],
-  ["/operacoes", "Operações", Activity],
+  ["/operacoes", "Coletas", Activity],
 ] as const;
 function App() {
   const { pathname } = useLocation();
   const section = pathname === "/doacoes"
     ? "Doações"
-    : nav.find(([path]) => path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/"))?.[1] ?? "Central de comando";
+    : nav.find(([path]) => path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/"))?.[1] ?? "Painel do clã";
   const account = useAccount();
   const admin = useAdmin();
   const logout = useMutation({
@@ -101,8 +101,8 @@ function App() {
 
         <nav aria-label="Navegação principal">
           {[
-            { label: "A bordo", items: nav.slice(0, 6) },
-            { label: "Decisões do líder", items: nav.slice(6, 9) },
+            { label: "Clã", items: nav.slice(0, 6) },
+            { label: "Análises", items: nav.slice(6, 9) },
             { label: "Administração", items: nav.slice(9) },
           ].map((group) => (
             <div className="nav-group" key={group.label}>
@@ -124,8 +124,8 @@ function App() {
             src="/assets/royale/royal-ghost.png"
             alt=""
           />
-          <span className="live-dot" /> A Frota não afunda.
-          <small>Cada tripulante conta.</small>
+          <span className="live-dot" /> Histórico do clã
+          <small>Guerras, doações e atividade.</small>
         </div>
       </aside>
       <div className="workspace">
@@ -202,7 +202,7 @@ function App() {
           </Routes>
         </main>
         <footer>
-          <span>Frota Fantasma · decisões humanas, evidências claras.</span>
+          <span>Frota Fantasma · Gestão do clã</span>
           <p>
             Conteúdo não oficial, não endossado pela Supercell. A Supercell não
             é responsável por este conteúdo.{" "}

@@ -30,7 +30,7 @@ export function Operations() {
   }>("/operations");
   return (
     <>
-      <Heading eyebrow="SAÚDE DA COLETA" title="Operações da Frota" />
+      <Heading eyebrow="MONITORAMENTO" title="Coleta de dados" />
       <QueryState query={q}>
         {q.data && (
           <>

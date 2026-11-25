@@ -3,7 +3,7 @@
 .overview .fleet-banner-copy { padding: 24px 28px; width: 66%; }
 .overview .fleet-banner h1 { font-size: clamp(28px, 3vw, 38px); letter-spacing: -1px; margin: 10px 0; }
 .overview .fleet-banner h1 span { display: inline; }
-.overview .fleet-banner h1 span::before { content: ' '; }
+.overview .fleet-banner h1 span::before { content: none; }
 .overview .fleet-banner p { max-width: 470px; font-size: 14px; }
 .overview .banner-actions { margin-top: 14px; }
 .overview .banner-period { margin-top: 14px; font-size: 11px; }

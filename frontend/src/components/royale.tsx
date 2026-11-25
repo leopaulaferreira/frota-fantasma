@@ -36,23 +36,21 @@ export function FleetBanner({ week }: { week?: string }) {
       <div className="art-light" aria-hidden="true" />
       <div className="fleet-banner-copy">
         <div className="eyebrow">
-          <span className="live-dot" /> FROTA FANTASMA · CENTRAL DO CLÃ
+          <span className="live-dot" /> VISÃO GERAL DO CLÃ
         </div>
         <h1>
-          Uma tripulação.
-          <br />
-          <span>Um legado.</span>
+          Desempenho da <span>Frota Fantasma</span>
         </h1>
         <p>
-          Seu clã, seu comando. Reconheça quem faz a diferença e escolha o
-          próximo rumo da Frota.
+          Compare as últimas quatro guerras, acompanhe as doações e confira os
+          critérios para promover ou revisar cada membro.
         </p>
         <div className="banner-actions">
           <Link to="/recomendacoes?tipo=candidatos" className="button primary">
             Avaliar candidatos <ArrowUpRight size={17} />
           </Link>
           <Link className="banner-link" to="/guerras">
-            Diário de guerras →
+            Consultar guerras →
           </Link>
         </div>
         <small className="banner-period">
@@ -64,7 +62,7 @@ export function FleetBanner({ week }: { week?: string }) {
       <div className="fleet-banner-art" aria-hidden="true">
         <div className="crest-ring" />
         <img className="banner-king" src={art("skeleton-king")} alt="" />
-        <span className="banner-art-caption">#RQJGC9GV · A FROTA NÃO AFUNDA</span>
+        <span className="banner-art-caption">#RQJGC9GV · FROTA FANTASMA</span>
 
         <img
           className="banner-ghost"

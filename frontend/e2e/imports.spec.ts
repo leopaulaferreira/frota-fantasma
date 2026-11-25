@@ -102,7 +102,7 @@ test("VIEWER não acessa importações nem carrega auditoria", async ({ page }) 
   await page.route("**/api/auth/me", route => route.fulfill({ json: { username: "viewer", roles: ["VIEWER"] } }));
   await page.route("**/api/imports/**", route => { accesses++; return route.fulfill({ status: 403 }); });
   await page.goto("/operacoes");
-  await expect(page.getByRole("heading", { name: "Operações da Frota" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Coleta de dados" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Importar CSV", exact: true })).toHaveCount(0);
   expect(accesses).toBe(0);
 });

@@ -111,7 +111,7 @@ export function WarComparison() {
   };
   return (
     <>
-      <Heading title="Comparativo de Guerras" eyebrow="ANÁLISE DA TRIPULAÇÃO" />
+      <Heading title="Comparativo de Guerras" eyebrow="RESULTADOS DE GUERRA" />
       <p>Análise de desempenho nas últimas quatro guerras</p>
       <QueryState query={query}>
         <section className="panel comparison-controls">
