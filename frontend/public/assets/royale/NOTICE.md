@@ -39,7 +39,14 @@ Os cabeçalhos usam uma área ilustrada maior, com enquadramento responsivo via 
 sem modificar os arquivos originais. As imagens são decorativas; não representam
 cartas ou desempenho dos membros.
 
+## Insígnia de destaques — 26 de novembro de 2026
+
+- `traditional-star-05.png`: [badges/Traditional_Star_05.png](https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/badges/Traditional_Star_05.png). Copiada sem alterações da URL fornecida, servida localmente.
+- `diamond-star-04.png`: [badges/Diamond_Star_04.png](https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/badges/Diamond_Star_04.png). Copiada sem alterações, usada no Guardião da Frota.
+- `star-shine-03.png`: [badges/Star_Shine_03.png](https://raw.githubusercontent.com/RoyaleAPI/cr-api-assets/master/badges/Star_Shine_03.png). Copiada sem alterações, usada no Alma Imortal.
+
 ## Direitos e condições
+
 
 O arquivo [LICENSE do repositório](https://github.com/RoyaleAPI/cr-api-assets/blob/b4530a1043b213ee2baf9c50a3d0d7fae22c2313/LICENSE)
 contém um aviso de ausência de afiliação/aprovação pela Supercell e aponta para a

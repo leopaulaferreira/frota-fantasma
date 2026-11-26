@@ -95,13 +95,13 @@ const awardArt: Record<
   },
   GUARDIAO_DA_FROTA: {
     character: "fisherman",
-    badge: "cards-token",
+    badge: "diamond-star-04",
     label: "Doações observadas",
     number: "02",
   },
   ALMA_IMORTAL: {
     character: "phoenix",
-    badge: "crown-emblem",
+    badge: "star-shine-03",
     label: "Média de pontuação",
     number: "03",
   },

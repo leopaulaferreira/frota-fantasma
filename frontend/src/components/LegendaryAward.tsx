@@ -78,7 +78,7 @@ export function LegendaryCard({ data }: { data?: LegendaryOverview }) {
         <div className="art-light" />
         <span className="award-number">04</span>
         <img className="award-character" src={art("royal-ghost")} alt="" />
-        <img className="award-badge" src={art("crown-emblem")} alt="" />
+        <img className="award-badge" src={art("traditional-star-05")} alt="" />
       </div>
       <div className="award-content">
         <small className="eyebrow">
