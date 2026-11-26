@@ -1,3 +1,4 @@
+import { LegendaryAward } from "../components/LegendaryAward";
 import { ElderProspects } from "../components/ElderProspects";
 import { useAdmin } from "../lib/auth";
 import { AwardCard } from "../components/royale";
@@ -303,8 +304,8 @@ export function Awards() {
     <>
       <Heading eyebrow="RECONHECIMENTO" title="Premiações" />
       <p className="lede">
-        Um título por jogador em cada semana. Projeções e títulos formalizados
-        ficam separados.
+        Nos três títulos tradicionais, cada jogador recebe no máximo um título por semana.
+        O Fantasma Lendário tem acompanhamento independente.
       </p>
       <h2>Projeção da semana</h2>
       <QueryState query={q}>
@@ -349,7 +350,8 @@ export function Awards() {
           </p>
         </div>
       )}
-      <h2>Títulos formalizados</h2>
+      <LegendaryAward />
+      <h2>Títulos tradicionais formalizados</h2>
       <Paged<Award>
         path="/recommendations/awards"
         refetchInterval={60000}

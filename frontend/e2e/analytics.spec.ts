@@ -65,6 +65,7 @@ test.beforeEach(async ({ page }) => {
     else if (path === "/api/analytics") result = report;
     else if (path.startsWith("/api/analytics/players/"))
       result = players.find((p) => path.endsWith(p.tag));
+    else if (path === "/api/legendary-awards") result = { enabled: true, official: false, recordSource: "OBSERVED", recordEra: "test", nextCollectionAt: "2026-11-30T09:00:00Z", weeks: [], page: 0, totalWeeks: 0, result: null };
     else if (path === "/api/recommendations/automation") result = { enabled: true, schedule: "Segunda-feira às 06h", timezone: "America/Sao_Paulo", closingWeek: report.week, pending: false };
     else if (path === "/api/recommendations/rules") result = rules;
     else if (path === "/api/recommendations/rules/history") result = paged([]);
@@ -553,7 +554,7 @@ test("mural mostra fechamento automático e títulos publicados", async ({ page 
   await page.goto("/premiacoes");
   await expect(page.getByText(/Fechamento automático: Segunda-feira às 06h/)).toBeVisible();
   await expect(page.getByText(/Premiações publicadas para o fechamento/)).toBeVisible();
-  const final = page.getByRole("heading", { name: "Títulos formalizados" });
+  const final = page.getByRole("heading", { name: "Títulos tradicionais formalizados" });
   const projection = page.getByRole("heading", { name: "Projeção da semana" });
   await expect(final).toBeVisible();
   expect((await projection.boundingBox())!.y).toBeLessThan((await final.boundingBox())!.y);
