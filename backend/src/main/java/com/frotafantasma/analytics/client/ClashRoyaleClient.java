@@ -66,6 +66,19 @@ public class ClashRoyaleClient {
         return get(clanUri, ClanApiDto.class);
     }
 
+    public com.frotafantasma.analytics.dto.clash.PlayerProfileDto getPlayer(String tag) {
+        if (tag == null || !tag.matches("#[A-Z0-9]{3,31}")) throw new IllegalArgumentException("Invalid player tag");
+        URI uri = URI.create(properties.baseUrl().replaceAll("/+$", "") + "/players/"
+                + URLEncoder.encode(tag, StandardCharsets.UTF_8));
+        try {
+            return get(uri, com.frotafantasma.analytics.dto.clash.PlayerProfileDto.class);
+        } catch (ClashRoyaleException e) {
+            if ("CLAN_NOT_FOUND".equals(e.code())) throw new ClashRoyaleException(HttpStatus.NOT_FOUND,
+                    "PLAYER_NOT_FOUND", "Jogador não encontrado na API do Clash Royale.");
+            throw e;
+        }
+    }
+
     public ClanMembersApiDto getMembers() {
         return get(URI.create(clanUri + "/members"), ClanMembersApiDto.class);
     }

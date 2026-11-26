@@ -182,6 +182,26 @@ class ClashRoyaleClientTest {
         return new ClashRoyaleClient(properties());
     }
 
+    @Test
+    void perfilUsaTrofeusTopLevelENaoClassificacaoRanqueada() {
+        responseBodyOverride = """
+            {"tag":"#PLAYER","name":"Nome","trophies":11200,"bestTrophies":12000,
+             "clan":{"tag":"#RQJGC9GV","clanScore":99999},
+             "currentPathOfLegendSeasonResult":{"trophies":2500,"rank":1},"seasonalTrophies":700}
+            """;
+        var p=client().getPlayer("#PLAYER");
+        assertEquals(11200,p.trophies()); assertEquals(12000,p.bestTrophies());
+        assertEquals("/v1/players/%23PLAYER",paths.getFirst());
+        assertEquals("Bearer test-token",authorizationHeaders.getFirst());
+    }
+
+    @Test
+    void perfilSemCampoDeTrofeusNaoAssumeZero() {
+        responseBodyOverride = "{\"tag\":\"#PLAYER\",\"name\":\"Nome\"}";
+        var p=client().getPlayer("#PLAYER");
+        assertEquals(null,p.trophies()); assertEquals(null,p.bestTrophies());
+    }
+
     private ClashRoyaleProperties properties() {
         return new ClashRoyaleProperties(
                 "http://127.0.0.1:" + server.getAddress().getPort() + "/v1", "#RQJGC9GV", "test-token", Duration.ofSeconds(1), Duration.ofMillis(100),
