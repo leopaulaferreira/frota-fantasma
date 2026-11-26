@@ -358,7 +358,7 @@ public final class AnalyticsEngine {
             used.add("rankedCandidates=" + candidates.stream().map(PlayerStats::tag).toList());
             Origin origin = "CAPITAO_DA_GUERRA".equals(title) ? Origin.DERIVED : Origin.SNAPSHOT_DERIVED;
             results.add(new Highlight(title, winner.tag(), metric(source.value(), origin, source.period(), source.warsConsidered(), "ALMA_IMORTAL".equals(title) ? source.warsConsidered() < rules.immortalMinimumWars() : source.insufficientSample(), true,
-                    used, reason.apply(winner) + " Alocação provisória exclusiva por semana: Capitão → Guardião → Alma; empate final por tag. Candidato já premiado é pulado.")));
+                    used, reason.apply(winner) + " Alocação provisória exclusiva por semana: Mestre da Guerra → Guardião → Alma; empate final por tag. Candidato já premiado é pulado.")));
         }
     }
 

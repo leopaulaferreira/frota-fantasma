@@ -363,7 +363,7 @@ export function Awards() {
                   {q.data?.players.find((p) => p.tag === a.playerTag)?.name ||
                     a.playerTag}
                 </Link>
-                <p>{a.evidence.result.reason}</p>
+                <p>{a.evidence.result.reason.replace(/Capitão(?: da Guerra)?/g, "Mestre da Guerra")}</p>
                 <MetricView
                   compact
                   name="Evidências"

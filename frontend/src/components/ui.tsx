@@ -128,6 +128,7 @@ const qualityLabels: Record<string, string> = {
 };
 function readableReason(reason: string) {
   return reason
+    .replace(/Capitão(?: da Guerra)?/g, "Mestre da Guerra")
     .replace(/decksUsed/g, "decks utilizados")
     .replace(/fame/g, "pontuação")
     .replace(/Numerador:/g, "Participações:")

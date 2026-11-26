@@ -54,7 +54,7 @@ export const labels: Record<string, string> = {
 export const label = (key: string) => labels[key] || key.replaceAll("_", " ");
 export const title = (key: string) =>
   ({
-    CAPITAO_DA_GUERRA: "Capitão da Guerra",
+    CAPITAO_DA_GUERRA: "Mestre da Guerra",
     GUARDIAO_DA_FROTA: "Guardião da Frota",
     ALMA_IMORTAL: "Alma Imortal",
   })[key] || label(key);

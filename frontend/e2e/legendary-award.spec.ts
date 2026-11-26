@@ -33,11 +33,11 @@ test.beforeEach(async ({ page }) => {
 });
 test("primeira coleta não inventa vencedor nem trata ausência como zero", async ({ page }) => {
   await page.goto("/premiacoes");
-  const section = page.getByRole("region", { name: "👻 Fantasma Lendário", exact: true });
+  const section = page.getByRole("region", { name: "Fantasma Lendário", exact: true });
   await expect(section.getByText("Aguardando dados para comparação")).toBeVisible();
   await expect(page.getByRole("dialog")).not.toBeVisible();
   await section.getByRole("button", { name: "Informações sobre Fantasma Lendário" }).click();
-  const dialog = page.getByRole("dialog", { name: "👻 Fantasma Lendário" });
+  const dialog = page.getByRole("dialog", { name: "Fantasma Lendário" });
   await expect(dialog.getByText("Recorde observado pelo sistema", { exact: true })).toBeVisible();
   await expect(dialog.getByText(/A primeira coleta estabelece/)).toBeVisible();
   await page.keyboard.press("Escape");
@@ -46,7 +46,7 @@ test("primeira coleta não inventa vencedor nem trata ausência como zero", asyn
   await expect(section.locator(".legendary-card .award-winner")).toHaveCount(0);
   const cards = page.locator(".awards-four > .royale-award");
   await expect(cards).toHaveCount(4);
-  const boxes = await cards.evaluateAll(nodes => nodes.map(n => n.getBoundingClientRect().top));
+  const boxes = await cards.evaluateAll(nodes => nodes.map(n => (n as HTMLElement).offsetTop));
   expect(new Set(boxes).size).toBe(1);
 });
 test("mostra superação separada da evolução e consulta semanas anteriores", async ({ page }) => {

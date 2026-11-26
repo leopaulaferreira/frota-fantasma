@@ -84,7 +84,7 @@ export function LegendaryCard({ data }: { data?: LegendaryOverview }) {
           {cycle?.official ? "RESULTADO OFICIAL" : "RESULTADO EXPERIMENTAL"}
         </small>
         <div className="award-title-row">
-          <h3>👻 Fantasma Lendário</h3>
+          <h3>Fantasma Lendário</h3>
           <button
             type="button"
             className="award-info"
@@ -148,7 +148,7 @@ export function LegendaryCard({ data }: { data?: LegendaryOverview }) {
       {createPortal(
         <dialog ref={dialog} className="metric-dialog" aria-labelledby={id}>
           <header className="metric-dialog-header">
-            <h2 id={id}>👻 Fantasma Lendário</h2>
+            <h2 id={id}>Fantasma Lendário</h2>
             <button
               type="button"
               className="dialog-close"
@@ -237,7 +237,7 @@ export function LegendaryAward({ highlights }: { highlights: ReactNode }) {
   const result = data?.result;
   const cycle = result?.cycle;
   return (
-    <section className="legendary-section" aria-label="👻 Fantasma Lendário">
+    <section className="legendary-section" aria-label="Fantasma Lendário">
       <div className="awards awards-four">
         {highlights}
         <QueryState query={q}>
