@@ -24,7 +24,7 @@ function resetArt(event: PointerEvent<HTMLElement>) {
     event.currentTarget.style.removeProperty(key);
   }
 }
-const artInteraction = {
+export const artInteraction = {
   onPointerMove: followArt,
   onPointerLeave: resetArt,
   onPointerCancel: resetArt,
@@ -100,7 +100,7 @@ const awardArt: Record<
     number: "02",
   },
   ALMA_IMORTAL: {
-    character: "royal-ghost",
+    character: "phoenix",
     badge: "crown-emblem",
     label: "Média de pontuação",
     number: "03",

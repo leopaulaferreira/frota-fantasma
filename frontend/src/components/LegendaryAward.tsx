@@ -4,7 +4,7 @@ import { Info, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { date, format, useApi } from "../lib/api";
 import { Badge, Empty, QueryState } from "./ui";
-import { art } from "./royale";
+import { art, artInteraction } from "./royale";
 
 export type LegendaryCandidate = {
   position: number | null;
@@ -73,8 +73,9 @@ export function LegendaryCard({ data }: { data?: LegendaryOverview }) {
   const winner = result?.candidates.find((c) => c.tag === cycle?.winnerTag);
   const source = cycle?.recordSource ?? data?.recordSource;
   return (
-    <article className="royale-award award-03 legendary-card">
+    <article className="royale-award award-03 legendary-card" {...artInteraction}>
       <div className="award-stage" aria-hidden="true">
+        <div className="art-light" />
         <span className="award-number">04</span>
         <img className="award-character" src={art("royal-ghost")} alt="" />
         <img className="award-badge" src={art("crown-emblem")} alt="" />

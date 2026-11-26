@@ -48,6 +48,16 @@ test("primeira coleta não inventa vencedor nem trata ausência como zero", asyn
   await expect(cards).toHaveCount(4);
   const boxes = await cards.evaluateAll(nodes => nodes.map(n => (n as HTMLElement).offsetTop));
   expect(new Set(boxes).size).toBe(1);
+  await expect(page.locator('.award-03:not(.legendary-card) .award-character')).toHaveAttribute('src', '/assets/royale/phoenix.png');
+  const ghost = page.locator('.legendary-card');
+  await expect(ghost.locator('.award-character')).toHaveAttribute('src', '/assets/royale/royal-ghost.png');
+  await ghost.hover({ position: { x: 30, y: 30 } });
+  await expect.poll(() => ghost.evaluate(el => el.style.getPropertyValue('--art-x'))).not.toBe('');
+  await page.mouse.move(0, 0);
+  await expect.poll(() => ghost.evaluate(el => el.style.getPropertyValue('--art-x'))).toBe('');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await ghost.hover({ position: { x: 30, y: 30 } });
+  expect(await ghost.evaluate(el => el.style.getPropertyValue('--art-x'))).toBe('');
 });
 test("mostra superação separada da evolução e consulta semanas anteriores", async ({ page }) => {
   await page.route("**/api/legendary-awards?*", async route => {

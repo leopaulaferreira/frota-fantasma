@@ -19,6 +19,7 @@ visual não representa identificação oficial do clã nem dados fornecidos pela
 
 ## Ilustrações adicionadas ao tema visual
 
+- `phoenix.png`: [chr/phoenix_dl.png](https://github.com/RoyaleAPI/cr-api-assets/blob/b4530a1043b213ee2baf9c50a3d0d7fae22c2313/chr/phoenix_dl.png). Adicionada ao Alma Imortal em 25/11/2026, sem alterações.
 - `royal-ghost.png`: [chr/royal_ghost.png](https://github.com/RoyaleAPI/cr-api-assets/blob/b4530a1043b213ee2baf9c50a3d0d7fae22c2313/chr/royal_ghost.png).
 - `fisherman.png`: [chr/fisherman.png](https://github.com/RoyaleAPI/cr-api-assets/blob/b4530a1043b213ee2baf9c50a3d0d7fae22c2313/chr/fisherman.png).
 - `skeleton-king.png`: [chr_champions/champion_hires_skeleton_king.png](https://github.com/RoyaleAPI/cr-api-assets/blob/b4530a1043b213ee2baf9c50a3d0d7fae22c2313/chr_champions/champion_hires_skeleton_king.png).
