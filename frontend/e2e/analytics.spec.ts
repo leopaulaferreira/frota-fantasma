@@ -243,7 +243,7 @@ test("dashboard e investigação completa de membro", async ({ page }, info) => 
   ).toBeVisible();
   await page.getByRole("button", { name: "Premiações", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Capitão da Guerra" }),
+    page.getByRole("heading", { name: "Mestre da Guerra" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Visão geral", exact: true }).click();
   await page.screenshot({
@@ -956,6 +956,7 @@ test.describe("galeria README", () => {
       ["player-profile", "/membros/%23P01"],
       ["awards", "/"],
     ]) {
+      if (process.env.README_SCREENSHOT_NAMES && !process.env.README_SCREENSHOT_NAMES.split(",").includes(name)) continue;
       if (name === "awards") await page.setViewportSize({width:1920,height:1400});
       await page.goto(route);
       await expect(page.locator("main h1")).toBeVisible();
@@ -968,6 +969,7 @@ test.describe("galeria README", () => {
       }
       await capture(name);
     }
+    if (process.env.README_SCREENSHOT_NAMES) { expect(errors).toEqual([]); return; }
     await page.setViewportSize({width:1440,height:1100});
     await page.goto("/membros/%23P01");
     await page.getByRole("button", {name:/Média das últimas 4 guerras/}).first().click();

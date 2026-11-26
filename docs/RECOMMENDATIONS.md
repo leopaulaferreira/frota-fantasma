@@ -131,7 +131,7 @@ O fechamento é local, não encerra uma guerra na Supercell: as guerras usadas p
 
 `GET /api/recommendations/awards/{week}` consulta o lote definitivo, com `evaluationId`, `finalizedAt`, fuso, vencedores e evidências. Os destaques de `/api/analytics` continuam sendo simulações provisórias e podem mudar; para títulos concedidos, use este endpoint.
 
-A ordem Capitão → Guardião → Alma e os desempates da Fase 3 são preservados. Uma semana tem somente um lote definitivo; um jogador tem no máximo um título nessa semana. Repetir a formalização da mesma avaliação retorna o lote existente. Formalizar outra avaliação da mesma semana retorna 409. Não existe operação de sobrescrita ou exclusão de premiações nesta fase.
+A ordem Mestre da Guerra → Guardião → Alma e os desempates da Fase 3 são preservados. Uma semana tem somente um lote definitivo; um jogador tem no máximo um título nessa semana. Repetir a formalização da mesma avaliação retorna o lote existente. Formalizar outra avaliação da mesma semana retorna 409. Não existe operação de sobrescrita ou exclusão de premiações nesta fase.
 
 ## Integridade e testes
 

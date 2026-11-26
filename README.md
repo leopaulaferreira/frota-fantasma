@@ -95,17 +95,17 @@ na página.
 Os gráficos mostram a evolução semanal da pontuação, da participação e das
 doações. Logo abaixo, as premiações previstas destacam três categorias:
 
-- **Capitão da Guerra:** destaque pela pontuação na guerra.
+- **Mestre da Guerra:** destaque pela pontuação na guerra.
 - **Guardião da Frota:** reconhecimento pelo maior contador de doações coletado na semana encerrada.
 - **Alma Imortal:** consistência ao longo das guerras analisadas.
 
-[![Gráficos de oito semanas de pontos, participação e doações, seguidos das três premiações previstas](docs/screenshots/readme/awards.png)](docs/screenshots/readme/awards.png)
+[![Gráficos de oito semanas de pontos, participação e doações, seguidos dos quatro cards de premiação](docs/screenshots/readme/awards.png)](docs/screenshots/readme/awards.png)
 
 Os títulos seguem os critérios e a amostra disponíveis. A projeção é provisória;
 o reconhecimento formalizado fica registrado. Um jogador não acumula títulos
 na mesma semana entre esses três títulos, e categorias sem dados suficientes podem ficar sem vencedor.
 
-Na página `/premiacoes`, o **👻 Fantasma Lendário** acompanha a superação do recorde
+Na página `/premiacoes`, o **Fantasma Lendário** acompanha a superação do recorde
 individual do Caminho de Troféus, com mínimo de 1.600 medalhas e 16 decks na guerra.
 A categoria começa em modo experimental, com recorde observado identificado, tabela
 de candidatos e histórico semanal. A primeira coleta estabelece a base, sem vencedor.

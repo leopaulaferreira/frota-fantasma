@@ -185,7 +185,7 @@ warlog e membros, e de guerra publicada oficialmente a partir desse fechamento;
 o relógio sozinho não confirma o resultado. A recuperação cobre o fechamento
 mais recente, não publica retroativamente todas as semanas perdidas.
 
-Capitão usa a guerra recém-publicada; Alma Imortal inclui essa guerra nas quatro
+Mestre da Guerra usa a guerra recém-publicada; Alma Imortal inclui essa guerra nas quatro
 últimas; Guardião e desempates usam as doações observadas da semana calendário
 anterior, no fuso das regras de analytics (explicitado na evidência). Essa semana
 de doações não equivale ao intervalo segunda 06h–segunda 06h. Resets e lacunas

@@ -41,7 +41,7 @@ Persistir `MemberStatus` e regras versionadas/configuráveis. Valores iniciais s
 
 - **Promoções:** sugerir somente candidatos a Ancião; considerar cargo atual, mínimo de guerras, média, percentual de decks, doações, tempo de associação e ausência de alertas recentes. Exibir estatísticas, score e motivo; nunca aplicar promoção.
 - **Observação:** verde/amarelo/vermelho com razões para pontuação baixa recorrente, decks não usados, inatividade inferida, zero doações e ausência recorrente. Distinguir informação desconhecida de falha comprovada.
-- **Capitão da Guerra:** maior pontuação no período atual/finalizado identificado.
+- **Mestre da Guerra:** maior pontuação no período atual/finalizado identificado.
 - **Guardião da Frota:** maior número de doações no período semanal identificado.
 - **Alma Imortal:** participação nas quatro guerras, priorização de decks completos/quase completos, média e doações como critério adicional/desempate. Participação incompleta excluída por padrão, com opção explícita de configuração. Definir desempates determinísticos e mostrar os dados usados.
 - **Frota Score:** opcional, normalizado de 0 a 100; pesos iniciais 45% guerra, 35% decks/participação e 20% doações. Validar soma dos pesos e metas de normalização. Explicar cada parcela e o tratamento de dados ausentes.

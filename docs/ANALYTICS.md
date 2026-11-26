@@ -62,7 +62,7 @@ Toda métrica contém `value`, `origin`, `quality`, `period`, `warsConsidered`, 
 | `membersToObserve`, `membersToReview` | SNAPSHOT_DERIVED | Contagens das classificações do elenco observado |
 | Evolução: `averagePoints`, `totalDecks`, `participationPercent`, `standardDeckTargetPercent`, `averagePointsChange` | DERIVED | Participantes de guerras publicadas em cada semana, incluindo ex-membros; variação só entre semanas adjacentes |
 | Evolução: `observedDonations`, `newMembers`, `departures` | SNAPSHOT_DERIVED | Snapshots/eventos da semana, incluindo ex-membros |
-| Capitão | DERIVED | Ordenação de pontuações da guerra |
+| Mestre da Guerra | DERIVED | Ordenação de pontuações da guerra |
 | Alma Imortal | SNAPSHOT_DERIVED | Ordenação de métricas de guerra e doações derivadas de snapshots como desempate |
 | Guardião da Frota | SNAPSHOT_DERIVED | Ordenação do maior contador oficial coletado na semana anterior encerrada |
 
@@ -93,9 +93,9 @@ Não se infere ausência de justificativa pessoal. O líder recebe a evidência 
 
 ## Destaques e candidatos
 
-A alocação semanal usa **Capitão → Guardião → Alma**, removendo cada escolhido antes da categoria seguinte. Empates finais usam tag crescente para garantir determinismo. Apenas membros do elenco observado no corte são elegíveis. Sem candidato/dados, o título fica vazio com motivo. A mesma resposta nunca concede dois títulos ao mesmo jogador. As listas são recalculadas conforme chegam dados; não representam títulos concedidos definitivamente.
+A alocação semanal usa **Mestre da Guerra → Guardião → Alma**, removendo cada escolhido antes da categoria seguinte. Empates finais usam tag crescente para garantir determinismo. Apenas membros do elenco observado no corte são elegíveis. Sem candidato/dados, o título fica vazio com motivo. A mesma resposta nunca concede dois títulos ao mesmo jogador. As listas são recalculadas conforme chegam dados; não representam títulos concedidos definitivamente.
 
-- **Capitão:** maior pontuação positiva da última guerra publicada na semana selecionada; mostrar pontos e decks. Não reutiliza uma guerra antiga como título de semana nova.
+- **Mestre da Guerra:** maior pontuação positiva da última guerra publicada na semana selecionada; mostrar pontos e decks. Não reutiliza uma guerra antiga como título de semana nova.
 - **Guardião:** maior contador positivo coletado pela API oficial na semana anterior à semana da premiação, no fuso configurado. Usa `guardianDonations`, derivado de `DonationPeriod.peakCounter`: preserva o máximo mesmo após reset e não soma segmentos de reingresso. Uma captura válida permite conhecer um pico observado; sem captura válida, o valor é desconhecido e não participa do ranking. A semana atual nunca substitui a encerrada. O período e a captura que sustentam o valor acompanham a evidência. Lacunas podem ocultar um pico maior, portanto a métrica permanece incompleta. `weeklyDonations` continua sendo a soma de diferenças observadas usada nas demais regras.
 - **Alma:** exige amostra mínima configurável de guerras completas no padrão de 16; dados de pontos/decks presentes na janela e nenhum zero explícito. Ordena por quantidade de completas, total de decks, média, doações e tag. Doações desconhecidas ficam atrás das conhecidas; não viram zero.
 - **Ancião:** somente `member`; participação positiva em todas as guerras da janela, amostra mínima, média >= meta, uso do padrão >= percentual configurado, tempo observado mínimo, doações observadas >= mínimo e status MANTER. Retorna avaliação e razões para candidatos e não elegíveis. Cumprir um limite inferior de doações já prova atingir o mínimo, mas não torna o período completo.
