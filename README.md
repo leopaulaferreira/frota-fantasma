@@ -103,7 +103,13 @@ doações. Logo abaixo, as premiações previstas destacam três categorias:
 
 Os títulos seguem os critérios e a amostra disponíveis. A projeção é provisória;
 o reconhecimento formalizado fica registrado. Um jogador não acumula títulos
-na mesma semana, e categorias sem dados suficientes podem ficar sem vencedor.
+na mesma semana entre esses três títulos, e categorias sem dados suficientes podem ficar sem vencedor.
+
+Na página `/premiacoes`, o **👻 Fantasma Lendário** acompanha a superação do recorde
+individual do Caminho de Troféus, com mínimo de 1.600 medalhas e 16 decks na guerra.
+A categoria começa em modo experimental, com recorde observado identificado, tabela
+de candidatos e histórico semanal. A primeira coleta estabelece a base, sem vencedor.
+Veja [regras, coleta e ativação oficial](docs/FANTASMA-LENDARIO.md).
 
 ## Revisão semanal
 
@@ -155,6 +161,7 @@ Configuração, instalação e comandos estão no **[Guia de execução](docs/GU
 | Entender indicadores e critérios | [Métricas e análises](docs/ANALYTICS.md) |
 | Conhecer as telas e os fluxos | [Guia do painel](docs/FRONTEND.md) |
 | Revisar membros ao fim da semana | [Revisão semanal](docs/WEEKLY-REVIEW.md) |
+| Acompanhar o Fantasma Lendário | [Premiação experimental da Ladder](docs/FANTASMA-LENDARIO.md) |
 | Importar arquivos históricos | [Importação RoyaleAPI](docs/ROYALEAPI-IMPORT.md) |
 | Cuidar de acesso, backups e publicação | [Operação](docs/OPERATIONS.md) |
 
