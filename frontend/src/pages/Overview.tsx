@@ -1,3 +1,4 @@
+import { LegendaryHighlight } from "../components/LegendaryAward";
 import "../overview.css";
 import { CollectionFreshness } from "../components/CollectionFreshness";
 import { WeeklyEvolution } from "../components/WeeklyEvolution";
@@ -49,7 +50,7 @@ export function Overview() {
               <h2>Premiações previstas</h2>
               <Link to="/premiacoes">Histórico de títulos →</Link>
             </div>
-            <div className="awards">
+            <div className="awards awards-four">
               {r.highlights.map((h) => (
                 <AwardCard
                   key={h.title}
@@ -58,6 +59,7 @@ export function Overview() {
                   week={r.week}
                 />
               ))}
+              <LegendaryHighlight />
             </div>
             <details className="panel">
             <summary>Consultar indicadores e evidências por semana</summary>

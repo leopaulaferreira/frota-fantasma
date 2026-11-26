@@ -35,9 +35,19 @@ test("primeira coleta não inventa vencedor nem trata ausência como zero", asyn
   await page.goto("/premiacoes");
   const section = page.getByRole("region", { name: "👻 Fantasma Lendário", exact: true });
   await expect(section.getByText("Aguardando dados para comparação")).toBeVisible();
-  await expect(section.getByText("Recorde observado pelo sistema", { exact: true })).toBeVisible();
-  await expect(section.locator(".award-winner")).toHaveCount(0);
-  await expect(section.getByText(/A primeira coleta estabelece/)).toBeVisible();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await section.getByRole("button", { name: "Informações sobre Fantasma Lendário" }).click();
+  const dialog = page.getByRole("dialog", { name: "👻 Fantasma Lendário" });
+  await expect(dialog.getByText("Recorde observado pelo sistema", { exact: true })).toBeVisible();
+  await expect(dialog.getByText(/A primeira coleta estabelece/)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(section.getByRole("button", { name: "Informações sobre Fantasma Lendário" })).toBeFocused();
+  await expect(section.locator(".legendary-card .award-winner")).toHaveCount(0);
+  const cards = page.locator(".awards-four > .royale-award");
+  await expect(cards).toHaveCount(4);
+  const boxes = await cards.evaluateAll(nodes => nodes.map(n => n.getBoundingClientRect().top));
+  expect(new Set(boxes).size).toBe(1);
 });
 test("mostra superação separada da evolução e consulta semanas anteriores", async ({ page }) => {
   await page.route("**/api/legendary-awards?*", async route => {
@@ -76,8 +86,8 @@ test("erro na consulta permite tentar novamente", async ({ page }) => {
     ? route.fulfill({ status: 503, json: { detail: "Consulta temporariamente indisponível" } })
     : route.fulfill({ json: baseline }));
   await page.goto("/premiacoes");
-  await expect(page.locator(".legendary-section").getByRole("alert")).toContainText("Consulta temporariamente indisponível");
+  await expect(page.locator(".awards-four").getByRole("alert")).toContainText("Consulta temporariamente indisponível");
   fail = false;
-  await page.locator(".legendary-section").getByRole("button", { name: "Tentar novamente" }).click();
+  await page.locator(".awards-four").getByRole("button", { name: "Tentar novamente" }).click();
   await expect(page.locator(".legendary-card")).toContainText("Aguardando dados para comparação");
 });

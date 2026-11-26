@@ -177,7 +177,7 @@ test("dashboard e investigação completa de membro", async ({ page }, info) => 
         .locator(".banner-ghost, .award-character")
         .evaluateAll(
           (images) =>
-            images.length === 4 &&
+            images.length === 5 &&
             images.every(
               (image) =>
                 (image as HTMLImageElement).complete &&

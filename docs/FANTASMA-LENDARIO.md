@@ -86,7 +86,7 @@ Se a Supercell alterar a semântica ou reiniciar o Caminho de Troféus, pause a 
 
 - `GET /api/legendary-awards?week=YYYY-MM-DD&page=0`: consulta autenticada, sem chamadas externas; histórico paginado em blocos de 52 semanas.
 - `POST /api/legendary-awards/collect`: administrador com CSRF; retoma a coleta dentro da janela permitida. Não força uma coleta retroativa nem finaliza as outras premiações.
-- `/premiacoes`: card com identidade visual existente, origem do recorde, resultado, critérios, tabela de doze colunas, elegibilidade/motivos e seleção de semanas. “—” representa dado ausente.
+- `/premiacoes`: quatro cards lado a lado no desktop, com o Fantasma Lendário junto dos destaques tradicionais. O botão “i” discreto abre a descrição e os critérios em uma janela acessível; Escape fecha e devolve o foco ao botão. A visão geral também exibe os quatro destaques. Histórico, tabela de doze colunas e seleção de semanas permanecem abaixo dos cards. “—” representa dado ausente.
 
 Estados: `COLLECTING`, `AWAITING_WAR`, `COMPLETE`, `INCOMPLETE`, `MISSED`. Nenhum estado incompleto confirma vencedor. Os dados sintéticos usados em testes ficam exclusivamente nos testes; não há seed de produção.
 

@@ -303,13 +303,9 @@ export function Awards() {
   return (
     <>
       <Heading eyebrow="RECONHECIMENTO" title="Premiações" />
-      <p className="lede">
-        Nos três títulos tradicionais, cada jogador recebe no máximo um título por semana.
-        O Fantasma Lendário tem acompanhamento independente.
-      </p>
       <h2>Projeção da semana</h2>
       <QueryState query={q}>
-        <div className="awards">
+        <LegendaryAward highlights={<>
           {q.data?.highlights.map((h) => (
             <AwardCard
               key={h.title}
@@ -318,7 +314,7 @@ export function Awards() {
               week={q.data.week}
             />
           ))}
-        </div>
+        </>} />
       </QueryState>
       <div className="callout">
         <Link to="/recomendacoes?tipo=candidatos">
@@ -350,7 +346,6 @@ export function Awards() {
           </p>
         </div>
       )}
-      <LegendaryAward />
       <h2>Títulos tradicionais formalizados</h2>
       <Paged<Award>
         path="/recommendations/awards"

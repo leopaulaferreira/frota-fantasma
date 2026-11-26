@@ -1246,9 +1246,7 @@ details.panel > summary { line-height: 1.5; padding-block: 4px; }
 }
 
 /* Fantasma Lendário shares the existing award art, colors and table treatment. */
-.legendary-section { margin: 32px 0; }
-.legendary-summary { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 24px; align-items: start; }
-.legendary-explanation { margin: 0; }
+.legendary-section { margin: 0 0 32px; }
 .legendary-metrics { margin: 20px 0; }
 .legendary-metrics div { display: flex; justify-content: space-between; gap: 18px; padding: 7px 0; border-bottom: 1px solid #ffffff12; }
 .legendary-metrics dt { color: var(--muted); font-size: 13px; }
@@ -1258,6 +1256,19 @@ details.panel > summary { line-height: 1.5; padding-block: 4px; }
 .legendary-table tbody th { min-width: 150px; }
 .legendary-table tbody th small { display: block; font-weight: 400; }
 .legendary-table td:last-child { min-width: 250px; white-space: normal; }
-@media (max-width: 900px) { .legendary-summary { grid-template-columns: 1fr; } }
 
 .legendary-caption { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.awards.awards-four { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.awards-four .award-content { padding: 18px; }
+.award-title-row { display: flex; align-items: baseline; gap: 8px; }
+.award-title-row h3 { flex: 1; min-width: 0; }
+.award-info { display: inline-flex; padding: 3px; min-width: 0; border: 0; background: transparent; color: var(--muted); opacity: .75; flex-shrink: 0; }
+.award-info:hover, .award-info:focus-visible { opacity: 1; color: var(--text); }
+@media (max-width: 1050px) { .awards.awards-four { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .awards.awards-four { grid-template-columns: 1fr; } }
+.awards-four .award-content h3 { font-size: 16px; line-height: 1.4; margin: 14px 0 10px; }
+.awards-four .legendary-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; margin: 16px 0; }
+.awards-four .legendary-metrics div { display: block; padding: 5px 0; }
+.awards-four .legendary-metrics dt { font-size: 11px; line-height: 1.4; }
+.awards-four .legendary-metrics dd { margin-top: 4px; font-size: 15px; }
